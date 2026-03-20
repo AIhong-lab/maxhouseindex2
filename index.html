@@ -1407,9 +1407,12 @@
     </section>
 
 
-    <!-- 5. SUBSIDY APT -->
+                <!-- 5. SUBSIDY APT -->
     <section class="section-padding" id="subsidy-apt">
 <style>
+
+
+
 /* === 公寓補助新版面 CSS === */
 .apt-subsidy-wrap { max-width: 900px; margin: 0 auto; }
 
@@ -1510,46 +1513,70 @@
     display: inline-block; background: #c0392b; color: white;
     border-radius: 20px; padding: 2px 10px; font-size: 0.75rem; font-weight: 700;
 }
-</style>
 
+/* === 公寓型補助左右兩欄 === */
+.apt-two-col-wrap {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.apt-col-left,
+.apt-col-right {
+  flex: 1;
+  min-width: 0;
+}
+@media (max-width: 900px) {
+  .apt-two-col-wrap {
+    flex-direction: column;
+    gap: 18px;
+  }
+}
+/* 結構安全評估色系 */
+.apt-block-teal { background: linear-gradient(135deg, #16a085, #1abc9c); }
+.apt-row-num-teal { background: #16a085; }
+.apt-row-value.teal { color: #16a085; }
+</style>
 <div class="container">
 <div class="text-center" style="margin-bottom: 40px;">
     <h2 style="color: var(--primary-color); font-size: 2.2rem; font-weight: 900;">公寓型修繕補助</h2>
     <p style="color: var(--text-gray); font-size: 1.1rem;">針對 4-6 層樓集合住宅，公私領域全面升級</p>
 </div>
 
-<div class="apt-subsidy-wrap fade-in">
-
-    <!-- 結構安全性能評估 -->
-    <div class="apt-block-header apt-block-teal" style="margin-bottom:0; border-radius: 10px 10px 0 0;">
-        <i class="fa-solid fa-magnifying-glass-chart"></i> 結構安全性能評估
-        <span class="badge-tag">2 項擇 1 項</span>
+<!-- 結構安全評估（全寬） -->
+<div class="apt-block-header apt-block-teal" style="margin-bottom:0; border-radius: 10px 10px 0 0; max-width:1200px; margin-left:auto; margin-right:auto;">
+    <i class="fa-solid fa-magnifying-glass-chart"></i> 結構安全性能評估
+    <span class="badge-tag">2 項擇 1 項</span>
+</div>
+<div class="apt-table-wrap" style="margin-bottom: 20px; max-width:1200px; margin-left:auto; margin-right:auto;">
+    <div class="apt-table-head">
+        <span>項目名稱</span>
+        <span>說明</span>
+        <span style="text-align:right;">補助上限</span>
     </div>
-    <div class="apt-table-wrap" style="margin-bottom: 28px;">
-        <div class="apt-table-head">
-            <span>項目名稱</span>
-            <span>說明</span>
-            <span style="text-align:right;">補助上限</span>
-        </div>
-        <div class="apt-row">
-            <div class="apt-row-title"><span class="apt-row-num apt-row-num-teal">1</span>初步評估</div>
-            <div class="apt-row-desc">建物結構概略安全評估</div>
-            <div class="apt-row-value teal">1萬5千元/棟</div>
-        </div>
-        <div class="apt-row">
-            <div class="apt-row-title"><span class="apt-row-num apt-row-num-teal">2</span>詳細評估</div>
-            <div class="apt-row-desc">建物結構詳細安全鑑定</div>
-            <div class="apt-row-value teal">40萬元/棟</div>
-        </div>
+    <div class="apt-row">
+        <div class="apt-row-title"><span class="apt-row-num apt-row-num-teal">1</span>初步評估</div>
+        <div class="apt-row-desc">建物結構概略安全評估</div>
+        <div class="apt-row-value teal">1萬5千元/棟</div>
     </div>
-
-    <!-- 補助率說明 -->
-    <div class="apt-rate-banner">
-        <i class="fa-solid fa-circle-info" style="color:#e8a020;font-size:1.1rem;"></i>
-        各項實際修繕經費以 <strong>65% 為補助上限</strong>，且不得超過各項額度上限金額
+    <div class="apt-row">
+        <div class="apt-row-title"><span class="apt-row-num apt-row-num-teal">2</span>詳細評估</div>
+        <div class="apt-row-desc">建物結構詳細安全鑑定</div>
+        <div class="apt-row-value teal">40萬元/棟</div>
     </div>
+</div>
 
-    <!-- 一、公共空間 -->
+<!-- 補助率說明（全寬） -->
+<div class="apt-rate-banner" style="max-width:1200px; margin: 0 auto 28px auto;">
+    <i class="fa-solid fa-circle-info" style="color:#e8a020;font-size:1.1rem;"></i>
+    各項實際修繕經費以 <strong>65% 為補助上限</strong>，且不得超過各項額度上限金額
+</div>
+
+<!-- 左右兩欄 -->
+<div class="apt-two-col-wrap fade-in">
+  <!-- 左欄：公共空間 -->
+  <div class="apt-col-left">
     <div class="apt-block-header apt-block-orange">
         <i class="fa-solid fa-users"></i> 一、公共空間「共用」部分修繕
         <span class="badge-tag">必選 3 項以上</span>
@@ -1601,8 +1628,10 @@
             <div class="apt-row-value">40萬/棟</div>
         </div>
     </div>
+  </div>
 
-    <!-- 二、私人室內 -->
+  <!-- 右欄：私人室內 -->
+  <div class="apt-col-right">
     <div class="apt-block-header apt-block-red">
         <i class="fa-solid fa-house-user"></i> 二、私人室內「專有」部分修繕
         <span class="badge-tag">可加選</span>
@@ -1637,12 +1666,9 @@
     </div>
 
     <!-- 注意事項 -->
-    <div class="apt-notice">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <span><strong>特別注意：</strong>公共空間每棟最高補助 <strong style="color:#c0392b;">65%（上限 960 萬，依施作項目累加）</strong>，且需取得 <strong>100% 住戶同意</strong>。</span>
-    </div>
-
-</div><!-- end apt-subsidy-wrap -->
+    
+  </div>
+</div><!-- end apt-two-col-wrap -->
 </div>
 </section>
 
@@ -1654,39 +1680,40 @@
     <p style="color: var(--text-gray); font-size: 1.1rem;">針對 6 樓以下透天住宅，外觀機能同步翻新</p>
 </div>
 
-<div class="apt-subsidy-wrap fade-in">
-
-    <!-- 結構安全性能評估 -->
-    <div class="apt-block-header apt-block-teal" style="margin-bottom:0; border-radius: 10px 10px 0 0;">
-        <i class="fa-solid fa-magnifying-glass-chart"></i> 結構安全性能評估
-        <span class="badge-tag">2 項擇 1 項</span>
+<!-- 結構安全評估（全寬） -->
+<div class="apt-block-header apt-block-teal" style="margin-bottom:0; border-radius: 10px 10px 0 0; max-width:1200px; margin-left:auto; margin-right:auto;">
+    <i class="fa-solid fa-magnifying-glass-chart"></i> 結構安全性能評估
+    <span class="badge-tag">2 項擇 1 項</span>
+</div>
+<div class="apt-table-wrap" style="margin-bottom: 20px; max-width:1200px; margin-left:auto; margin-right:auto;">
+    <div class="apt-table-head">
+        <span>項目名稱</span>
+        <span>說明</span>
+        <span style="text-align:right;">補助上限</span>
     </div>
-    <div class="apt-table-wrap" style="margin-bottom: 28px;">
-        <div class="apt-table-head">
-            <span>項目名稱</span>
-            <span>說明</span>
-            <span style="text-align:right;">補助上限</span>
-        </div>
-        <div class="apt-row">
-            <div class="apt-row-title"><span class="apt-row-num apt-row-num-teal">1</span>初步評估</div>
-            <div class="apt-row-desc">建物結構概略安全評估</div>
-            <div class="apt-row-value teal">1萬5千元/棟</div>
-        </div>
-        <div class="apt-row">
-            <div class="apt-row-title"><span class="apt-row-num apt-row-num-teal">2</span>詳細評估</div>
-            <div class="apt-row-desc">建物結構詳細安全鑑定</div>
-            <div class="apt-row-value teal">40萬元/棟</div>
-        </div>
+    <div class="apt-row">
+        <div class="apt-row-title"><span class="apt-row-num apt-row-num-teal">1</span>初步評估</div>
+        <div class="apt-row-desc">建物結構概略安全評估</div>
+        <div class="apt-row-value teal">1萬5千元/棟</div>
     </div>
-
-    <!-- 補助率說明 -->
-    <div class="apt-rate-banner">
-        <i class="fa-solid fa-circle-info" style="color:#e8a020;font-size:1.1rem;"></i>
-        各項實際修繕經費以 <strong>65% 為補助上限</strong>，且不得超過各項額度上限金額
+    <div class="apt-row">
+        <div class="apt-row-title"><span class="apt-row-num apt-row-num-teal">2</span>詳細評估</div>
+        <div class="apt-row-desc">建物結構詳細安全鑑定</div>
+        <div class="apt-row-value teal">40萬元/棟</div>
     </div>
+</div>
 
-    <!-- 一、室外修繕 -->
-    <div class="apt-block-header apt-block-green">
+<!-- 補助率說明（全寬） -->
+<div class="apt-rate-banner" style="max-width:1200px; margin: 0 auto 28px auto;">
+    <i class="fa-solid fa-circle-info" style="color:#e8a020;font-size:1.1rem;"></i>
+    各項實際修繕經費以 <strong>65% 為補助上限</strong>，且不得超過各項額度上限金額
+</div>
+
+<!-- 左右兩欄 -->
+<div class="apt-two-col-wrap fade-in">
+  <!-- 左欄：室外修繕 -->
+  <div class="apt-col-left">
+    <div class="apt-block-header apt-block-green" style="border-radius: 10px 10px 0 0;">
         <i class="fa-solid fa-tree"></i> 一、室外修繕
         <span class="badge-tag">必選 1 項</span>
     </div>
@@ -1696,17 +1723,17 @@
             <span>說明</span>
             <span style="text-align:right;">補助上限</span>
         </div>
-        <div class="apt-row" style="background:#f0f8ff;">
+        <div class="apt-row">
             <div class="apt-row-title"><span class="apt-row-num apt-row-num-green">1</span>立面修繕（五或六層透天住宅）</div>
             <div class="apt-row-desc">全棟立面外觀翻新</div>
             <div class="apt-row-value">300萬/棟</div>
         </div>
-        <div class="apt-row" style="background:#f5fbff;">
+        <div class="apt-row">
             <div class="apt-row-title"><span class="apt-row-num apt-row-num-green">2</span>立面修繕（三或四層透天住宅）</div>
             <div class="apt-row-desc">全棟立面外觀翻新</div>
             <div class="apt-row-value">200萬/棟</div>
         </div>
-        <div class="apt-row" style="background:#fafeff;">
+        <div class="apt-row">
             <div class="apt-row-title"><span class="apt-row-num apt-row-num-green">3</span>立面修繕（一或二層透天住宅）</div>
             <div class="apt-row-desc">全棟立面外觀翻新</div>
             <div class="apt-row-value">100萬/棟</div>
@@ -1727,9 +1754,11 @@
             <div class="apt-row-value">5萬/棟</div>
         </div>
     </div>
+  </div>
 
-    <!-- 二、室內修繕 -->
-    <div class="apt-block-header apt-block-red">
+  <!-- 右欄：室內修繕 -->
+  <div class="apt-col-right">
+    <div class="apt-block-header apt-block-red" style="border-radius: 10px 10px 0 0;">
         <i class="fa-solid fa-couch"></i> 二、室內修繕
         <span class="badge-tag">可加選</span>
     </div>
@@ -1761,16 +1790,15 @@
             <div class="apt-row-value">+30萬/戶</div>
         </div>
     </div>
-
-    <!-- 注意事項 -->
-    <div class="apt-notice">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <span><strong>特別注意：</strong>室外修繕各項補助以實際修繕經費 <strong style="color:#c0392b;">65% 為上限</strong>，且需取得 <strong>100% 住戶同意</strong>。</span>
-    </div>
-
-</div><!-- end apt-subsidy-wrap -->
+  </div>
+</div><!-- end apt-two-col-wrap -->
 </div>
 </section>
+
+
+
+
+
 
 <!-- 7. STRATEGY 創收 (移除政府補助卡，重新排版) -->
     
@@ -1919,6 +1947,7 @@
         window.addEventListener('scroll', () => {
             document.querySelector('header').style.padding = window.scrollY > 50 ? '10px 0' : '14px 0';
         });
+    
     </script>
 
 </body>
