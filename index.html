@@ -1069,6 +1069,23 @@
             .apt-row { grid-template-columns: 1fr; gap: 4px; padding: 12px 16px; }
             .apt-row-value { text-align: left; font-size: 1.05rem; margin-top: 2px; }
             .apt-row-desc { padding-right: 0; }
+            .apt-row-group-shared {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "title1"
+                    "desc1"
+                    "title2"
+                    "desc2"
+                    "value";
+                row-gap: 4px;
+                padding: 12px 16px;
+            }
+            .apt-row-group-shared .apt-row-value-shared {
+                text-align: left;
+                justify-self: start;
+                align-self: start;
+                margin-top: 4px;
+            }
             .apt-block-header { font-size: 0.9rem; flex-wrap: wrap; gap: 6px; }
             .apt-rate-banner { flex-direction: column; text-align: center; font-size: 0.88rem; }
             .apt-subsidy-wrap { padding: 0; }
@@ -1389,6 +1406,220 @@ body.nav-open {
 }
 
 </style>
+
+<style id="hero-flip-enhancement">
+    .hero-flip-row {
+        justify-content: center;
+        margin-bottom: 36px;
+    }
+    .hero-flip-card-wrap {
+        width: min(100%, 380px);
+        perspective: 1800px;
+        animation: fadeInUp 0.7s ease 0.2s both;
+    }
+    .hero-flip-card {
+        position: relative;
+        width: 100%;
+        min-height: 345px;
+        transform-style: preserve-3d;
+        transition: transform 0.95s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+        cursor: default;
+    }
+    .hero-flip-card:hover {
+        box-shadow: 0 18px 44px rgba(0,0,0,0.22);
+    }
+    .hero-flip-card.is-flipped {
+        transform: rotateY(180deg);
+    }
+    .hero-flip-card-face {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+    }
+    .hero-flip-card-front {
+        transform: rotateY(0deg);
+    }
+    .hero-flip-card-back {
+        transform: rotateY(180deg);
+    }
+    .hero-flip-card-face .hero-block {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        height: 100%;
+        min-height: 345px;
+        margin: 0;
+        animation: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+        .hero-flip-card-wrap {
+            width: min(100%, 92vw);
+        }
+        .hero-flip-card {
+            min-height: 300px;
+        }
+        .hero-flip-card-face .hero-block {
+            min-height: 300px;
+            padding: 24px 20px !important;
+        }
+    }
+</style>
+
+
+<style id="hero-location-clarity-style">
+    .hero-location-banner {
+        margin: 24px auto 0;
+        max-width: 880px;
+        padding: 18px 22px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08));
+        border: 1px solid rgba(255,255,255,0.16);
+        box-shadow: 0 18px 42px rgba(0,0,0,0.16);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+    .hero-location-main {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: #ffffff;
+        font-weight: 900;
+        font-size: clamp(1rem, 2vw, 1.16rem);
+        line-height: 1.7;
+        text-align: center;
+    }
+    .hero-location-main i {
+        color: #f1c857;
+        font-size: 1.05em;
+        flex-shrink: 0;
+    }
+    .hero-location-sub {
+        margin-top: 8px;
+        color: rgba(255,255,255,0.88);
+        font-size: 0.98rem;
+        line-height: 1.8;
+        text-align: center;
+    }
+    .hero-location-actions {
+        margin-top: 16px;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .hero-location-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 48px;
+        padding: 12px 20px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    }
+    .hero-location-btn-primary {
+        background: linear-gradient(135deg, #e2b53c, #c99525);
+        color: #fff;
+        box-shadow: 0 14px 28px rgba(201, 155, 59, 0.28);
+    }
+    .hero-location-btn-secondary {
+        background: rgba(255,255,255,0.12);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.16);
+    }
+    .hero-location-btn:hover {
+        transform: translateY(-2px);
+    }
+    .cta-location-reminder {
+        margin: 0 auto 24px;
+        max-width: 720px;
+        padding: 18px 22px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(241, 200, 87, 0.35);
+        box-shadow: 0 16px 36px rgba(0,0,0,0.14);
+    }
+    .cta-location-title {
+        display: block;
+        color: #f7d36f;
+        font-size: 0.95rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        margin-bottom: 8px;
+    }
+    .cta-location-text {
+        color: #ffffff;
+        font-size: 1.04rem;
+        font-weight: 800;
+        line-height: 1.8;
+    }
+    .cta-location-sub {
+        margin-top: 6px;
+        color: rgba(255,255,255,0.82);
+        font-size: 0.95rem;
+        line-height: 1.8;
+    }
+    .cta-location-actions {
+        margin-top: 14px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .cta-location-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 800;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.16);
+        transition: transform 0.25s ease, background 0.25s ease;
+    }
+    .cta-location-link:hover {
+        transform: translateY(-2px);
+        background: rgba(255,255,255,0.18);
+    }
+    @media (max-width: 768px) {
+        .hero-location-banner {
+            padding: 16px 16px;
+            border-radius: 20px;
+        }
+        .hero-location-main {
+            align-items: flex-start;
+            text-align: left;
+            justify-content: flex-start;
+        }
+        .hero-location-sub {
+            text-align: left;
+        }
+        .hero-location-actions,
+        .cta-location-actions {
+            justify-content: stretch;
+        }
+        .hero-location-btn,
+        .cta-location-link {
+            width: 100%;
+        }
+        .cta-location-reminder {
+            padding: 16px 16px;
+            border-radius: 18px;
+        }
+    }
+</style>
+
 </head>
 <body>
     <header>
@@ -1434,56 +1665,52 @@ body.nav-open {
             <div class="hero-top-label">
                 <span class="hero-top-tag">老屋翻身最強組合</span>
             </div>
+            <!-- 翻頁數字卡 -->
+            <div class="hero-split-row hero-flip-row">
+                <div class="hero-flip-card-wrap fadeInUp">
+                    <div class="hero-flip-card" id="heroFlipCard" aria-label="政府補助與包租翁規劃翻頁卡片">
+                        <div class="hero-flip-card-face hero-flip-card-front">
+                            <div class="hero-block hero-block-gov">
+                                <div class="hero-block-eyebrow">
+                                    <i class="fa-solid fa-landmark"></i> 政府補助
+                                </div>
+                                <div class="hero-block-badge">老宅延壽・舊厝換新衫</div>
+                                <div class="hero-block-num">960<span class="hero-block-unit">萬</span></div>
+                                <div class="hero-block-sub">最高補助 / 棟</div>
+                                <div class="hero-block-tags">
+                                    <span class="h-tag">外牆拉皮</span>
+                                    <span class="h-tag">增設電梯</span>
+                                    <span class="h-tag">屋頂防水</span>
+                                </div>
+                            </div>
+                        </div>
 
-            <!-- 雙欄數字區 -->
-            <div class="hero-split-row">
+                        <div class="hero-flip-card-face hero-flip-card-back">
+                            <div class="hero-block hero-block-bao">
+                                <div class="hero-block-eyebrow">
+                                    <i class="fa-solid fa-coins"></i> 包租翁規劃
+                                </div>
+                                <div class="hero-block-badge hero-block-badge-gold">老屋創收・室內改革</div>
+                                <div class="hero-block-num hero-block-num-gold">
+                                    50<span class="hero-block-tilde">～</span>250<span class="hero-block-unit">萬</span>
+                                </div>
+                                <div class="hero-block-sub">包租翁補助</div>
+                                <div class="hero-block-tags">
+                                    <span class="h-tag h-tag-gold">創造價值</span>
+                                    <span class="h-tag h-tag-gold">保證收租</span>
+                                    <span class="h-tag h-tag-gold">合作雙贏</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                <!-- 左：政府補助 -->
-                <div class="hero-block hero-block-gov">
-                    <div class="hero-block-eyebrow">
-                        <i class="fa-solid fa-landmark"></i> 政府補助
-                    </div>
-                    <div class="hero-block-badge">老宅延壽・舊厝換新衫</div>
-                    <div class="hero-block-num">960<span class="hero-block-unit">萬</span></div>
-                    <div class="hero-block-sub">最高補助 / 棟</div>
-                    <div class="hero-block-tags">
-                        <span class="h-tag">外牆拉皮</span>
-                        <span class="h-tag">增設電梯</span>
-                        <span class="h-tag">屋頂防水</span>
-                    </div>
                 </div>
-
-                <!-- 中間加號 -->
-                <div class="hero-center-plus">
-                    <div class="hero-plus-circle">
-                        <span>＋</span>
-                    </div>
-                </div>
-
-                <!-- 右：包租翁 -->
-                <div class="hero-block hero-block-bao">
-                    <div class="hero-block-eyebrow">
-                        <i class="fa-solid fa-coins"></i> 包租翁規劃
-                    </div>
-                    <div class="hero-block-badge hero-block-badge-gold">老屋創收・室內改革</div>
-                    <div class="hero-block-num hero-block-num-gold">
-                        50<span class="hero-block-tilde">～</span>250<span class="hero-block-unit">萬</span>
-                    </div>
-                    <div class="hero-block-sub">包租翁補助</div>
-                    <div class="hero-block-tags">
-                        <span class="h-tag h-tag-gold">創造價值</span>
-                        <span class="h-tag h-tag-gold">保證收租</span>
-                        <span class="h-tag h-tag-gold">合作雙贏</span>
-                    </div>
-                </div>
-
             </div>
 
             <!-- 主標題 -->
             <h1 class="hero-headline hero-headline-bottom">
                 讓<span class="hero-hl-num">30年</span>老屋重獲新生，<span class="hero-hl-red">創造最大資產價值！</span>
             </h1>
-
 
 
         </div>
@@ -1661,6 +1888,39 @@ body.nav-open {
 .apt-row:last-child { border-bottom: none; }
 .apt-row:hover { background: #fafbfc; }
 
+.apt-row-group-shared {
+    display: grid;
+    grid-template-columns: 2fr 2.5fr 1fr;
+    grid-template-areas:
+        "title1 desc1 value"
+        "title2 desc2 value";
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+.apt-row-group-shared .apt-shared-title-1,
+.apt-row-group-shared .apt-shared-title-2,
+.apt-row-group-shared .apt-shared-desc-1,
+.apt-row-group-shared .apt-shared-desc-2 {
+    padding: 14px 0;
+}
+.apt-row-group-shared .apt-shared-title-1 { grid-area: title1; }
+.apt-row-group-shared .apt-shared-desc-1 { grid-area: desc1; }
+.apt-row-group-shared .apt-shared-title-2 { grid-area: title2; border-top: 1px solid #f0f0f0; }
+.apt-row-group-shared .apt-shared-desc-2 { grid-area: desc2; border-top: 1px solid #f0f0f0; }
+.apt-row-group-shared .apt-row-value-shared {
+    grid-area: value;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-weight: 900;
+    font-size: 1rem;
+    color: #c0392b;
+    white-space: nowrap;
+    padding-left: 12px;
+}
+
 .apt-row-num {
     display: inline-flex; align-items: center; justify-content: center;
     width: 22px; height: 22px; border-radius: 50%;
@@ -1837,15 +2097,12 @@ body.nav-open {
             <span>說明</span>
             <span style="text-align:right;">補助上限</span>
         </div>
-        <div class="apt-row">
-            <div class="apt-row-title"><span class="apt-row-num apt-row-num-red">1</span>居家安全及無障礙設施設備修繕</div>
-            <div class="apt-row-desc">浴廁扶手、防滑地板、無障礙改善</div>
-            <div class="apt-row-value">20萬/戶</div>
-        </div>
-        <div class="apt-row">
-            <div class="apt-row-title"><span class="apt-row-num apt-row-num-red">2</span>管線修繕更新</div>
-            <div class="apt-row-desc">給排水、電氣、燃氣管線</div>
-            <div class="apt-row-value">20萬/戶</div>
+        <div class="apt-row-group-shared">
+            <div class="apt-row-title apt-shared-title-1"><span class="apt-row-num apt-row-num-red">1</span>居家安全及無障礙設施設備修繕</div>
+            <div class="apt-row-desc apt-shared-desc-1">浴廁扶手、防滑地板、無障礙改善</div>
+            <div class="apt-row-title apt-shared-title-2"><span class="apt-row-num apt-row-num-red">2</span>管線修繕更新</div>
+            <div class="apt-row-desc apt-shared-desc-2">給排水、電氣、燃氣管線</div>
+            <div class="apt-row-value apt-row-value-shared">20萬/戶</div>
         </div>
         <div class="apt-row apt-row-bonus">
             <div class="apt-row-title" style="color:#c0392b;">
@@ -1963,15 +2220,12 @@ body.nav-open {
             <span>說明</span>
             <span style="text-align:right;">補助上限</span>
         </div>
-        <div class="apt-row">
-            <div class="apt-row-title"><span class="apt-row-num apt-row-num-red">1</span>居家安全及無障礙設施設備修繕</div>
-            <div class="apt-row-desc">浴廁扶手、防滑地板、無障礙改善</div>
-            <div class="apt-row-value">20萬/戶</div>
-        </div>
-        <div class="apt-row">
-            <div class="apt-row-title"><span class="apt-row-num apt-row-num-red">2</span>管線修繕更新</div>
-            <div class="apt-row-desc">給排水、電氣、燃氣管線</div>
-            <div class="apt-row-value">20萬/戶</div>
+        <div class="apt-row-group-shared">
+            <div class="apt-row-title apt-shared-title-1"><span class="apt-row-num apt-row-num-red">1</span>居家安全及無障礙設施設備修繕</div>
+            <div class="apt-row-desc apt-shared-desc-1">浴廁扶手、防滑地板、無障礙改善</div>
+            <div class="apt-row-title apt-shared-title-2"><span class="apt-row-num apt-row-num-red">2</span>管線修繕更新</div>
+            <div class="apt-row-desc apt-shared-desc-2">給排水、電氣、燃氣管線</div>
+            <div class="apt-row-value apt-row-value-shared">20萬/戶</div>
         </div>
         <div class="apt-row apt-row-bonus">
             <div class="apt-row-title" style="color:#c0392b;">
@@ -2093,20 +2347,28 @@ body.nav-open {
                 </div>
             </div>
         </div>
+
     </section>
 
-
-    <!-- 11. CTA -->
+<!-- 11. CTA -->
     <section class="section-padding text-center" id="cta">
 <div class="container">
 <h2 class="fade-in">名額有限，立即預約！</h2>
-<p class="cta-sub fade-in">立即領取免費老宅評估懶人包，或報名現場分享會，了解您的房產最大創收潛力！</p>
+<p class="cta-sub fade-in">加入LINE官方免費領取懶人包，或立即報名老宅延壽＋房產創收講座，快速了解補助申請、講座內容與創收規劃。</p>
+<div class="cta-location-reminder fade-in">
+<span class="cta-location-title">講座地點</span>
+<div class="cta-location-text">新北市板橋區仁化街21號1樓</div>
+<div class="cta-location-sub">江子翠捷運站 5 號出口步行約 3 分鐘，講座每月舉辦。</div>
+<div class="cta-location-actions">
+<a class="cta-location-link" href="https://maps.app.goo.gl/kNTPZfNR67tZka6H9" target="_blank" rel="noopener"><i class="fa-solid fa-route"></i> 開啟 Google 地圖導航</a>
+</div>
+</div>
 <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 40px;">
 <a class="btn-gold fade-in" href="https://lin.ee/VvSMM38" rel="noopener" style="width: 100%; max-width: 450px; justify-content: center;" target="_blank">
-<i class="fa-brands fa-line"></i> 免費領取老宅延壽懶人包
+<i class="fa-brands fa-line"></i> 加入LINE官方免費領取懶人包
                 </a>
 <a class="btn-gold fade-in" href="https://forms.gle/yPt6e85ZnHdEWiwM6" rel="noopener" style="width: 100%; max-width: 450px; justify-content: center; background: linear-gradient(135deg, #1a3d6b, #0f2c4e); border: 1px solid var(--secondary-color);" target="_blank">
-<i class="fa-solid fa-calendar-check"></i> 報名老宅延壽+房產創收分享會
+<i class="fa-solid fa-calendar-check"></i> 立即報名老宅延壽+房產創收講座
                 </a>
 </div>
 <p class="cta-note fade-in" style="margin-top: 30px;">本補助預算有限，場次名額亦有限，建議儘早完成預約</p>
@@ -2165,6 +2427,62 @@ body.nav-open {
         });
     
     </script>
+
+
+<script id="hero-flip-script">
+    document.addEventListener('DOMContentLoaded', function () {
+        const flipCard = document.getElementById('heroFlipCard');
+        if (!flipCard) return;
+
+        const flipIntervalMs = 3200;
+        let flipTimer = null;
+        let isFlipped = false;
+        let observerStarted = false;
+
+        function applyFlipState(nextState) {
+            isFlipped = nextState;
+            flipCard.classList.toggle('is-flipped', isFlipped);
+        }
+
+        function toggleFlip() {
+            applyFlipState(!isFlipped);
+        }
+
+        function stopAutoFlip() {
+            if (flipTimer) {
+                clearInterval(flipTimer);
+                flipTimer = null;
+            }
+        }
+
+        function startAutoFlip() {
+            if (flipTimer) return;
+            flipTimer = setInterval(toggleFlip, flipIntervalMs);
+        }
+
+        setTimeout(startAutoFlip, 1200);
+
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        if (!observerStarted) {
+                            observerStarted = true;
+                            setTimeout(startAutoFlip, 1200);
+                        } else {
+                            startAutoFlip();
+                        }
+                    } else {
+                        stopAutoFlip();
+                    }
+                });
+            }, { threshold: 0.15 });
+            observer.observe(flipCard);
+        } else {
+            setTimeout(startAutoFlip, 1200);
+        }
+    });
+</script>
 
 </body>
 </html>
