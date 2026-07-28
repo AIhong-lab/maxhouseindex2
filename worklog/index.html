@@ -293,6 +293,71 @@ select.f:focus,input.f:focus{border-color:var(--gold);outline:none}
 .toast.show{transform:translateX(-50%);opacity:1}
 .toast.ok{background:#1c7a54}.toast.err{background:var(--red)}
 
+/* ============ Account chip / auth ============ */
+.acct{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.06);
+  cursor:pointer;transition:.16s;position:relative}
+.acct:hover{background:rgba(255,255,255,.12)}
+.acct .av{width:36px;height:36px;border-radius:50%;flex:0 0 auto;background:linear-gradient(135deg,var(--gold),var(--gold-light));
+  display:grid;place-items:center;color:var(--navy);font-weight:900;font-size:15px;object-fit:cover;overflow:hidden}
+.acct .av img{width:100%;height:100%;object-fit:cover}
+.acct .who{min-width:0;flex:1}
+.acct .who .nm{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
+.acct .who .em{font-size:11px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.role-badge{font-size:10px;font-weight:800;padding:1px 7px;border-radius:20px;background:var(--gold);color:var(--navy);letter-spacing:.3px}
+.role-badge.user{background:rgba(255,255,255,.2);color:#fff}
+.acct-menu{position:absolute;bottom:calc(100% + 8px);left:0;right:0;background:#fff;color:var(--ink);border-radius:12px;
+  box-shadow:var(--shadow-lg);padding:6px;display:none;z-index:70}
+.acct-menu.show{display:block}
+.acct-menu button{display:flex;align-items:center;gap:9px;width:100%;padding:9px 12px;border-radius:9px;font-size:13.5px;font-weight:600;text-align:left;color:var(--ink)}
+.acct-menu button:hover{background:var(--bg)}
+.acct-menu .sep{height:1px;background:var(--line);margin:5px 4px}
+.acct-menu button.danger{color:var(--red)}
+
+/* target (managing other user) banner */
+.target-banner{display:none;align-items:center;gap:12px;background:var(--navy);color:#fff;padding:11px 18px;
+  position:sticky;top:0;z-index:45;font-size:14px;font-weight:600}
+.target-banner.show{display:flex}
+.target-banner .ic{font-size:18px}
+.target-banner b{color:var(--gold-light)}
+.target-banner button{margin-left:auto;background:rgba(255,255,255,.14);color:#fff;padding:6px 14px;border-radius:9px;font-weight:700;font-size:13px}
+.target-banner button:hover{background:rgba(255,255,255,.24)}
+
+/* ============ Auth gate ============ */
+.authgate{position:fixed;inset:0;z-index:500;background:linear-gradient(135deg,var(--navy),var(--navy-deep));
+  display:none;place-items:center;padding:24px;overflow-y:auto}
+.authgate.show{display:grid}
+.auth-card{background:#fff;border-radius:22px;box-shadow:var(--shadow-lg);width:min(420px,100%);padding:34px 32px;text-align:center}
+.auth-card .logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--gold),var(--gold-light));
+  display:grid;place-items:center;color:var(--navy);font-weight:900;font-size:26px;margin:0 auto 16px;box-shadow:0 8px 20px rgba(212,175,55,.35)}
+.auth-card h1{font-size:22px;font-weight:900}
+.auth-card .tag{color:var(--ink-soft);font-size:14px;margin:4px 0 24px}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;border:1.5px solid var(--line);
+  border-radius:12px;font-weight:700;font-size:15px;background:#fff;transition:.16s}
+.gbtn:hover{box-shadow:var(--shadow-sm);border-color:#cfd6de}
+.gbtn svg{width:20px;height:20px}
+.auth-div{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--ink-mute);font-size:12px}
+.auth-div::before,.auth-div::after{content:"";flex:1;height:1px;background:var(--line)}
+.auth-card input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:11px;background:#fff}
+.auth-card input:focus{border-color:var(--gold);outline:none}
+.auth-err{color:var(--red);font-size:13px;margin-bottom:11px;min-height:18px;text-align:left}
+.auth-toggle{font-size:13.5px;color:var(--ink-soft);margin-top:18px}
+.auth-toggle a{color:var(--navy-light);font-weight:800;cursor:pointer}
+.auth-local{margin-top:16px;font-size:12.5px}
+.auth-local a{color:rgba(255,255,255,.7);cursor:pointer;text-decoration:underline}
+
+/* ============ Admin ============ */
+.utable{width:100%;border-collapse:collapse;font-size:13.5px}
+.utable th{text-align:left;padding:11px 12px;color:var(--ink-mute);font-weight:700;font-size:12px;border-bottom:2px solid var(--line);white-space:nowrap}
+.utable td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.utable tr:hover td{background:var(--card-2)}
+.utable .u-name{font-weight:700}
+.utable .u-email{color:var(--ink-mute);font-size:12px}
+.utable .u-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.rp{font-size:11px;font-weight:800;padding:2px 9px;border-radius:20px}
+.rp.admin{background:var(--gold-soft);color:#8a6d13}
+.rp.user{background:#eaf1fb;color:var(--navy-light)}
+
 /* ============ Responsive ============ */
 @media(max-width:900px){
   :root{--sidebar:0px}
@@ -337,10 +402,16 @@ select.f:focus,input.f:focus{border-color:var(--gold);outline:none}
       <button data-view="projects"><i class="ic">🗂️</i>專案</button>
       <button data-view="portfolio"><i class="ic">🏆</i>作品集<span class="badge" id="nav-star">0</span></button>
       <button data-view="stats"><i class="ic">📈</i>統計</button>
+      <button data-view="admin" id="nav-admin" style="display:none"><i class="ic">👥</i>管理</button>
       <button data-view="settings"><i class="ic">⚙️</i>設定</button>
     </nav>
     <div class="side-foot">
-      <div class="sync-chip"><span class="dot off" id="side-dot"></span><span id="side-sync">雲端未連線</span></div>
+      <div class="acct" id="acctChip">
+        <div class="av" id="acctAv">誌</div>
+        <div class="who"><div class="nm" id="acctNm">本機模式</div><div class="em" id="acctEm">未登入 · 點此登入</div></div>
+        <div class="acct-menu" id="acctMenu"></div>
+      </div>
+      <div class="sync-chip" id="sideSyncChip" style="margin-top:10px"><span class="dot off" id="side-dot"></span><span id="side-sync">雲端未連線</span></div>
     </div>
   </aside>
   <div class="scrim" id="scrim"></div>
@@ -350,6 +421,10 @@ select.f:focus,input.f:focus{border-color:var(--gold);outline:none}
     <div class="topbar">
       <button class="menu" id="menuBtn" aria-label="選單">☰</button>
       <div class="tb-brand"><span class="logo">誌</span>工作日誌</div>
+    </div>
+    <div class="target-banner" id="targetBanner">
+      <i class="ic">👤</i><span>正在管理 <b id="targetName"></b> 的日誌</span>
+      <button onclick="backToMe()">← 返回我的日誌</button>
     </div>
     <div class="content">
       <!-- ===== Dashboard ===== -->
@@ -362,6 +437,8 @@ select.f:focus,input.f:focus{border-color:var(--gold);outline:none}
       <section class="view" id="view-portfolio"></section>
       <!-- ===== Stats ===== -->
       <section class="view" id="view-stats"></section>
+      <!-- ===== Admin ===== -->
+      <section class="view" id="view-admin"></section>
       <!-- ===== Settings ===== -->
       <section class="view" id="view-settings"></section>
     </div>
@@ -378,9 +455,33 @@ select.f:focus,input.f:focus{border-color:var(--gold);outline:none}
 <!-- Generic modal -->
 <div class="modal" id="modal"></div>
 
+<!-- Auth gate -->
+<div class="authgate" id="authgate">
+  <div class="auth-card">
+    <div class="logo">誌</div>
+    <h1>工作日誌</h1>
+    <div class="tag">登入以跨裝置同步、管理團隊日誌</div>
+    <button class="gbtn" id="googleBtn">
+      <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      使用 Google 登入
+    </button>
+    <div class="auth-div">或</div>
+    <div class="auth-err" id="authErr"></div>
+    <input type="text" id="authName" placeholder="姓名（註冊時填寫）" style="display:none">
+    <input type="email" id="authEmail" placeholder="Email">
+    <input type="password" id="authPass" placeholder="密碼（至少 6 碼）">
+    <button class="btn primary block" id="authSubmit" style="padding:12px">登入</button>
+    <div class="auth-toggle" id="authToggle">還沒有帳號？<a id="authSwitch">註冊新帳號</a></div>
+    <div class="auth-local"><a id="useLocal">先不登入，使用本機模式 →</a></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <script>
 "use strict";
 /* ============================================================
@@ -418,17 +519,41 @@ let curView='dashboard';
 let filter={q:'',type:'',project:'',tag:'',starOnly:false,sort:'new'};
 let editingId=null, editStar=false, editType=TYPES[0];
 
+/* ---------- Accounts / cloud config ---------- */
+const OWNER_EMAIL='rickex.hong@gmail.com';           // 擁有者：首次登入即為管理員
+/* 貼上你的 Firebase 網頁設定（Firebase 控制台 → 專案設定 → 你的應用程式）。
+   留空則以「本機模式」運作（不需登入，資料存本機）。此設定為公開資訊，安全性由 Firestore 規則把關。 */
+let FIREBASE_CONFIG={apiKey:"",authDomain:"",projectId:"",storageBucket:"",messagingSenderId:"",appId:""};
+const LS_FB='worklog.fbconfig.v1';
+function getFbConfig(){
+  try{const o=JSON.parse(localStorage.getItem(LS_FB));if(o&&o.apiKey)return o;}catch(e){}
+  return (FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.projectId)?FIREBASE_CONFIG:null;
+}
+function defaultSettings(){return{reminder:{enabled:false,time:'18:00',_lastNotified:''},
+  drive:{clientId:'',autoSync:true,fileId:'',lastSync:0,connected:false},lastPrompt:0};}
+const App={mode:'local',user:null,uid:null,profile:null,role:'user',db:null,auth:null,targetUid:null,targetName:'',unsub:null,authMode:'signin'};
+const isAdmin=()=>App.role==='admin';
+const managingOther=()=>App.mode==='cloud'&&App.targetUid&&App.targetUid!==App.uid;
+
 /* ---------- Persistence ---------- */
 function load(){
   try{const d=JSON.parse(localStorage.getItem(LS_DATA)); if(Array.isArray(d)) entries=d;}catch(e){}
   try{const s=JSON.parse(localStorage.getItem(LS_SET)); if(s) settings=deepMerge(settings,s);}catch(e){}
 }
-function saveData(sync=true){
-  localStorage.setItem(LS_DATA,JSON.stringify(entries));
+function saveData(changed){
   updateBadges();
-  if(sync && settings.drive.connected && settings.drive.autoSync) Drive.schedulePush();
+  if(App.mode==='cloud'){ if(changed&&typeof changed==='object') cloudUpsert(changed); return; }
+  localStorage.setItem(LS_DATA,JSON.stringify(entries));
+  if(settings.drive.connected && settings.drive.autoSync) Drive.schedulePush();
 }
-function saveSettings(){localStorage.setItem(LS_SET,JSON.stringify(settings));}
+function saveSettings(){
+  if(App.mode==='cloud'&&(App.targetUid||App.uid)){
+    const uid=App.targetUid||App.uid;
+    App.db.collection('users').doc(uid).set({settings:JSON.parse(JSON.stringify(settings))},{merge:true}).catch(()=>{});
+  }else{
+    localStorage.setItem(LS_SET,JSON.stringify(settings));
+  }
+}
 function deepMerge(a,b){const o={...a};for(const k in b){o[k]=(b[k]&&typeof b[k]==='object'&&!Array.isArray(b[k]))?deepMerge(a[k]||{},b[k]):b[k];}return o;}
 const live=()=>entries.filter(e=>!e.deleted);
 
@@ -478,7 +603,7 @@ function go(v){
 }
 function render(){
   ({dashboard:renderDashboard,journal:renderJournal,projects:renderProjects,
-    portfolio:renderPortfolio,stats:renderStats,settings:renderSettings}[curView])();
+    portfolio:renderPortfolio,stats:renderStats,admin:renderAdmin,settings:renderSettings}[curView]||renderDashboard)();
   updateBadges();
 }
 function updateBadges(){
@@ -638,7 +763,7 @@ function bindEntryCards(root){
   });
   $$('[data-star]',root).forEach(b=>b.addEventListener('click',ev=>{ev.stopPropagation();toggleStar(b.dataset.star);}));
 }
-function toggleStar(id){const e=entries.find(x=>x.id===id);if(!e)return;e.highlight=!e.highlight;e.updatedAt=new Date().toISOString();saveData();render();
+function toggleStar(id){const e=entries.find(x=>x.id===id);if(!e)return;e.highlight=!e.highlight;e.updatedAt=new Date().toISOString();saveData(e);render();
   toast(e.highlight?'已收藏到作品集 ⭐':'已取消收藏','ok');}
 
 /* ============================================================
@@ -752,8 +877,25 @@ function renderSettings(){
   const el=$('#view-settings');const origin=location.origin;
   const dr=settings.drive;const rm=settings.reminder;
   const notifState=('Notification'in window)?Notification.permission:'unsupported';
+  const cloud=App.mode==='cloud';
   el.innerHTML=`
-    <div class="page-head"><h1>設定</h1><p>提醒、雲端同步與資料備份都在這裡。</p></div>
+    <div class="page-head"><h1>設定</h1><p>帳號、提醒、雲端同步與資料備份都在這裡。</p></div>
+
+    <div class="card set-card">
+      <h2>👤 帳號與雲端</h2>
+      ${cloud&&App.user?`
+        <div class="desc">已登入：<b>${esc(App.user.email||'')}</b>　<span class="rp ${isAdmin()?'admin':'user'}">${isAdmin()?'管理員':'成員'}</span></div>
+        <div class="row"><div><div class="lab">雲端同步</div><div class="hint">資料即時儲存在 Firebase，換裝置登入即接續</div></div>
+          <div class="rt"><span class="sync-status"><b>已啟用 ✓</b></span></div></div>
+        ${isAdmin()?`<div class="row"><div><div class="lab">團隊管理</div><div class="hint">建立成員帳號、幫成員設定日誌</div></div><div class="rt"><button class="btn sm navy" onclick="go('admin')">👥 開啟管理</button></div></div>`:''}
+        <div class="row"><div class="rt" style="margin-left:0;width:100%"><button class="btn sm ghost danger" onclick="doSignOut()">🚪 登出</button></div></div>
+      `:`
+        <div class="desc">目前為<b>本機模式</b>，資料存在這台裝置的瀏覽器。啟用登入後可跨裝置同步，並幫其他人建立與管理帳號。</div>
+        <div class="row"><div class="rt" style="margin-left:0;width:100%">
+          ${getFbConfig()?`<button class="btn sm primary" onclick="showAuthGate()">🔑 登入</button>`:`<button class="btn sm primary" onclick="openFbSetup()">🔗 啟用登入與雲端</button>`}
+        </div></div>
+      `}
+    </div>
 
     <div class="card set-card">
       <h2>🔔 每日提醒</h2>
@@ -767,9 +909,10 @@ function renderSettings(){
       <div class="callout">📱 想要更可靠的提醒？在手機瀏覽器選「加入主畫面 / 安裝 App」，把工作日誌變成獨立 App。<br><span style="color:var(--ink-mute)">註：完全離線、關閉 App 也能推播的背景提醒需要伺服器，本站為純前端，提醒會在你開啟 App 時觸發。</span></div>
     </div>
 
+    ${cloud?'':`
     <div class="card set-card">
-      <h2>☁️ Google Drive 雲端同步</h2>
-      <div class="desc">把日誌同步到你自己的 Google Drive，換裝置也能接續。資料存在你的 Drive，本站不經過任何伺服器。</div>
+      <h2>☁️ Google Drive 個人備份</h2>
+      <div class="desc">本機模式下，可另外把日誌備份到你自己的 Google Drive。（登入帳號後改由雲端同步，此區會自動隱藏。）</div>
       <div class="row"><div class="sync-status" style="width:100%">
         ${dr.connected?`<span class="dot on" style="display:inline-block;vertical-align:middle"></span> 已連線${dr.lastSync?` · 最後同步 <b>${new Date(dr.lastSync).toLocaleString('zh-TW')}</b>`:''}`:'<span class="dot off" style="display:inline-block;vertical-align:middle"></span> 尚未連線'}
       </div></div>
@@ -798,7 +941,7 @@ function renderSettings(){
         </ol>
         僅需 <code>drive.file</code> 權限——本站只能存取它自己建立的那一個備份檔，看不到你 Drive 的其他檔案。
       </div>`}
-    </div>
+    </div>`}
 
     <div class="card set-card">
       <h2>💾 資料備份與管理</h2>
@@ -889,15 +1032,16 @@ function saveEntry(){
     reflection:$('#ed-ref').value.trim(),metrics:$('#ed-met').value.trim(),
     tags,highlight:editStar,updatedAt:new Date().toISOString()
   };
-  if(editingId){const e=entries.find(x=>x.id===editingId);Object.assign(e,data);}
-  else{entries.push({id:uid(),createdAt:new Date().toISOString(),deleted:false,...data});}
-  saveData();closeSheet();render();
+  let saved;
+  if(editingId){const e=entries.find(x=>x.id===editingId);Object.assign(e,data);saved=e;}
+  else{saved={id:uid(),createdAt:new Date().toISOString(),deleted:false,...data};entries.push(saved);}
+  saveData(saved);closeSheet();render();
   toast(editingId?'已更新 ✓':'已儲存，經驗 +1 📚','ok');
 }
 function delEntry(id){
-  showConfirm('刪除這則日誌？','刪除後可從雲端或備份還原，但本機會移除。',()=>{
+  showConfirm('刪除這則日誌？','刪除後可從雲端或備份還原。',()=>{
     const e=entries.find(x=>x.id===id);if(e){e.deleted=true;e.updatedAt=new Date().toISOString();}
-    saveData();closeSheet();closeModal();render();toast('已刪除','ok');
+    saveData(e);closeSheet();closeModal();render();toast('已刪除','ok');
   });
 }
 
@@ -1048,7 +1192,9 @@ function importJSON(ev){
   const f=ev.target.files[0];if(!f)return;const r=new FileReader();
   r.onload=()=>{try{const d=JSON.parse(r.result);const inc=Array.isArray(d)?d:d.entries;
     if(!Array.isArray(inc))throw 0;
-    const before=entries.length;entries=mergeEntries(entries,inc);saveData();render();
+    const norm=inc.filter(e=>e&&e.id);entries=mergeEntries(entries,norm);
+    if(App.mode==='cloud')cloudUpsertMany(norm);else saveData();
+    updateBadges();render();
     toast(`已匯入，合併後共 ${live().length} 則`,'ok');
   }catch(e){toast('檔案格式不正確','err');}ev.target.value='';};
   r.readAsText(f);
@@ -1060,8 +1206,9 @@ function mergeEntries(a,b){
   return [...m.values()];
 }
 function wipeAll(){
-  showConfirm('清除所有資料？','這會刪除本機所有日誌。若已連雲端，雲端仍保有備份。建議先「匯出 JSON」。',()=>{
-    entries=[];saveData(false);localStorage.removeItem(LS_DATA);render();toast('已清除本機資料','ok');
+  if(App.mode==='cloud'){toast('雲端模式：請於日誌中個別刪除，本機清除不適用','err');return;}
+  showConfirm('清除所有資料？','這會刪除本機所有日誌。建議先「匯出 JSON」備份。',()=>{
+    entries=[];saveData();localStorage.removeItem(LS_DATA);render();toast('已清除本機資料','ok');
   });
 }
 
@@ -1182,9 +1329,269 @@ const Drive={
   }
 };
 function updateSideSync(){
+  const dot=$('#side-dot'),txt=$('#side-sync');if(!dot)return;
+  if(App.mode==='cloud'){dot.className='dot on';txt.textContent=App.user?'雲端已同步':'雲端已啟用';return;}
   const on=settings.drive.connected;
-  $('#side-dot').className='dot '+(on?'on':'off');
-  $('#side-sync').textContent=on?(settings.drive.lastSync?'雲端已同步':'雲端已連線'):'雲端未連線';
+  dot.className='dot '+(on?'on':'off');
+  txt.textContent=on?(settings.drive.lastSync?'雲端已同步':'雲端已連線'):'本機模式';
+}
+
+/* ============================================================
+   AUTH · CLOUD (Firebase) · ADMIN
+   ============================================================ */
+function dataUid(){return App.targetUid||App.uid;}
+function dataRef(){return App.db.collection('users').doc(dataUid()).collection('entries');}
+function stripDoc(e){const {id,...rest}=e;const r={};for(const k in rest){if(rest[k]!==undefined)r[k]=rest[k];}return r;}
+function cloudUpsert(e){if(App.mode!=='cloud'||!e||!e.id)return;
+  dataRef().doc(e.id).set(stripDoc(e),{merge:true}).catch(err=>toast('雲端同步失敗：'+err.message,'err'));}
+function cloudUpsertMany(arr){if(App.mode!=='cloud'||!arr.length)return;
+  for(let i=0;i<arr.length;i+=400){const ch=arr.slice(i,i+400);const b=App.db.batch();
+    ch.forEach(e=>{if(e&&e.id)b.set(dataRef().doc(e.id),stripDoc(e),{merge:true});});b.commit().catch(()=>{});}}
+
+function bootAuth(){
+  const cfg=getFbConfig();
+  if(!cfg||typeof firebase==='undefined'||!firebase.initializeApp){startLocal();return;}
+  try{
+    if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(cfg);
+    App.auth=firebase.auth();App.db=firebase.firestore();App.mode='cloud';
+    updateSideSync();renderAccount();
+    App.auth.onAuthStateChanged(onAuth,()=>startLocal());
+  }catch(e){console.warn('Firebase init failed',e);startLocal();}
+}
+function startLocal(){
+  App.mode='local';App.user=null;App.uid=null;App.role='user';App.targetUid=null;
+  load();hideAuthGate();renderAccount();updateSideSync();updateTargetBanner();
+  $('#nav-admin').style.display='none';
+  render();checkReminder();
+  if(settings.drive.connected&&settings.drive.clientId){
+    const tryInit=()=>{if(Drive.ready()){Drive.initClient(settings.drive.clientId);Drive.pull(false);}else setTimeout(tryInit,800);};
+    setTimeout(tryInit,1200);
+  }
+}
+async function onAuth(user){
+  if(!user){App.user=null;App.uid=null;App.role='user';App.targetUid=null;
+    if(App.unsub){App.unsub();App.unsub=null;}entries=[];showAuthGate();renderAccount();return;}
+  App.user=user;App.uid=user.uid;App.targetUid=user.uid;App.targetName='';
+  try{await ensureProfile(user);}catch(e){console.warn(e);}
+  hideAuthGate();renderAccount();updateTargetBanner();updateSideSync();
+  $('#nav-admin').style.display=isAdmin()?'':'none';
+  if(curView==='admin'&&!isAdmin())curView='dashboard';
+  subscribeEntries(user.uid);checkReminder();
+}
+async function ensureProfile(user){
+  const ref=App.db.collection('users').doc(user.uid);
+  let d={};try{const snap=await ref.get();if(snap.exists)d=snap.data()||{};}catch(e){}
+  const role=(user.email===OWNER_EMAIL)?'admin':(d.role||'user');
+  const prof={email:user.email||d.email||'',displayName:user.displayName||d.displayName||'',role,lastActive:Date.now()};
+  if(!d.createdAt)prof.createdAt=Date.now();
+  if(!d.settings)prof.settings=defaultSettings();
+  try{await ref.set(prof,{merge:true});}catch(e){}
+  App.profile=Object.assign({},d,prof);App.role=role;
+  settings=deepMerge(defaultSettings(),App.profile.settings||{});
+}
+function subscribeEntries(uid){
+  if(App.unsub){App.unsub();App.unsub=null;}
+  entries=[];
+  App.unsub=App.db.collection('users').doc(uid).collection('entries').onSnapshot(
+    qs=>{entries=qs.docs.map(d=>Object.assign({id:d.id},d.data()));updateBadges();render();},
+    err=>toast('讀取雲端資料失敗：'+err.message,'err'));
+}
+
+/* ---- Auth gate UI ---- */
+function showAuthGate(){$('#authgate').classList.add('show');}
+function hideAuthGate(){$('#authgate').classList.remove('show');}
+function wireAuth(){
+  $('#googleBtn').onclick=signInGoogle;
+  $('#authSubmit').onclick=submitAuth;
+  $('#useLocal').onclick=()=>{if(App.unsub){App.unsub();App.unsub=null;}startLocal();};
+  bindAuthSwitch();
+  ['authEmail','authPass','authName'].forEach(id=>$('#'+id).addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth();}));
+}
+function bindAuthSwitch(){const s=$('#authSwitch');if(s)s.onclick=toggleAuthMode;}
+function toggleAuthMode(){
+  App.authMode=App.authMode==='signin'?'signup':'signin';const su=App.authMode==='signup';
+  $('#authName').style.display=su?'':'none';
+  $('#authSubmit').textContent=su?'註冊並登入':'登入';
+  $('#authToggle').innerHTML=su?'已經有帳號了？<a id="authSwitch">改用登入</a>':'還沒有帳號？<a id="authSwitch">註冊新帳號</a>';
+  bindAuthSwitch();$('#authErr').textContent='';
+}
+function authError(e){const map={'auth/invalid-email':'Email 格式不正確','auth/user-not-found':'查無此帳號','auth/wrong-password':'密碼錯誤','auth/invalid-credential':'帳號或密碼錯誤','auth/email-already-in-use':'此 Email 已被註冊','auth/weak-password':'密碼至少 6 碼','auth/popup-closed-by-user':'登入視窗被關閉','auth/network-request-failed':'網路連線失敗','auth/unauthorized-domain':'此網域未授權，請到 Firebase Authentication 加入授權網域'};
+  $('#authErr').textContent=map[e.code]||e.message||'發生錯誤';}
+function signInGoogle(){
+  const p=new firebase.auth.GoogleAuthProvider();
+  App.auth.signInWithPopup(p).catch(e=>{
+    if(e.code==='auth/popup-blocked'||e.code==='auth/operation-not-supported-in-this-environment'||e.code==='auth/cancelled-popup-request')App.auth.signInWithRedirect(p);
+    else authError(e);});
+}
+function submitAuth(){
+  const em=$('#authEmail').value.trim(),pw=$('#authPass').value;$('#authErr').textContent='';
+  if(!em||!pw){$('#authErr').textContent='請輸入 Email 與密碼';return;}
+  if(App.authMode==='signup'){
+    const nm=$('#authName').value.trim();
+    App.auth.createUserWithEmailAndPassword(em,pw).then(async cred=>{
+      if(!nm)return;
+      try{await cred.user.updateProfile({displayName:nm});
+        if(App.db)await App.db.collection('users').doc(cred.user.uid).set({displayName:nm},{merge:true});
+        if(App.profile)App.profile.displayName=nm;renderAccount();}catch(e){}
+    }).catch(authError);
+  }else App.auth.signInWithEmailAndPassword(em,pw).catch(authError);
+}
+function doSignOut(){$('#acctMenu').classList.remove('show');if(App.unsub){App.unsub();App.unsub=null;}App.auth.signOut().then(()=>{entries=[];App.targetUid=null;updateTargetBanner();});}
+
+/* ---- Account chip ---- */
+function renderAccount(){
+  const av=$('#acctAv'),nm=$('#acctNm'),em=$('#acctEm'),chip=$('#acctChip');
+  if(App.mode==='cloud'&&App.user){
+    const name=(App.profile&&App.profile.displayName)||App.user.displayName||(App.user.email||'').split('@')[0]||'成員';
+    nm.innerHTML=esc(name)+` <span class="role-badge ${isAdmin()?'':'user'}">${isAdmin()?'管理員':'成員'}</span>`;
+    em.textContent=App.user.email||'';
+    if(App.user.photoURL)av.innerHTML=`<img src="${esc(App.user.photoURL)}" referrerpolicy="no-referrer" alt="">`;
+    else{av.innerHTML='';av.textContent=(name[0]||'誌').toUpperCase();}
+    buildAcctMenu();chip.onclick=toggleAcctMenu;
+  }else{
+    av.innerHTML='';av.textContent='誌';nm.textContent='本機模式';
+    em.textContent=getFbConfig()?'點此登入':'未登入 · 點此設定';
+    $('#acctMenu').classList.remove('show');
+    chip.onclick=()=>{getFbConfig()?showAuthGate():openFbSetup();};
+  }
+}
+function buildAcctMenu(){$('#acctMenu').innerHTML=
+  `${isAdmin()?'<button onclick="go(\'admin\')">👥 團隊管理</button>':''}`+
+  `<button onclick="go('settings')">⚙️ 設定</button><div class="sep"></div>`+
+  `<button class="danger" onclick="doSignOut()">🚪 登出</button>`;}
+function toggleAcctMenu(e){if(e)e.stopPropagation();$('#acctMenu').classList.toggle('show');}
+
+/* ---- Managing another member ---- */
+function updateTargetBanner(){
+  const b=$('#targetBanner');if(!b)return;
+  if(managingOther()){$('#targetName').textContent=App.targetName||'成員';b.classList.add('show');}
+  else b.classList.remove('show');
+}
+async function switchToUser(uid,name){
+  if(!isAdmin())return;
+  App.targetUid=uid;App.targetName=name||'';
+  try{const s=await App.db.collection('users').doc(uid).get();settings=deepMerge(defaultSettings(),(s.data()||{}).settings||{});}
+  catch(e){settings=defaultSettings();}
+  subscribeEntries(uid);updateTargetBanner();go('dashboard');
+  toast('已進入 '+(name||'該成員')+' 的日誌，你現在的編輯都會存到對方帳號','ok');
+}
+function backToMe(){
+  App.targetUid=App.uid;App.targetName='';
+  App.db.collection('users').doc(App.uid).get().then(s=>{settings=deepMerge(defaultSettings(),(s.data()||{}).settings||{});render();}).catch(()=>{});
+  subscribeEntries(App.uid);updateTargetBanner();go('dashboard');
+}
+
+/* ---- Admin view ---- */
+function renderAdmin(){
+  const el=$('#view-admin');
+  if(!isAdmin()){el.innerHTML=`<div class="page-head"><h1>團隊管理</h1></div>`+emptyBox('沒有權限','此頁僅限管理員。','🔒');return;}
+  el.innerHTML=`<div class="page-head"><h1>團隊管理</h1><p>建立成員帳號、幫成員設定日誌、管理權限。</p></div>
+    <div class="toolbar">
+      <button class="btn primary" onclick="openCreateUser()"><i class="ic">＋</i> 新增成員帳號</button>
+      <button class="btn" onclick="loadUsers()"><i class="ic">🔄</i> 重新整理</button>
+      <span id="admin-count" style="margin-left:auto;color:var(--ink-mute);font-size:13px;align-self:center"></span>
+    </div>
+    <div class="card" style="padding:6px"><div class="table-wrap"><table class="utable">
+      <thead><tr><th>成員</th><th>角色</th><th>紀錄</th><th>最後活動</th><th style="text-align:right">操作</th></tr></thead>
+      <tbody id="utbody"><tr><td colspan="5" style="padding:24px;text-align:center;color:var(--ink-mute)">載入中…</td></tr></tbody>
+    </table></div></div>
+    <div class="callout" style="margin-top:16px">「幫他設定」＝以該成員的身分進入日誌，你新增或修改的內容都會存到對方帳號，方便你替客戶／同事建立初始內容與提醒。完成後點上方橫幅「返回我的日誌」。</div>`;
+  loadUsers();
+}
+async function loadUsers(){
+  const body=$('#utbody');if(!body)return;
+  try{
+    const qs=await App.db.collection('users').get();
+    const users=qs.docs.map(d=>Object.assign({uid:d.id},d.data()));
+    users.sort((a,b)=>(b.lastActive||0)-(a.lastActive||0));
+    const cnt=$('#admin-count');if(cnt)cnt.textContent=`共 ${users.length} 位成員`;
+    body.innerHTML=users.map(userRow).join('');
+    users.forEach(u=>App.db.collection('users').doc(u.uid).collection('entries').get()
+      .then(s=>{const n=s.docs.filter(x=>!(x.data()||{}).deleted).length;const c=document.getElementById('cnt-'+u.uid);if(c)c.textContent=n;})
+      .catch(()=>{const c=document.getElementById('cnt-'+u.uid);if(c)c.textContent='—';}));
+  }catch(e){body.innerHTML=`<tr><td colspan="5" style="padding:20px;color:var(--red)">讀取失敗：${esc(e.message)}。請確認已部署 Firestore 安全性規則（見 worklog/firestore.rules）。</td></tr>`;}
+}
+function userRow(u){
+  const me=u.uid===App.uid;const name=u.displayName||u.email||'（未命名）';
+  const last=u.lastActive?new Date(u.lastActive).toLocaleDateString('zh-TW'):'—';
+  const nameJs=String(name).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  return `<tr>
+    <td><div class="u-name">${esc(name)}${me?' <span class="rp user">你</span>':''}</div><div class="u-email">${esc(u.email||'')}</div></td>
+    <td><span class="rp ${u.role==='admin'?'admin':'user'}">${u.role==='admin'?'管理員':'成員'}</span></td>
+    <td id="cnt-${u.uid}" style="font-variant-numeric:tabular-nums">…</td>
+    <td style="color:var(--ink-soft)">${last}</td>
+    <td><div class="u-acts">
+      <button class="btn sm" onclick="switchToUser('${u.uid}','${nameJs}')">幫他設定</button>
+      ${u.email===OWNER_EMAIL||me?'':`<button class="btn sm ghost" onclick="toggleRole('${u.uid}','${u.role==='admin'?'user':'admin'}')">${u.role==='admin'?'取消管理員':'設為管理員'}</button>`}
+    </div></td></tr>`;
+}
+function toggleRole(uid,role){
+  App.db.collection('users').doc(uid).set({role},{merge:true}).then(()=>{toast('已更新權限','ok');loadUsers();}).catch(e=>toast('失敗：'+e.message,'err'));
+}
+function openCreateUser(){
+  $('#modal').innerHTML=`<div class="modal-card" style="max-width:440px">
+    <div class="mh"><h2>新增成員帳號</h2><p>建立後把 Email 與初始密碼給對方，對方即可登入自己的日誌。</p></div>
+    <div class="mb">
+      <div class="field"><label>姓名</label><input id="cu-name" placeholder="王小明"></div>
+      <div class="field"><label>Email</label><input id="cu-email" type="email" placeholder="name@example.com"></div>
+      <div class="field"><label>初始密碼（至少 6 碼）</label><input id="cu-pass" value="worklog123"></div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;cursor:pointer"><input type="checkbox" id="cu-admin"> 設為管理員</label>
+      <div class="auth-err" id="cu-err" style="margin-top:10px"></div>
+    </div>
+    <div class="mf"><button class="btn ghost" onclick="closeModal()">取消</button><button class="btn primary" id="cu-go">建立帳號</button></div></div>`;
+  $('#modal').classList.add('show');document.body.style.overflow='hidden';
+  $('#cu-go').onclick=createUser;
+}
+async function createUser(){
+  const name=$('#cu-name').value.trim(),email=$('#cu-email').value.trim(),pass=$('#cu-pass').value,admin=$('#cu-admin').checked;
+  const err=$('#cu-err');err.textContent='';
+  if(!email||pass.length<6){err.textContent='請填 Email，且密碼至少 6 碼';return;}
+  const go=$('#cu-go');go.disabled=true;go.textContent='建立中…';
+  let sec;
+  try{
+    sec=firebase.initializeApp(getFbConfig(),'sec-'+Date.now());
+    const cred=await sec.auth().createUserWithEmailAndPassword(email,pass);
+    const uid=cred.user.uid;if(name)await cred.user.updateProfile({displayName:name});
+    await App.db.collection('users').doc(uid).set({email,displayName:name,role:admin?'admin':'user',createdAt:Date.now(),createdBy:App.uid,lastActive:0,settings:defaultSettings()});
+    await sec.auth().signOut();
+    closeModal();toast('已建立帳號：'+email,'ok');if(curView==='admin')loadUsers();
+  }catch(e){err.textContent=({'auth/email-already-in-use':'此 Email 已被註冊','auth/invalid-email':'Email 格式不正確','auth/weak-password':'密碼至少 6 碼'})[e.code]||e.message;go.disabled=false;go.textContent='建立帳號';}
+  finally{if(sec)try{await sec.delete();}catch(e){}}
+}
+
+/* ---- Firebase setup (local mode) ---- */
+function openFbSetup(){
+  $('#modal').innerHTML=`<div class="modal-card">
+    <div class="mh"><h2>啟用登入與雲端</h2><p>貼上你的 Firebase 設定即可開啟登入、跨裝置同步與團隊管理。此設定為公開資訊，安全性由規則把關。</p></div>
+    <div class="mb">
+      <div class="callout"><b>取得設定（約 5 分鐘，只需一次）：</b><ol>
+        <li>到 <code>console.firebase.google.com</code> 建立專案。</li>
+        <li>Authentication → 開始使用 → 啟用「Google」與「電子郵件/密碼」。</li>
+        <li>Firestore Database → 建立資料庫。</li>
+        <li>專案設定 ⚙️ → 你的應用程式 → 新增「網頁」應用程式，複製 <code>firebaseConfig</code>。</li>
+        <li>把整段（含大括號）貼到下方，按「啟用」。</li>
+      </ol>Authentication → Settings → 授權網域，加入 <code>${esc(location.hostname||'你的網域')}</code>。</div>
+      <textarea class="ai-out" id="fb-in" style="height:170px;white-space:pre-wrap" placeholder='{&#10;  apiKey: "...",&#10;  authDomain: "xxx.firebaseapp.com",&#10;  projectId: "xxx",&#10;  ...&#10;}'></textarea>
+      <div class="auth-err" id="fb-err" style="margin-top:8px"></div>
+    </div>
+    <div class="mf"><button class="btn ghost" onclick="closeModal()">取消</button><button class="btn primary" id="fb-save">啟用</button></div></div>`;
+  $('#modal').classList.add('show');document.body.style.overflow='hidden';
+  $('#fb-save').onclick=saveFbConfig;
+}
+function parseLooseObj(s){
+  try{return JSON.parse(s);}catch(e){}
+  let t=s.replace(/([,{]\s*)([A-Za-z_][A-Za-z0-9_]*)\s*:/g,'$1"$2":').replace(/'/g,'"').replace(/,\s*([}\]])/g,'$1');
+  return JSON.parse(t);
+}
+function saveFbConfig(){
+  let raw=$('#fb-in').value.trim();const err=$('#fb-err');err.textContent='';
+  try{
+    const m=raw.match(/\{[\s\S]*\}/);if(m)raw=m[0];
+    const cfg=parseLooseObj(raw);
+    if(!cfg.apiKey||!cfg.projectId)throw new Error('缺少 apiKey 或 projectId');
+    localStorage.setItem(LS_FB,JSON.stringify(cfg));
+    toast('已啟用，重新載入中…','ok');setTimeout(()=>location.reload(),700);
+  }catch(e){err.textContent='解析失敗：'+e.message;}
 }
 
 /* ============================================================
@@ -1194,29 +1601,27 @@ function openSidebar(){$('#sidebar').classList.add('open');$('#scrim').classList
 function closeSidebar(){$('#sidebar').classList.remove('open');$('#scrim').classList.remove('show');}
 
 function init(){
-  load();
+  wireAuth();
   $('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(b)go(b.dataset.view);});
   $('#fab').addEventListener('click',()=>openEditor());
   $('#overlay').addEventListener('click',closeSheet);
   $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
   $('#menuBtn').addEventListener('click',openSidebar);
   $('#scrim').addEventListener('click',closeSidebar);
+  document.addEventListener('click',e=>{if(!e.target.closest('#acctChip'))$('#acctMenu').classList.remove('show');});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSheet();closeModal();}
-    if((e.key==='n'||e.key==='N')&&!/input|textarea|select/i.test(document.activeElement.tagName)&&!$('#sheet').classList.contains('show')){e.preventDefault();openEditor();}});
-  updateSideSync();updateBadges();
-  render();
-  // reminders
-  checkReminder();setInterval(checkReminder,60000);
+    if((e.key==='n'||e.key==='N')&&!/input|textarea|select/i.test(document.activeElement.tagName)&&!$('#sheet').classList.contains('show')&&!$('#authgate').classList.contains('show')){e.preventDefault();openEditor();}});
+  updateBadges();
+  // reminders (mode-agnostic)
+  setInterval(checkReminder,60000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkReminder();});
   // service worker
   if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
-  // auto-reconnect drive silently
-  if(settings.drive.connected&&settings.drive.clientId){
-    const tryInit=()=>{if(Drive.ready()){Drive.initClient(settings.drive.clientId);Drive.pull(false);}else setTimeout(tryInit,800);};
-    setTimeout(tryInit,1200);
-  }
   // expose for inline handlers
-  Object.assign(window,{go,openEditor,saveEntry,delEntry,openDetail,closeSheet,closeModal,toggleStar,openAI,openProject,exportPortfolio});
+  Object.assign(window,{go,openEditor,saveEntry,delEntry,openDetail,closeSheet,closeModal,toggleStar,openAI,openProject,exportPortfolio,
+    backToMe,switchToUser,toggleRole,openCreateUser,createUser,doSignOut,renderAdmin,loadUsers,openFbSetup,showAuthGate});
+  // decide local vs cloud, then render
+  bootAuth();
 }
 document.addEventListener('DOMContentLoaded',init);
 </script>

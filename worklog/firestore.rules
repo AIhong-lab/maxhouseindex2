@@ -1,0 +1,37 @@
+rules_version = '2';
+// 工作日誌 Firestore 安全性規則
+// 部署：Firebase 控制台 → Firestore Database → 規則 → 貼上並發布
+// 或 CLI：firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 擁有者 Email：首次登入即為管理員，並可設定/移除其他人的管理員權限。
+    // 部署前把下面的 Email 換成你自己的（可多個）。
+    function ownerEmails() {
+      return ['rickex.hong@gmail.com'];
+    }
+    function isSignedIn() { return request.auth != null; }
+    function isOwner() { return isSignedIn() && request.auth.token.email in ownerEmails(); }
+    function myRole() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : 'user';
+    }
+    function isAdmin() { return isOwner() || myRole() == 'admin'; }
+
+    match /users/{uid} {
+      // 本人或管理員可讀；管理員可列出全部成員
+      allow read:  if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      // 本人可建立/更新自己的檔案；管理員可建立/管理任何成員
+      allow create, update: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      // 僅管理員可刪除成員檔案
+      allow delete: if isAdmin();
+
+      // 日誌內容：本人或管理員可讀寫
+      match /entries/{entryId} {
+        allow read, write: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      }
+    }
+  }
+}
