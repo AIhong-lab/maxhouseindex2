@@ -504,7 +504,9 @@ const PROMPTS=[
   '今天卡關在哪裡？後來怎麼繞過去的？',
   '今天有什麼觀察或靈感，適合當寫作素材？',
   '這週的工作步調如何？哪一段最有效率？',
-  '如果要把今天交接給別人，你會交代哪三件事？'
+  '如果要把今天交接給別人，你會交代哪三件事？',
+  '今天你有沒有在優化一件其實根本不該存在的事？（該刪掉還是該優化）',
+  '今天做的判斷，是因為「別人都這樣」，還是回到根本原理想過？'
 ];
 const LS_DATA='worklog.data.v1', LS_SET='worklog.settings.v1';
 
@@ -642,6 +644,7 @@ function renderDashboard(){
       <div class="cta-row">
         <button class="btn primary" onclick="openEditor()"><i class="ic">＋</i> 寫今天的日誌</button>
         <button class="btn ghost" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="openInterview()"><i class="ic">🎙️</i> AI 訪談復盤</button>
+        <button class="btn ghost" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="openMusk()"><i class="ic">🚀</i> 馬斯克六問</button>
         <button class="btn ghost" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="openAI()"><i class="ic">🤖</i> 整理給 AI</button>
       </div>
     </div>
@@ -1098,13 +1101,17 @@ function showConfirm(title,msg,onOk){
 
 let aiScope={mode:'recent',project:'',purpose:'週報'};
 function openInterview(project){openAI(project?'project':'recent',project,'訪談復盤');}
+function openMusk(project){openAI(project?'project':'recent',project,'馬斯克六問');}
 function openAI(mode,project,purpose){
   aiScope.mode=mode||'recent';aiScope.project=project||'';
   if(mode==='portfolio')aiScope.purpose='履歷';
   if(purpose)aiScope.purpose=purpose;
-  const iv=aiScope.purpose==='訪談復盤';
+  const musk=aiScope.purpose==='馬斯克六問';
+  const iv=aiScope.purpose==='訪談復盤'||musk;
+  const aiTitle=musk?'🚀 馬斯克六問復盤':iv?'🎙️ AI 訪談式復盤':'🤖 整理給 AI';
+  const aiDesc=musk?'借馬斯克的六個思維模型（有用&gt;完美、第一性原理、樹幹vs樹葉、刪掉不該存在的、主動求負評、夠重要就放手做），讓 AI 一次問你一題，扣住你的實際紀錄逼你把這段期間想透。複製下方提示詞，貼進 ChatGPT／Claude／Gemini／Codex 開始對談。':iv?'讓 AI 當訪談者，一次問你一個問題，你用「說的」回答，它負責追問並整理成結構化復盤。複製下方提示詞，貼進 ChatGPT／Claude／Gemini／Codex 開始對談。':'把工作日誌的完整脈絡整理好，貼進任何 AI（ChatGPT、Claude、Gemini）就能得到貼近你需求的協助。';
   $('#modal').innerHTML=`<div class="modal-card">
-    <div class="mh"><h2>${iv?'🎙️ AI 訪談式復盤':'🤖 整理給 AI'}</h2><p>${iv?'讓 AI 當訪談者，一次問你一個問題，你用「說的」回答，它負責追問並整理成結構化復盤。複製下方提示詞，貼進 ChatGPT／Claude／Gemini／Codex 開始對談。':'把工作日誌的完整脈絡整理好，貼進任何 AI（ChatGPT、Claude、Gemini）就能得到貼近你需求的協助。'}</p></div>
+    <div class="mh"><h2>${aiTitle}</h2><p>${aiDesc}</p></div>
     <div class="mb">
       <div style="font-size:13px;font-weight:700;color:var(--ink-soft);margin-bottom:8px">選擇範圍</div>
       <div class="seg" id="ai-scope">
@@ -1116,7 +1123,7 @@ function openAI(mode,project,purpose){
       </div>
       <div style="font-size:13px;font-weight:700;color:var(--ink-soft);margin:6px 0 8px">要 AI 幫你做什麼</div>
       <div class="seg" id="ai-purpose">
-        ${['訪談復盤','週報','月報','履歷','問題解決手冊','反思總結','經驗萃取'].map(p=>`<button data-p="${p}" class="${aiScope.purpose===p?'on':''}">${p==='訪談復盤'?'🎙️ 訪談復盤':p}</button>`).join('')}
+        ${['訪談復盤','馬斯克六問','週報','月報','履歷','問題解決手冊','反思總結','經驗萃取'].map(p=>`<button data-p="${p}" class="${aiScope.purpose===p?'on':''}">${p==='訪談復盤'?'🎙️ 訪談復盤':p==='馬斯克六問'?'🚀 馬斯克六問':p}</button>`).join('')}
       </div>
       <textarea class="ai-out" id="ai-out" readonly></textarea>
     </div>
@@ -1193,10 +1200,48 @@ ${arr.length?entriesMd(arr):'（此範圍內目前沒有紀錄，請改用開放
 ---
 準備好了嗎？請直接開始問我**第一個問題**（記得，一次只問一題）。`;
 }
+function muskPrompt(arr,rangeLabel){
+  return `# 角色設定：馬斯克式思維復盤教練
+
+你是一位復盤教練，擅長用馬斯克（Elon Musk）的六個思維模型，逼我把這段期間（${rangeLabel}）的工作想得更透徹。請**一次只問我一個問題**，用訪談的方式帶我走完六個面向。
+
+## 訪談規則（請嚴格遵守）
+1. **一次只問一個問題**，問完就停下來等我回答，不要一次丟一串問題。
+2. 依序帶我走過下面六個面向，每個面向至少問一題；可視我的回答追問，但不要跳著問。
+3. 先讀過我下面的工作日誌，讓每一題都**扣住我實際做過的事**來問，不要問空泛的通論。
+4. 我會用口語、片段的方式回答，可能跳來跳去；請你負責釐清、追問、幫我補上沒講清楚的地方。
+5. 六個面向都問完後，**才**輸出下方的「收尾復盤」。
+
+## 六個面向（馬斯克六問）
+1. **有用 ＞ 完美**：這段期間哪件事我卡在「想做得更完美」，其實它已經「夠有用」該放手了？我到底是在創造價值，還是在證明自己？
+2. **第一性原理 vs 類比**：哪個決定我是因為「別人都這樣做／一向這樣做」而做（類比思考）？如果拆到最根本的要素重推一次，答案會不會不同？
+3. **樹幹 vs 樹葉**：這段期間我吸收的東西，是在長「樹幹」（根本原理、可長期複用的體系），還是只在撿「樹葉」（零碎技巧、追新工具）？
+4. **刪掉不該存在的**：我這段期間優化、花力氣的事情裡，有沒有一個「其實根本不該存在」——該被刪掉，而不是被優化的？
+5. **主動求負評**：這段期間我主動請誰給了負面回饋？學到什麼？如果沒有，現在最該去問誰、問什麼？
+6. **夠重要就放手做**：把「風險調整後報酬率」拿掉，有哪件我認為夠重要、明知勝算不高卻想放手去做的事？下一步是什麼？
+
+## 收尾復盤（**六題都問完後才輸出**，不要一開始就寫）
+1. 一句話總結這段期間的我
+2. 六個面向各一句「最關鍵的洞察」
+3. 一件「該放手／該刪掉」的事（對應面向 1、4）
+4. 一個「值得回到第一性原理重想」的決定（對應面向 2）
+5. 我下一步該主動求誰的負面回饋（對應面向 5）
+6. 三個具體、可在下週執行的行動
+
+---
+
+## 我這段期間的工作日誌（範圍：${rangeLabel}，共 ${arr.length} 則）
+請先看過這些紀錄，讓你的提問更具體。
+
+${arr.length?entriesMd(arr):'（此範圍內目前沒有紀錄，請改用開放式問題，從面向 1「有用 vs 完美」開始，問我這段期間印象最深、最想放手的一件事。）\n'}
+---
+準備好了嗎？請從**面向 1** 開始，直接問我**第一個問題**（記得：一次只問一題，並扣住我的實際紀錄）。`;
+}
 function buildAI(){
   const arr=aiEntries();
   const rangeLabel=({recent:'最近 14 天',month:'本月',star:'作品集收藏',all:'全部',project:'專案「'+aiScope.project+'」'})[aiScope.mode];
   if(aiScope.purpose==='訪談復盤'){$('#ai-out').value=interviewPrompt(arr,rangeLabel);return;}
+  if(aiScope.purpose==='馬斯克六問'){$('#ai-out').value=muskPrompt(arr,rangeLabel);return;}
   const purposeMap={
     '週報':'請把以下工作日誌整理成一份條理清楚的「週報」，分為：本週重點成果、進行中事項、問題與解法、下週計畫。',
     '月報':'請把以下工作日誌彙整成一份「月報」，突出關鍵成果與數據、專案進度、遇到的挑戰與學習。',
