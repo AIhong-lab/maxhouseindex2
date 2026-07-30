@@ -641,6 +641,7 @@ function renderDashboard(){
       </div>
       <div class="cta-row">
         <button class="btn primary" onclick="openEditor()"><i class="ic">＋</i> 寫今天的日誌</button>
+        <button class="btn ghost" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="openInterview()"><i class="ic">🎙️</i> AI 訪談復盤</button>
         <button class="btn ghost" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="openAI()"><i class="ic">🤖</i> 整理給 AI</button>
       </div>
     </div>
@@ -1096,11 +1097,14 @@ function showConfirm(title,msg,onOk){
 }
 
 let aiScope={mode:'recent',project:'',purpose:'週報'};
-function openAI(mode,project){
+function openInterview(project){openAI(project?'project':'recent',project,'訪談復盤');}
+function openAI(mode,project,purpose){
   aiScope.mode=mode||'recent';aiScope.project=project||'';
   if(mode==='portfolio')aiScope.purpose='履歷';
+  if(purpose)aiScope.purpose=purpose;
+  const iv=aiScope.purpose==='訪談復盤';
   $('#modal').innerHTML=`<div class="modal-card">
-    <div class="mh"><h2>🤖 整理給 AI</h2><p>把工作日誌的完整脈絡整理好，貼進任何 AI（ChatGPT、Claude、Gemini）就能得到貼近你需求的協助。</p></div>
+    <div class="mh"><h2>${iv?'🎙️ AI 訪談式復盤':'🤖 整理給 AI'}</h2><p>${iv?'讓 AI 當訪談者，一次問你一個問題，你用「說的」回答，它負責追問並整理成結構化復盤。複製下方提示詞，貼進 ChatGPT／Claude／Gemini／Codex 開始對談。':'把工作日誌的完整脈絡整理好，貼進任何 AI（ChatGPT、Claude、Gemini）就能得到貼近你需求的協助。'}</p></div>
     <div class="mb">
       <div style="font-size:13px;font-weight:700;color:var(--ink-soft);margin-bottom:8px">選擇範圍</div>
       <div class="seg" id="ai-scope">
@@ -1112,7 +1116,7 @@ function openAI(mode,project){
       </div>
       <div style="font-size:13px;font-weight:700;color:var(--ink-soft);margin:6px 0 8px">要 AI 幫你做什麼</div>
       <div class="seg" id="ai-purpose">
-        ${['週報','月報','履歷','問題解決手冊','反思總結','經驗萃取'].map(p=>`<button data-p="${p}" class="${aiScope.purpose===p?'on':''}">${p}</button>`).join('')}
+        ${['訪談復盤','週報','月報','履歷','問題解決手冊','反思總結','經驗萃取'].map(p=>`<button data-p="${p}" class="${aiScope.purpose===p?'on':''}">${p==='訪談復盤'?'🎙️ 訪談復盤':p}</button>`).join('')}
       </div>
       <textarea class="ai-out" id="ai-out" readonly></textarea>
     </div>
@@ -1136,8 +1140,63 @@ function aiEntries(){
   else if(aiScope.mode==='recent'){const d=new Date();d.setDate(d.getDate()-14);const c=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;arr=arr.filter(e=>e.date>=c);}
   return arr.sort((a,b)=>a.date.localeCompare(b.date));
 }
+function entriesMd(arr){
+  let s='';
+  arr.forEach(e=>{
+    s+=`## ${e.date}｜${e.title}\n`;
+    s+=`- 類型：${e.type}${e.project?`　專案：${e.project}`:''}${(e.tags&&e.tags.length)?`　標籤：${e.tags.map(t=>'#'+t).join(' ')}`:''}\n`;
+    if(e.background)s+=`- 背景：${e.background}\n`;
+    if(e.process)s+=`- 做法：${e.process}\n`;
+    if(e.result)s+=`- 結果：${e.result}\n`;
+    if(e.reflection)s+=`- 心得：${e.reflection}\n`;
+    if(e.metrics)s+=`- 數據：${e.metrics}\n`;
+    s+='\n';
+  });
+  return s;
+}
+function interviewPrompt(arr,rangeLabel){
+  return `# 角色設定：工作復盤訪談教練
+
+你是一位擅長「工作復盤」的訪談教練。接下來請**一次只問我一個問題**，用訪談的方式，幫我把這段期間（${rangeLabel}）的工作經驗挖出來、想清楚。
+
+## 訪談規則（請嚴格遵守）
+1. **一次只問一個問題**，問完就停下來等我回答，不要一次丟一串問題。
+2. 我會用「口語、片段」的方式回答，可能跳來跳去；請你負責釐清、追問、幫我補上我沒講清楚的地方。
+3. 根據我上一題的回答，決定下一題怎麼問（可以追問細節，也可以換面向）。
+4. 依序涵蓋以下面向，順序可依我的回答彈性調整：
+   - 這段期間完成了哪些事（可按專案／客戶／類型）
+   - 工作的時間線與關鍵轉折
+   - 時間主要花在哪些事情上
+   - 有沒有計畫外的臨時插單，怎麼處理
+   - 關鍵的溝通與會議決策
+   - 這些工作實際帶來的成果與價值
+   - 哪些做法有效、值得下次保留
+   - 你觀察到我的工作模式
+5. 每問 3～4 題，用一兩句話簡短回顧我說過的重點，跟我確認理解無誤再繼續。
+6. 當你判斷素材足夠（大約 8～12 輪對話），主動說「我們可以收尾了」，並輸出下方的結構化復盤。
+
+## 收尾輸出格式（**訪談結束後才輸出**，不要一開始就寫）
+1. 一句話總結這段期間
+2. 完成事項（依專案／類型分類）
+3. 工作時間線（含關鍵轉折）
+4. 成果與價值
+5. 有效做法（整理成可重複使用的步驟或 checklist）
+6. 觀察到的個人工作模式
+7. 下一步建議（3 點，具體可執行）
+
+---
+
+## 我這段期間的工作日誌（範圍：${rangeLabel}，共 ${arr.length} 則）
+請先看過這些紀錄，讓你的提問更具體。**第一個問題，就從其中一件你覺得最值得深入聊的事開始問我。**
+
+${arr.length?entriesMd(arr):'（此範圍內目前沒有紀錄，請改用開放式問題，從「這段期間你印象最深的一件工作是什麼？」開始訪談我。）\n'}
+---
+準備好了嗎？請直接開始問我**第一個問題**（記得，一次只問一題）。`;
+}
 function buildAI(){
   const arr=aiEntries();
+  const rangeLabel=({recent:'最近 14 天',month:'本月',star:'作品集收藏',all:'全部',project:'專案「'+aiScope.project+'」'})[aiScope.mode];
+  if(aiScope.purpose==='訪談復盤'){$('#ai-out').value=interviewPrompt(arr,rangeLabel);return;}
   const purposeMap={
     '週報':'請把以下工作日誌整理成一份條理清楚的「週報」，分為：本週重點成果、進行中事項、問題與解法、下週計畫。',
     '月報':'請把以下工作日誌彙整成一份「月報」，突出關鍵成果與數據、專案進度、遇到的挑戰與學習。',
@@ -1147,18 +1206,9 @@ function buildAI(){
     '經驗萃取':'請從以下工作日誌中，萃取出可以沉澱下來的方法論、原則與檢查清單（checklist），方便我日後重複使用。'
   };
   let out=`# 我的工作日誌脈絡\n\n${purposeMap[aiScope.purpose]}\n\n---\n`;
-  out+=`（共 ${arr.length} 則紀錄，範圍：${({recent:'最近 14 天',month:'本月',star:'作品集收藏',all:'全部',project:'專案「'+aiScope.project+'」'})[aiScope.mode]}）\n\n`;
+  out+=`（共 ${arr.length} 則紀錄，範圍：${rangeLabel}）\n\n`;
   if(!arr.length){out+='（此範圍內沒有紀錄）';}
-  arr.forEach(e=>{
-    out+=`## ${e.date}｜${e.title}\n`;
-    out+=`- 類型：${e.type}${e.project?`　專案：${e.project}`:''}${(e.tags&&e.tags.length)?`　標籤：${e.tags.map(t=>'#'+t).join(' ')}`:''}\n`;
-    if(e.background)out+=`- 背景：${e.background}\n`;
-    if(e.process)out+=`- 做法：${e.process}\n`;
-    if(e.result)out+=`- 結果：${e.result}\n`;
-    if(e.reflection)out+=`- 心得：${e.reflection}\n`;
-    if(e.metrics)out+=`- 數據：${e.metrics}\n`;
-    out+='\n';
-  });
+  out+=entriesMd(arr);
   $('#ai-out').value=out;
 }
 
@@ -1618,7 +1668,7 @@ function init(){
   // service worker
   if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
   // expose for inline handlers
-  Object.assign(window,{go,openEditor,saveEntry,delEntry,openDetail,closeSheet,closeModal,toggleStar,openAI,openProject,exportPortfolio,
+  Object.assign(window,{go,openEditor,saveEntry,delEntry,openDetail,closeSheet,closeModal,toggleStar,openAI,openInterview,openProject,exportPortfolio,
     backToMe,switchToUser,toggleRole,openCreateUser,createUser,doSignOut,renderAdmin,loadUsers,openFbSetup,showAuthGate});
   // decide local vs cloud, then render
   bootAuth();
