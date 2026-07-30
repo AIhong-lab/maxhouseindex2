@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>讀書計劃 · Lorna 諾娜老師實驗室</title>
+<meta name="description" content="三步驟設計專屬自己的讀書計劃：月曆時間盤點、一週時間表、每日任務清單。不是時間不夠，而是要搞清楚時間管理。">
+<meta name="theme-color" content="#4f46e5">
+<style>
+:root{
+  --ink:#1e293b; --ink-soft:#64748b; --ink-mute:#94a3b8;
+  --line:#e5e9f0; --bg:#f4f6fb; --card:#ffffff;
+  --brand:#4f46e5; --brand-soft:#eef2ff; --brand-deep:#4338ca;
+  --busy:#ef4444; --busy-bg:#fee2e2;
+  --mid:#f59e0b; --mid-bg:#fef3c7;
+  --free:#10b981; --free-bg:#d1fae5;
+  --fixed:#3b82f6; --fixed-bg:#dbeafe;
+  --read:#8b5cf6; --read-bg:#ede9fe;
+  --rest:#94a3b8; --rest-bg:#eef1f6;
+  --commute:#0ea5a4; --commute-bg:#cffafe;
+  --shadow:0 6px 20px rgba(30,41,59,.07); --shadow-sm:0 1px 3px rgba(30,41,59,.08);
+  --r:16px; --r-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:system-ui,-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  color:var(--ink);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased}
+button,input,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+::selection{background:var(--brand-soft)}
+
+.wrap{max-width:920px;margin:0 auto;padding:0 14px 90px}
+
+/* header */
+.top{background:linear-gradient(135deg,var(--brand),#7c3aed);color:#fff;padding:26px 18px 20px;text-align:center;
+  border-radius:0 0 24px 24px;box-shadow:var(--shadow)}
+.top .brand{font-size:13px;font-weight:700;opacity:.9;letter-spacing:.5px}
+.top h1{font-size:23px;font-weight:900;margin:4px 0 6px}
+.top p{font-size:13.5px;opacity:.92;max-width:520px;margin:0 auto}
+
+/* step tabs */
+.tabs{position:sticky;top:0;z-index:20;display:flex;gap:8px;background:var(--bg);padding:12px 0;margin:0 auto;max-width:920px}
+.tabs button{flex:1;padding:11px 6px;border-radius:12px;background:var(--card);box-shadow:var(--shadow-sm);
+  font-weight:800;font-size:13.5px;color:var(--ink-soft);display:flex;flex-direction:column;align-items:center;gap:2px;transition:.15s;border:2px solid transparent}
+.tabs button .n{font-size:11px;font-weight:700;color:var(--ink-mute)}
+.tabs button.on{color:var(--brand);border-color:var(--brand);background:var(--brand-soft)}
+.tabs button.on .n{color:var(--brand)}
+
+.view{display:none}
+.view.on{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
+.card h2{font-size:17px;font-weight:900;display:flex;align-items:center;gap:8px}
+.card .sub{color:var(--ink-soft);font-size:13.5px;margin:4px 0 14px}
+
+/* brush palette */
+.brushes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.brush{padding:7px 13px;border-radius:20px;font-size:13px;font-weight:800;border:2px solid transparent;transition:.12s;
+  display:flex;align-items:center;gap:6px}
+.brush .dot{width:11px;height:11px;border-radius:50%}
+.brush.on{box-shadow:0 0 0 3px rgba(79,70,229,.18)}
+.brush.sel{transform:scale(1.04)}
+.b-busy{background:var(--busy-bg);color:#991b1b} .b-busy .dot{background:var(--busy)} .b-busy.sel{border-color:var(--busy)}
+.b-mid{background:var(--mid-bg);color:#92600a} .b-mid .dot{background:var(--mid)} .b-mid.sel{border-color:var(--mid)}
+.b-free{background:var(--free-bg);color:#065f46} .b-free .dot{background:var(--free)} .b-free.sel{border-color:var(--free)}
+.b-fixed{background:var(--fixed-bg);color:#1e40af} .b-fixed .dot{background:var(--fixed)} .b-fixed.sel{border-color:var(--fixed)}
+.b-read{background:var(--read-bg);color:#5b21b6} .b-read .dot{background:var(--read)} .b-read.sel{border-color:var(--read)}
+.b-rest{background:var(--rest-bg);color:#475569} .b-rest .dot{background:var(--rest)} .b-rest.sel{border-color:var(--rest)}
+.b-commute{background:var(--commute-bg);color:#0f766e} .b-commute .dot{background:var(--commute)} .b-commute.sel{border-color:var(--commute)}
+.b-clear{background:#f1f5f9;color:var(--ink-soft)} .b-clear .dot{background:#fff;border:1.5px solid var(--ink-mute)} .b-clear.sel{border-color:var(--ink-soft)}
+.brush-hint{font-size:12px;color:var(--ink-mute);margin-bottom:10px}
+
+/* calendar */
+.cal-head{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px}
+.cal-head button{width:34px;height:34px;border-radius:10px;background:var(--brand-soft);color:var(--brand);font-size:18px;font-weight:900}
+.cal-head .mlabel{font-size:16px;font-weight:900;min-width:130px;text-align:center}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal .wd{text-align:center;font-size:12px;font-weight:800;color:var(--ink-mute);padding:2px 0}
+.cal .wd.sun{color:var(--busy)} .cal .wd.sat{color:var(--fixed)}
+.cell{aspect-ratio:1/1.05;border-radius:10px;background:#fafbfd;border:1.5px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:4px 2px;position:relative;
+  font-size:13px;font-weight:700;transition:.1s;overflow:hidden}
+.cell.pad{background:transparent;border-color:transparent}
+.cell .d{font-size:13px}
+.cell .tag{font-size:9.5px;font-weight:800;line-height:1.1;margin-top:auto;padding:1px 3px;border-radius:4px}
+.cell.today{outline:2px solid var(--brand);outline-offset:1px}
+.cell[data-s="busy"]{background:var(--busy-bg);border-color:#fca5a5;color:#991b1b}
+.cell[data-s="mid"]{background:var(--mid-bg);border-color:#fcd34d;color:#92600a}
+.cell[data-s="free"]{background:var(--free-bg);border-color:#6ee7b7;color:#065f46}
+.cell[data-s="fixed"]{background:var(--fixed-bg);border-color:#93c5fd;color:#1e40af}
+
+/* weekly grid */
+.tt-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1px solid var(--line)}
+table.tt{border-collapse:collapse;width:100%;min-width:560px}
+table.tt th,table.tt td{border:1px solid var(--line);text-align:center;padding:0}
+table.tt th{background:var(--brand-soft);color:var(--brand-deep);font-size:12.5px;font-weight:800;padding:8px 4px;position:sticky;top:0}
+table.tt th.time,table.tt td.time{background:#f8fafc;font-size:11px;color:var(--ink-soft);font-weight:700;white-space:nowrap;padding:6px 8px;width:78px}
+.slot{height:34px;font-size:11px;font-weight:800;cursor:pointer;user-select:none}
+.slot[data-s="fixed"]{background:var(--fixed-bg);color:#1e40af}
+.slot[data-s="free"]{background:var(--free-bg);color:#065f46}
+.slot[data-s="read"]{background:var(--read-bg);color:#5b21b6}
+.slot[data-s="rest"]{background:var(--rest-bg);color:#475569}
+.slot[data-s="commute"]{background:var(--commute-bg);color:#0f766e}
+
+/* daily */
+.date-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.date-row input[type=date]{padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;font-weight:700}
+.mit{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.mit .num{width:26px;height:26px;flex:0 0 auto;border-radius:50%;background:var(--brand-soft);color:var(--brand);
+  font-weight:900;font-size:13px;display:grid;place-items:center}
+.mit input[type=text]{flex:1;min-width:0;padding:9px 12px;border:1.5px solid var(--line);border-radius:10px}
+.mit input[type=text]:focus{outline:none;border-color:var(--brand)}
+.mit .chk{width:24px;height:24px;flex:0 0 auto;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;color:#fff;font-size:14px;transition:.12s}
+.mit .chk.done{background:var(--free);border-color:var(--free)}
+.hours{display:flex;gap:18px;flex-wrap:wrap;margin:6px 0 4px}
+.hours label{font-size:13.5px;font-weight:700;color:var(--ink-soft);display:flex;align-items:center;gap:7px}
+.hours input{width:64px;padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;text-align:center;font-weight:800}
+.rate-box{display:flex;align-items:center;gap:14px;background:var(--brand-soft);border-radius:12px;padding:14px 16px;margin:6px 0}
+.rate-box .pct{font-size:30px;font-weight:900;color:var(--brand)}
+.stars{font-size:20px;letter-spacing:2px;color:#fbbf24}
+.rate-box .cap{font-size:12px;color:var(--ink-soft);font-weight:700}
+textarea.note{width:100%;min-height:92px;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px;resize:vertical;line-height:1.7}
+textarea.note:focus{outline:none;border-color:var(--brand)}
+.field-lab{font-size:13.5px;font-weight:800;color:var(--ink-soft);margin:14px 0 7px;display:flex;align-items:center;gap:6px}
+
+.hist{display:flex;flex-direction:column;gap:8px}
+.hist .h{display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;cursor:pointer;transition:.12s}
+.hist .h:hover{border-color:var(--brand);background:var(--brand-soft)}
+.hist .h .hd{font-weight:800;font-size:14px}
+.hist .h .meta{margin-left:auto;font-size:12px;color:var(--ink-soft);text-align:right}
+.hist .h .hp{font-weight:900;color:var(--brand)}
+
+.tips{background:#f8fafc;border-left:4px solid var(--brand);border-radius:0 12px 12px 0;padding:12px 14px;font-size:13px;color:var(--ink-soft);margin-top:6px}
+.tips b{color:var(--ink)}
+.tips ul{margin:6px 0 0 2px;list-style:none}
+.tips li{padding:2px 0 2px 20px;position:relative}
+.tips li::before{content:"✓";position:absolute;left:0;color:var(--free);font-weight:900}
+
+.legend{display:flex;flex-wrap:wrap;gap:10px 16px;margin-top:12px;font-size:12.5px;color:var(--ink-soft)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+
+.empty{text-align:center;color:var(--ink-mute);padding:22px;font-size:13.5px}
+.foot{text-align:center;color:var(--ink-mute);font-size:12px;margin-top:18px}
+.savebadge{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;
+  padding:10px 20px;border-radius:24px;font-size:13.5px;font-weight:700;box-shadow:var(--shadow);transition:.25s;z-index:50;opacity:0}
+.savebadge.show{transform:translateX(-50%) translateY(0);opacity:1}
+@media(max-width:520px){.top h1{font-size:20px}.tabs button{font-size:12.5px}.rate-box .pct{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand">✦ Lorna 諾娜老師實驗室</div>
+  <h1>設計專屬自己的讀書計劃 ✏️</h1>
+  <p>不是時間不夠用，而是沒搞清楚時間管理。三步驟，先把時間規劃好，再安排讀書內容。</p>
+</div>
+
+<div class="tabs">
+  <button data-v="cal" class="on"><span class="n">第 1 步</span>📅 月曆</button>
+  <button data-v="week"><span class="n">第 2 步</span>🗓️ 一週時間表</button>
+  <button data-v="day"><span class="n">第 3 步</span>✅ 每日清單</button>
+</div>
+
+<div class="wrap">
+
+  <!-- STEP 1: CALENDAR -->
+  <section class="view on" id="v-cal">
+    <div class="card">
+      <h2>📅 第一步：月曆時間盤點</h2>
+      <div class="sub">先別急著排讀什麼。點一下日期，標出哪天忙、哪天有空。先知道自己有哪些時間，比塞滿行程更重要。</div>
+      <div class="brush-hint">👇 先選一個標籤，再點日曆上的日期就會上色（再點一次或用「清除」可移除）</div>
+      <div class="brushes" id="cal-brushes">
+        <button class="brush b-busy sel" data-s="busy"><span class="dot"></span>很忙</button>
+        <button class="brush b-mid" data-s="mid"><span class="dot"></span>較忙</button>
+        <button class="brush b-free" data-s="free"><span class="dot"></span>有空</button>
+        <button class="brush b-fixed" data-s="fixed"><span class="dot"></span>固定行程</button>
+        <button class="brush b-clear" data-s=""><span class="dot"></span>清除</button>
+      </div>
+      <div class="cal-head">
+        <button id="prevM" aria-label="上個月">‹</button>
+        <div class="mlabel" id="mlabel"></div>
+        <button id="nextM" aria-label="下個月">›</button>
+      </div>
+      <div class="cal" id="cal"></div>
+      <div class="legend">
+        <span><i style="background:var(--busy)"></i>很忙：幾乎沒時間讀書</span>
+        <span><i style="background:var(--mid)"></i>較忙：能讀少量</span>
+        <span><i style="background:var(--free)"></i>有空：可安排讀書</span>
+        <span><i style="background:var(--fixed)"></i>固定行程：上課/補習</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="tips"><b>月曆盤點重點</b>
+        <ul><li>先排除很忙的日子</li><li>找出完整有空的日子</li><li>安排可利用的時段（如晚上、下午）</li><li>為下一步做準備</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: WEEK -->
+  <section class="view" id="v-week">
+    <div class="card">
+      <h2>🗓️ 第二步：一週時間表</h2>
+      <div class="sub">把每天有空的時段標出來。用熟悉的「學校課表」方式劃分，一眼看出哪些時間適合讀書、哪些該休息。固定時段更容易養成習慣。</div>
+      <div class="brush-hint">👇 選一個標籤，再點（或按住拖曳）表格的格子上色</div>
+      <div class="brushes" id="week-brushes">
+        <button class="brush b-fixed sel" data-s="fixed"><span class="dot"></span>上課</button>
+        <button class="brush b-free" data-s="free"><span class="dot"></span>有空</button>
+        <button class="brush b-read" data-s="read"><span class="dot"></span>可讀</button>
+        <button class="brush b-rest" data-s="rest"><span class="dot"></span>休息</button>
+        <button class="brush b-commute" data-s="commute"><span class="dot"></span>通勤</button>
+        <button class="brush b-clear" data-s=""><span class="dot"></span>清除</button>
+      </div>
+      <div class="tt-wrap"><table class="tt" id="tt"></table></div>
+    </div>
+    <div class="card">
+      <div class="tips"><b>時間表盤點重點</b>
+        <ul><li>用學校課表習慣劃分時間，清楚看出空檔</li><li>標出可利用讀書的時段（可讀）</li><li>固定時段更容易養成習慣</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3: DAILY -->
+  <section class="view" id="v-day">
+    <div class="card">
+      <h2>✅ 第三步：每日任務清單</h2>
+      <div class="sub">把真正要讀的內容放進今天的計畫。每天不用排很多，能確實完成，比排一大堆卻做不到更重要。</div>
+      <div class="date-row">
+        <input type="date" id="d-date">
+        <button class="brush b-free sel" id="d-today" style="cursor:pointer">今天</button>
+      </div>
+
+      <div class="field-lab">⭐ 今天最重要的 3 件事（MIT）</div>
+      <div id="mit-list"></div>
+
+      <div class="field-lab">🕐 今日讀書時數</div>
+      <div class="hours">
+        <label>預計 <input type="number" id="d-plan" min="0" step="0.5" placeholder="4"> 小時</label>
+        <label>實際 <input type="number" id="d-actual" min="0" step="0.5" placeholder="3.5"> 小時</label>
+      </div>
+
+      <div class="field-lab">🎯 完成率（依 MIT 打勾自動計算）</div>
+      <div class="rate-box">
+        <div class="pct" id="d-pct">0%</div>
+        <div>
+          <div class="stars" id="d-stars">☆☆☆☆☆</div>
+          <div class="cap" id="d-cap">完成幾件就打幾個勾</div>
+        </div>
+      </div>
+
+      <div class="field-lab">📝 今日學習紀錄 / 心得</div>
+      <textarea class="note" id="d-note" placeholder="例如：&#10;數學觀念較熟練，題目可再多練&#10;英文閱讀速度需要再提升&#10;明天要加強理化計算題"></textarea>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:15px">📚 過去的紀錄</h2>
+      <div class="sub" style="margin-bottom:10px">點一下可回顧那天的計畫與完成率。</div>
+      <div class="hist" id="hist"></div>
+    </div>
+  </section>
+
+  <div class="foot">資料自動儲存在這台裝置的瀏覽器 · Lorna 諾娜老師實驗室</div>
+</div>
+
+<div class="savebadge" id="savebadge">已儲存 ✓</div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const LS='studyplan.v1';
+const pad=n=>String(n).padStart(2,'0');
+const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;};
+const WD=['日','一','二','三','四','五','六'];
+const SLOTS=['07:00–08:00','08:00–09:00','09:00–10:00','10:00–11:00','11:00–12:00','12:00–13:00',
+  '13:00–14:00','14:00–15:00','15:00–16:00','16:00–17:00','17:00–18:00','18:00–19:00',
+  '19:00–20:00','20:00–21:00','21:00–22:00','22:00–23:00'];
+
+let data={calendar:{},week:{},daily:{}};
+try{const d=JSON.parse(localStorage.getItem(LS));if(d&&typeof d==='object')data=Object.assign(data,d);}catch(e){}
+let saveT;
+function save(){localStorage.setItem(LS,JSON.stringify(data));const b=$('#savebadge');b.classList.add('show');clearTimeout(saveT);saveT=setTimeout(()=>b.classList.remove('show'),1100);}
+
+/* ---------- tabs ---------- */
+$$('.tabs button').forEach(b=>b.onclick=()=>{
+  $$('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  $$('.view').forEach(v=>v.classList.remove('on'));
+  $('#v-'+b.dataset.v).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+/* ---------- brush helper ---------- */
+function setupBrush(containerSel){
+  const box=$(containerSel);let cur=box.querySelector('.brush.sel').dataset.s;
+  box.querySelectorAll('.brush').forEach(b=>b.onclick=()=>{
+    box.querySelectorAll('.brush').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');cur=b.dataset.s;
+  });
+  return ()=>cur;
+}
+
+/* ---------- STEP 1: calendar ---------- */
+let calY,calM;{const d=new Date();calY=d.getFullYear();calM=d.getMonth();}
+const calBrush=setupBrush('#cal-brushes');
+function renderCal(){
+  $('#mlabel').textContent=`${calY} 年 ${calM+1} 月`;
+  const first=new Date(calY,calM,1).getDay();
+  const days=new Date(calY,calM+1,0).getDate();
+  const cal=$('#cal');cal.innerHTML='';
+  ['日','一','二','三','四','五','六'].forEach((w,i)=>{
+    const el=document.createElement('div');el.className='wd'+(i===0?' sun':i===6?' sat':'');el.textContent=w;cal.appendChild(el);
+  });
+  for(let i=0;i<first;i++){const p=document.createElement('div');p.className='cell pad';cal.appendChild(p);}
+  const TAG={busy:'很忙',mid:'較忙',free:'有空',fixed:'固定'};
+  for(let d=1;d<=days;d++){
+    const key=`${calY}-${pad(calM+1)}-${pad(d)}`;
+    const rec=data.calendar[key];
+    const el=document.createElement('div');el.className='cell';
+    if(key===todayStr())el.classList.add('today');
+    if(rec&&rec.s){el.dataset.s=rec.s;}
+    el.innerHTML=`<span class="d">${d}</span>${rec&&rec.s?`<span class="tag">${TAG[rec.s]||''}</span>`:''}`;
+    el.onclick=()=>{
+      const s=calBrush();
+      if(!s||(rec&&rec.s===s&&s)){delete data.calendar[key];}
+      else data.calendar[key]={s};
+      save();renderCal();
+    };
+    cal.appendChild(el);
+  }
+}
+$('#prevM').onclick=()=>{calM--;if(calM<0){calM=11;calY--;}renderCal();};
+$('#nextM').onclick=()=>{calM++;if(calM>11){calM=0;calY++;}renderCal();};
+
+/* ---------- STEP 2: weekly ---------- */
+const weekBrush=setupBrush('#week-brushes');
+const LBL={fixed:'上課',free:'有空',read:'可讀',rest:'休息',commute:'通勤'};
+function renderWeek(){
+  const tt=$('#tt');
+  let html='<thead><tr><th class="time">時間</th>'+WD.map((w,i)=>`<th>${['一','二','三','四','五','六','日'][i]||''}</th>`).slice(0,7).join('')+'</tr></thead><tbody>';
+  const cols=['一','二','三','四','五','六','日'];
+  SLOTS.forEach((slot,ri)=>{
+    html+=`<tr><td class="time">${slot}</td>`;
+    cols.forEach((c,ci)=>{
+      const key=ci+'_'+ri;const s=data.week[key];
+      html+=`<td><div class="slot" data-key="${key}"${s?` data-s="${s}"`:''}>${s?LBL[s]:''}</div></td>`;
+    });
+    html+='</tr>';
+  });
+  tt.innerHTML=html+'</tbody>';
+  let painting=false;
+  const paint=el=>{
+    const key=el.dataset.key;const s=weekBrush();
+    if(!s){delete data.week[key];el.removeAttribute('data-s');el.textContent='';}
+    else{data.week[key]=s;el.dataset.s=s;el.textContent=LBL[s];}
+  };
+  tt.querySelectorAll('.slot').forEach(el=>{
+    el.addEventListener('pointerdown',e=>{e.preventDefault();painting=true;paint(el);});
+    el.addEventListener('pointerenter',()=>{if(painting)paint(el);});
+  });
+  window.addEventListener('pointerup',()=>{if(painting){painting=false;save();}});
+}
+
+/* ---------- STEP 3: daily ---------- */
+function blankDay(){return{mit:[{t:'',done:false},{t:'',done:false},{t:'',done:false}],plan:'',actual:'',note:''};}
+let curDate=todayStr();
+function loadDay(date){
+  curDate=date;$('#d-date').value=date;
+  const rec=data.daily[date]||blankDay();
+  const list=$('#mit-list');list.innerHTML='';
+  rec.mit.forEach((m,i)=>{
+    const row=document.createElement('div');row.className='mit';
+    row.innerHTML=`<span class="num">${i+1}</span>
+      <input type="text" value="${(m.t||'').replace(/"/g,'&quot;')}" placeholder="第 ${i+1} 件重要的事">
+      <button class="chk ${m.done?'done':''}" aria-label="完成">${m.done?'✓':''}</button>`;
+    const inp=row.querySelector('input'),chk=row.querySelector('.chk');
+    inp.oninput=()=>{ensureDay();data.daily[date].mit[i].t=inp.value;computeRate();queueSave();};
+    chk.onclick=()=>{ensureDay();const nd=!data.daily[date].mit[i].done;data.daily[date].mit[i].done=nd;chk.classList.toggle('done',nd);chk.textContent=nd?'✓':'';computeRate();save();};
+    list.appendChild(row);
+  });
+  $('#d-plan').value=rec.plan||'';
+  $('#d-actual').value=rec.actual||'';
+  $('#d-note').value=rec.note||'';
+  computeRate();
+}
+function ensureDay(){if(!data.daily[curDate])data.daily[curDate]=blankDay();}
+let sq;function queueSave(){clearTimeout(sq);sq=setTimeout(save,500);}
+function computeRate(){
+  const rec=data.daily[curDate]||blankDay();
+  const filled=rec.mit.filter(m=>m.t&&m.t.trim());
+  const done=filled.filter(m=>m.done).length;
+  const pct=filled.length?Math.round(done/filled.length*100):0;
+  $('#d-pct').textContent=pct+'%';
+  const full=Math.floor(pct/20),half=(pct%20)>=10;
+  $('#d-stars').textContent='★'.repeat(full)+(half?'✬':'')+'☆'.repeat(Math.max(0,5-full-(half?1:0)));
+  $('#d-cap').textContent=filled.length?`已完成 ${done} / ${filled.length} 件`:'先填上今天最重要的事';
+  renderHist();
+}
+$('#d-date').onchange=e=>loadDay(e.target.value);
+$('#d-today').onclick=()=>loadDay(todayStr());
+$('#d-plan').oninput=()=>{ensureDay();data.daily[curDate].plan=$('#d-plan').value;queueSave();};
+$('#d-actual').oninput=()=>{ensureDay();data.daily[curDate].actual=$('#d-actual').value;queueSave();};
+$('#d-note').oninput=()=>{ensureDay();data.daily[curDate].note=$('#d-note').value;queueSave();};
+
+function dayHasContent(r){return r&&(r.mit.some(m=>m.t&&m.t.trim())||r.note||r.plan||r.actual);}
+function renderHist(){
+  const box=$('#hist');
+  const dates=Object.keys(data.daily).filter(d=>dayHasContent(data.daily[d])).sort().reverse();
+  if(!dates.length){box.innerHTML='<div class="empty">還沒有紀錄，從今天開始吧！</div>';return;}
+  box.innerHTML=dates.slice(0,60).map(d=>{
+    const r=data.daily[d];const filled=r.mit.filter(m=>m.t&&m.t.trim());
+    const done=filled.filter(m=>m.done).length;const pct=filled.length?Math.round(done/filled.length*100):0;
+    const dt=new Date(d);const wd=WD[dt.getDay()];
+    return `<div class="h" data-d="${d}"><div><div class="hd">${d.slice(5)}（${wd}）</div>
+      <div style="font-size:12px;color:var(--ink-soft)">${filled.length?esc(filled[0].t):(r.note?esc(r.note.slice(0,18)):'—')}</div></div>
+      <div class="meta">${r.actual?`讀 ${r.actual}h · `:''}<span class="hp">${pct}%</span></div></div>`;
+  }).join('');
+  box.querySelectorAll('.h').forEach(h=>h.onclick=()=>{loadDay(h.dataset.d);window.scrollTo({top:0,behavior:'smooth'});});
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* ---------- init ---------- */
+renderCal();renderWeek();loadDay(todayStr());
+</script>
+</body>
+</html>
