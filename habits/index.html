@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>原子習慣 · 實踐工具</title>
+<meta name="description" content="把《原子習慣》從『知道』變『做到』。痛點索引、四大法則習慣設計器、每日追蹤與連續紀錄。每天進步 1%。">
+<meta name="theme-color" content="#17172b">
+<style>
+:root{
+  --paper:#faf9f5; --card:#ffffff; --ink:#17172b; --ink-soft:#575768; --ink-mute:#9a9aab;
+  --line:#ecebe4;
+  --yellow:#f5b301; --yellow-d:#e0a000; --yellow-soft:#fff3d0;
+  --navy:#1c1c38;
+  --cue:#3b82f6; --cue-s:#e6efff;
+  --crave:#e64980; --crave-s:#ffe7f1;
+  --easy:#f97316; --easy-s:#ffe9d9;
+  --reward:#12b886; --reward-s:#d6f5ea;
+  --miss:#e8590c;
+  --shadow:0 8px 26px rgba(23,23,43,.09); --shadow-sm:0 1px 3px rgba(23,23,43,.08);
+  --r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:system-ui,-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  color:var(--ink);background:var(--paper);line-height:1.65;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+::selection{background:var(--yellow-soft)}
+:focus-visible{outline:2px solid var(--yellow);outline-offset:2px;border-radius:5px}
+
+.wrap{max-width:900px;margin:0 auto;padding:0 15px 100px}
+
+/* hero */
+.hero{position:relative;background:var(--navy);color:#fff;overflow:hidden;
+  padding:34px 20px 30px;text-align:center;border-radius:0 0 26px 26px}
+.hero .eyebrow{font-size:12.5px;font-weight:800;letter-spacing:1px;color:var(--yellow);text-transform:uppercase}
+.hero h1{font-size:27px;font-weight:900;letter-spacing:-.5px;margin:8px 0 6px;text-wrap:balance;position:relative;z-index:2}
+.hero .lead{font-size:14px;color:#c9c9d8;max-width:500px;margin:0 auto;position:relative;z-index:2}
+.hero .pct{display:inline-block;background:var(--yellow);color:var(--navy);font-weight:900;border-radius:8px;padding:0 8px;transform:rotate(-2deg)}
+.dot{position:absolute;border-radius:50%;opacity:.9;z-index:1}
+.identity-set{margin-top:16px;position:relative;z-index:2}
+.identity-set input{width:min(440px,100%);padding:12px 15px;border-radius:12px;border:2px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.08);color:#fff;text-align:center;font-weight:700}
+.identity-set input::placeholder{color:rgba(255,255,255,.5)}
+.identity-set input:focus{outline:none;border-color:var(--yellow);background:rgba(255,255,255,.14)}
+.identity-set .lab{font-size:12px;color:#a7a7bd;font-weight:700;margin-bottom:7px}
+
+/* tabs */
+.tabs{position:sticky;top:0;z-index:30;display:flex;gap:8px;background:var(--paper);padding:12px 0;max-width:900px;margin:0 auto}
+.tabs button{flex:1;padding:11px 6px;border-radius:12px;background:var(--card);box-shadow:var(--shadow-sm);
+  font-weight:800;font-size:13.5px;color:var(--ink-soft);transition:.15s;border:2px solid transparent;line-height:1.3}
+.tabs button.on{color:var(--ink);border-color:var(--yellow);background:var(--yellow-soft)}
+
+.view{display:none}.view.on{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:20px;margin-bottom:15px}
+.sec-title{font-size:19px;font-weight:900;letter-spacing:-.3px;display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.sec-sub{color:var(--ink-soft);font-size:13.5px;margin-bottom:16px}
+
+/* pain index */
+.pain-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:11px}
+.pain{border:1.5px solid var(--line);border-radius:13px;padding:14px 15px;cursor:pointer;transition:.14s;background:var(--card);text-align:left}
+.pain:hover{border-color:var(--yellow);box-shadow:var(--shadow-sm);transform:translateY(-1px)}
+.pain.open{border-color:var(--yellow);background:var(--yellow-soft)}
+.pain .q{font-weight:800;font-size:14.5px;display:flex;gap:8px;align-items:flex-start}
+.pain .q .em{font-size:17px;flex:0 0 auto}
+.pain .sol{margin-top:11px;padding-top:11px;border-top:1px dashed #e0ddd0;font-size:13.5px;color:var(--ink-soft);display:none}
+.pain.open .sol{display:block;animation:fade .2s}
+.pain .tac{display:inline-block;font-weight:800;font-size:12px;color:var(--navy);background:#fff;border:1.5px solid var(--yellow);
+  padding:2px 9px;border-radius:20px;margin-bottom:7px}
+.pain .try{margin-top:9px}
+.pain .try button{font-size:12.5px;font-weight:800;color:var(--reward)}
+
+/* four laws designer */
+.field{margin-bottom:14px}
+.field label{display:block;font-weight:800;font-size:13.5px;margin-bottom:6px}
+.field .hint{font-weight:500;color:var(--ink-mute);font-size:12px}
+.field input,.field textarea,.field select{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px;background:var(--card)}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--yellow)}
+.field textarea{min-height:52px;resize:vertical;line-height:1.6}
+.law{border-left:4px solid var(--line);padding-left:13px;margin-bottom:13px}
+.law.l1{border-color:var(--cue)} .law.l2{border-color:var(--crave)} .law.l3{border-color:var(--easy)} .law.l4{border-color:var(--reward)}
+.law .lawnum{font-size:11.5px;font-weight:900;letter-spacing:.5px;text-transform:uppercase}
+.law.l1 .lawnum{color:var(--cue)} .law.l2 .lawnum{color:var(--crave)} .law.l3 .lawnum{color:var(--easy)} .law.l4 .lawnum{color:var(--reward)}
+.law .lawt{font-weight:800;font-size:14.5px;margin:1px 0 8px}
+.stack-box{background:var(--yellow-soft);border-radius:12px;padding:13px 15px;font-weight:700;font-size:14px;margin-bottom:14px;line-height:2.1}
+.stack-box input{border:none;border-bottom:2px solid var(--yellow-d);background:transparent;padding:2px 6px;min-width:120px;font-weight:800}
+.stack-box input:focus{outline:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:12px;font-weight:800;font-size:15px;transition:.15s}
+.btn.primary{background:var(--yellow);color:var(--navy)}.btn.primary:hover{background:var(--yellow-d)}
+.btn.block{width:100%}
+.btn.ghost{border:1.5px solid var(--line);color:var(--ink-soft)}
+
+/* habit cards / tracker */
+.habit{border:1.5px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+.habit .htop{display:flex;align-items:flex-start;gap:12px}
+.habit .hname{font-weight:900;font-size:16.5px}
+.habit .hident{font-size:12.5px;color:var(--ink-soft);margin-top:1px}
+.habit .streak{margin-left:auto;text-align:center;flex:0 0 auto}
+.habit .streak .n{font-size:22px;font-weight:900;color:var(--yellow-d);line-height:1;font-variant-numeric:tabular-nums}
+.habit .streak .l{font-size:10.5px;color:var(--ink-mute);font-weight:700}
+.chain{display:flex;gap:5px;margin:14px 0 6px;flex-wrap:wrap}
+.chain .day{width:30px;text-align:center}
+.chain .box{width:30px;height:30px;border-radius:8px;background:#f1f0ea;display:grid;place-items:center;font-size:14px;color:#fff;transition:.12s}
+.chain .box.done{background:var(--reward)}
+.chain .box.today{box-shadow:0 0 0 2px var(--yellow)}
+.chain .wl{font-size:9.5px;color:var(--ink-mute);margin-top:3px}
+.vote{font-size:12.5px;color:var(--reward);font-weight:700;margin-top:4px}
+.warn{background:#fff3ec;border-left:4px solid var(--miss);border-radius:0 10px 10px 0;padding:9px 12px;font-size:12.5px;color:#9a3b12;font-weight:700;margin-top:10px}
+.todaybtn{margin-top:12px}
+.todaybtn button{width:100%;padding:12px;border-radius:11px;font-weight:800;font-size:14.5px;border:2px solid var(--reward);color:var(--reward);background:var(--card)}
+.todaybtn button.done{background:var(--reward);color:#fff}
+.hmeta{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px}
+.chip.l1{background:var(--cue-s);color:#1e4fa3}.chip.l2{background:var(--crave-s);color:#a3195a}
+.chip.l3{background:var(--easy-s);color:#9a4a12}.chip.l4{background:var(--reward-s);color:#0a6e50}
+.hactions{margin-top:12px;display:flex;gap:8px}
+.hactions button{font-size:12.5px;font-weight:700;color:var(--ink-mute)}
+.hactions button.del:hover{color:var(--miss)}
+
+.tips{background:#f8f7f2;border-left:4px solid var(--yellow);border-radius:0 12px 12px 0;padding:12px 15px;font-size:13px;color:var(--ink-soft);margin-top:4px}
+.tips b{color:var(--ink)}
+.empty{text-align:center;color:var(--ink-mute);padding:26px 10px;font-size:13.5px}
+.empty .big{font-size:34px;margin-bottom:8px}
+.foot{text-align:center;color:var(--ink-mute);font-size:12px;margin-top:20px;line-height:1.8}
+.savebadge{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(90px);background:var(--navy);color:#fff;
+  padding:11px 22px;border-radius:26px;font-size:13.5px;font-weight:800;box-shadow:var(--shadow);transition:.25s;z-index:60;opacity:0}
+.savebadge.show{transform:translateX(-50%) translateY(0);opacity:1}
+@media(max-width:520px){.hero h1{font-size:22px}.tabs button{font-size:12px}.pain-grid{grid-template-columns:1fr 1fr}.pain .q{font-size:13px}}
+@media(max-width:380px){.pain-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hero" id="hero">
+  <div class="eyebrow">ATOMIC HABITS · 實踐工具</div>
+  <h1>每天進步 <span class="pct">1%</span>，一年後強大 37 倍</h1>
+  <div class="lead">《原子習慣》教你「為什麼」，這個工具陪你「怎麼做」。把知道變成做到，從最小的一步開始。</div>
+  <div class="identity-set">
+    <div class="lab">我想成為怎樣的人？（先決定身份，習慣只是為它投票）</div>
+    <input id="identity" placeholder="例如：我想成為每天閱讀、規律運動的人">
+  </div>
+</div>
+
+<div class="tabs">
+  <button data-v="pain" class="on">🎯 痛點索引</button>
+  <button data-v="design">🧬 設計習慣</button>
+  <button data-v="track">📊 每日追蹤</button>
+</div>
+
+<div class="wrap">
+
+  <!-- PAIN POINT INDEX -->
+  <section class="view on" id="v-pain">
+    <div class="card">
+      <div class="sec-title">🎯 痛點索引 <span style="font-size:12px;font-weight:700;color:var(--ink-mute)">Pain Point Index</span></div>
+      <div class="sec-sub">不用從頭讀。你哪裡卡住，就點哪一個——直接給你《原子習慣》對應的解方。實踐，比讀完更重要。</div>
+      <div class="pain-grid" id="painGrid"></div>
+      <div class="tips" style="margin-top:16px"><b>怎麼用：</b>找到最打中你的那個痛點 → 看解方 → 按「用這個設計習慣」，直接把方法變成你的習慣。</div>
+    </div>
+  </section>
+
+  <!-- FOUR LAWS DESIGNER -->
+  <section class="view" id="v-design">
+    <div class="card">
+      <div class="sec-title">🧬 用四大法則設計一個習慣</div>
+      <div class="sec-sub">把抽象理論填成你自己的習慣。先想身份，再讓習慣「顯而易見、有吸引力、輕而易舉、令人滿足」。</div>
+
+      <div class="field">
+        <label>① 這個習慣，是為了成為怎樣的人？ <span class="hint">身份認同</span></label>
+        <input id="d-identity" placeholder="例如：一個照顧自己健康的人">
+      </div>
+      <div class="field">
+        <label>習慣名稱 <span class="hint">越具體越好，用動詞</span></label>
+        <input id="d-name" placeholder="例如：每天讀 10 分鐘">
+      </div>
+
+      <div class="stack-box">
+        習慣堆疊：在 <input id="d-stack-after" placeholder="刷完牙">
+        之後，我會 <input id="d-stack-do" placeholder="讀一頁書">。
+      </div>
+
+      <div class="law l1"><div class="lawnum">法則一 · 讓提示顯而易見</div><div class="lawt">提示 / 環境設計</div>
+        <div class="field" style="margin:0"><textarea id="d-cue" placeholder="我會在【時間】，在【地點】做。或：把提示放在看得見的地方（把書放枕頭上）"></textarea></div></div>
+      <div class="law l2"><div class="lawnum">法則二 · 讓習慣有吸引力</div><div class="lawt">誘惑綑綁</div>
+        <div class="field" style="margin:0"><textarea id="d-crave" placeholder="把「想做的事」綁在「該做的事」後面（只在運動時聽喜歡的 podcast）"></textarea></div></div>
+      <div class="law l3"><div class="lawnum">法則三 · 讓行動輕而易舉</div><div class="lawt">兩分鐘法則</div>
+        <div class="field" style="margin:0"><textarea id="d-easy" placeholder="縮到 2 分鐘內能完成的版本（「讀書」→「翻開書」）。先精通『出現』。"></textarea></div></div>
+      <div class="law l4"><div class="lawnum">法則四 · 讓獎賞令人滿足</div><div class="lawt">立即獎賞</div>
+        <div class="field" style="margin:0"><textarea id="d-reward" placeholder="完成後立刻給自己一個小獎賞，或在追蹤器打勾（別中斷連續紀錄）"></textarea></div></div>
+
+      <button class="btn primary block" id="d-save">✓ 建立這個習慣，開始追蹤</button>
+    </div>
+    <div class="card">
+      <div class="tips"><b>四大法則反過來，就能戒掉壞習慣：</b>讓提示隱形、讓它沒吸引力、讓它困難、讓後果令你不滿足。</div>
+    </div>
+  </section>
+
+  <!-- TRACKER -->
+  <section class="view" id="v-track">
+    <div class="card">
+      <div class="sec-title">📊 每日追蹤</div>
+      <div class="sec-sub">別中斷鎖鏈。每完成一次，就是為你想成為的人投下一票。</div>
+      <div id="habitList"></div>
+    </div>
+  </section>
+
+  <div class="foot">「知識的價值不在於你知道多少，而在於你做到多少。」<br>資料自動儲存在這台裝置 · 靈感來自《原子習慣》James Clear</div>
+</div>
+
+<div class="savebadge" id="savebadge">已儲存 ✓</div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const LS='atomichabits.v1';
+const pad=n=>String(n).padStart(2,'0');
+const dstr=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today=()=>dstr(new Date());
+const WD=['日','一','二','三','四','五','六'];
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+let data={identity:'',habits:[]};
+try{const d=JSON.parse(localStorage.getItem(LS));if(d&&typeof d==='object')data=Object.assign(data,d);}catch(e){}
+let saveT;function save(){localStorage.setItem(LS,JSON.stringify(data));const b=$('#savebadge');b.classList.add('show');clearTimeout(saveT);saveT=setTimeout(()=>b.classList.remove('show'),1000);}
+function uid(){return 'h'+Math.random().toString(36).slice(2,9);}
+
+/* ---------- Pain Point Index (from Atomic Habits) ---------- */
+const PAINS=[
+  {em:'🐌',q:'習慣性拖延，總覺得起步好難',tac:'兩分鐘法則',sol:'把習慣縮到 2 分鐘內能完成的版本：「讀書」→「翻開書讀一頁」。先精通「出現」，量再慢慢加。開始的門檻越低，越容易持續。',pre:{name:'',easy:'把它縮到 2 分鐘內能做完的版本'}},
+  {em:'📵',q:'環境一直讓我分心，無法專注',tac:'環境設計',sol:'讓好習慣的提示顯而易見、讓壞習慣的提示隱形。想專注就把手機放到另一個房間；想多喝水就把水杯放桌上。改環境，比靠意志力更省力。',pre:{cue:'重新設計環境：把好習慣的提示放在眼前，把干擾移走'}},
+  {em:'😔',q:'偶爾失誤一次，就開始自我苛責',tac:'絕不錯過兩次',sol:'錯過一次是意外，錯過兩次是一個新（壞）習慣的開始。允許自己偶爾中斷，但絕不連續錯過兩次。重點是趕快回到軌道，不是完美。'},
+  {em:'😪',q:'對手邊的舊習慣感到厭倦、失去動力',tac:'金髮女孩原則',sol:'人在「難度剛好落在能力邊緣」時最投入——不太難也不太簡單。幫習慣適度加點挑戰或變化，讓它保持在「跳一下搆得到」的甜蜜點。'},
+  {em:'🧠',q:'常常忘記要做這個習慣',tac:'執行意向',sol:'寫死時間與地點：「我會在【幾點】，在【哪裡】做【什麼】。」把模糊的「我要多運動」變成具體的行動指令，大腦就不用臨場決定。',pre:{cue:'我會在【時間】，在【地點】做這件事'}},
+  {em:'🥱',q:'提不起勁、沒有動力去做',tac:'誘惑綑綁',sol:'把「想做的事」綁在「該做的事」後面：只在運動時追你愛的劇、只在通勤時聽喜歡的 podcast。用想要的獎賞，帶動該做的行動。',pre:{crave:'把想做的事綁在這個習慣上（只在做這件事時才能享受某件樂事）'}},
+  {em:'🔥',q:'三分鐘熱度，總是無法持續',tac:'習慣追蹤',sol:'把進度視覺化，別中斷連續紀錄。打勾這個動作本身就是即時獎賞，看著鎖鏈變長會讓你不想斷掉。這個工具的追蹤器就是為此設計。'},
+  {em:'🪞',q:'覺得「我根本不是那種人」',tac:'身份認同',sol:'先決定「想成為怎樣的人」，再讓每個習慣成為那個身份的一票。不是「我要跑步」，而是「我是一個會運動的人」。習慣是你投給自己身份的選票。'},
+  {em:'🎯',q:'目標達成後就鬆懈，打回原形',tac:'系統重於目標',sol:'目標決定方向，但系統決定進度。愛上「持續執行的過程」而不是只盯著終點。目標達成後習慣還在，才不會回到原點。'},
+  {em:'🔁',q:'習慣中斷後，很難重新開始',tac:'重啟用最小版本',sol:'別想著「補回全部」，用兩分鐘版本重新啟動：只做一下下。降低重啟摩擦力，先讓鎖鏈重新接上，再談加量。'},
+  {em:'🍰',q:'眼前的誘惑總是贏過長期目標',tac:'讓即時獎賞站你這邊',sol:'好習慣的回報往往延遲、壞習慣的享受立即。完成好習慣後，馬上給自己一個不牴觸目標的小獎賞，讓「立即滿足」為你的長期目標效力。',pre:{reward:'完成後立刻給自己一個小獎賞'}},
+  {em:'🤹',q:'想同時養成太多習慣，結果都失敗',tac:'習慣堆疊 · 一次一個',sol:'一次專注一個習慣，並把它接在既有習慣後面：「在【現有習慣】之後，我會【新習慣】。」用穩定的舊routine當錨點，帶動新行為。'},
+  {em:'🚬',q:'某個壞習慣一直戒不掉',tac:'反轉四大法則',sol:'讓提示隱形（把零食收進櫃子）、讓它沒吸引力、讓它困難（增加步驟）、讓後果令你不滿足（找人監督）。增加壞習慣的摩擦力。'},
+  {em:'👀',q:'沒有人監督，很容易偷懶',tac:'問責夥伴 / 社群',sol:'公開你的承諾，讓別人看得到你的進度。為了「有東西可分享」，你就得先有實踐——這是以終為始。找個夥伴或社群一起，環境會推著你走。'},
+  {em:'⏰',q:'一忙起來就把習慣丟掉',tac:'綁進固定錨點',sol:'把習慣堆疊到每天一定會發生的事上：刷牙後、倒咖啡時、通勤路上。綁在固定routine裡，忙也不會忘，因為它已經是流程的一部分。'},
+  {em:'📉',q:'進步太慢，看不到效果就想放棄',tac:'1% 複利 · 潛伏之力',sol:'微小改進會複利累積，每天 1%，一年強大 37 倍。前期看似沒變化，那是「潛伏之力」——像冰塊到 0 度前都沒融化。撐過停滯期，突破會一次到來。'},
+  {em:'🛋️',q:'下班/放學後就攤著，什麼都不想做',tac:'降低第一步摩擦力',sol:'預先準備好環境：前一晚把運動服放門口、把書攤開在桌上。讓好習慣的第一步「幾乎不用決定」，你就更可能真的開始。',pre:{cue:'前一晚先把環境準備好，讓第一步毫不費力'}},
+  {em:'😖',q:'習慣做起來很痛苦、撐不下去',tac:'讓它有吸引力',sol:'把習慣和愉快的事配對，或加入讓你期待的儀式感（喜歡的音樂、香氛、好用的工具）。當下的感受越好，越容易重複。'},
+];
+function renderPains(){
+  const g=$('#painGrid');
+  g.innerHTML=PAINS.map((p,i)=>`<div class="pain" data-i="${i}">
+    <div class="q"><span class="em">${p.em}</span><span>${esc(p.q)}</span></div>
+    <div class="sol"><span class="tac">💡 ${esc(p.tac)}</span><div>${esc(p.sol)}</div>
+      <div class="try"><button data-use="${i}">→ 用這個方法設計習慣</button></div>
+    </div></div>`).join('');
+  g.querySelectorAll('.pain').forEach(el=>{
+    el.querySelector('.q').onclick=()=>el.classList.toggle('open');
+  });
+  g.querySelectorAll('[data-use]').forEach(b=>b.onclick=e=>{e.stopPropagation();useForDesign(PAINS[+b.dataset.use]);});
+}
+function useForDesign(p){
+  goTab('design');
+  const pre=p.pre||{};
+  if(!$('#d-name').value)$('#d-name').value=pre.name!==undefined?pre.name:'';
+  if(pre.cue)$('#d-cue').value=pre.cue;
+  if(pre.crave)$('#d-crave').value=pre.crave;
+  if(pre.easy)$('#d-easy').value=pre.easy;
+  if(pre.reward)$('#d-reward').value=pre.reward;
+  if(!$('#d-easy').value)$('#d-easy').value='把它縮到 2 分鐘內能完成的版本';
+  toast('已帶入「'+p.tac+'」，填完就能開始追蹤');
+  $('#d-name').focus();
+}
+
+/* ---------- tabs ---------- */
+function goTab(v){
+  $$('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.v===v));
+  $$('.view').forEach(el=>el.classList.remove('on'));
+  $('#v-'+v).classList.add('on');
+  if(v==='track')renderHabits();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+$$('.tabs button').forEach(b=>b.onclick=()=>goTab(b.dataset.v));
+
+/* ---------- identity ---------- */
+$('#identity').value=data.identity||'';
+$('#identity').oninput=()=>{data.identity=$('#identity').value;queueSave();};
+let sq;function queueSave(){clearTimeout(sq);sq=setTimeout(save,500);}
+
+/* ---------- design -> create habit ---------- */
+$('#d-save').onclick=()=>{
+  const name=$('#d-name').value.trim();
+  if(!name){toast('先幫習慣取個名字吧');$('#d-name').focus();return;}
+  const stackA=$('#d-stack-after').value.trim(),stackD=$('#d-stack-do').value.trim();
+  const h={id:uid(),name,identity:$('#d-identity').value.trim(),
+    stack:(stackA||stackD)?`在「${stackA||'…'}」之後，我會「${stackD||name}」`:'',
+    cue:$('#d-cue').value.trim(),crave:$('#d-crave').value.trim(),
+    easy:$('#d-easy').value.trim(),reward:$('#d-reward').value.trim(),
+    created:today(),log:{}};
+  data.habits.push(h);save();
+  ['d-identity','d-name','d-stack-after','d-stack-do','d-cue','d-crave','d-easy','d-reward'].forEach(id=>$('#'+id).value='');
+  toast('習慣已建立！開始你的第一票 🗳️');
+  goTab('track');
+};
+
+/* ---------- tracker ---------- */
+function streakOf(h){
+  let n=0;const d=new Date();
+  if(!h.log[today()]){d.setDate(d.getDate()-1);}      // streak can end today or yesterday
+  while(h.log[dstr(d)]){n++;d.setDate(d.getDate()-1);}
+  return n;
+}
+function missedYesterdayOnly(h){
+  const y=new Date();y.setDate(y.getDate()-1);
+  const y2=new Date();y2.setDate(y2.getDate()-2);
+  return !h.log[dstr(y)] && h.log[dstr(y2)] && !h.log[today()];
+}
+function renderHabits(){
+  const box=$('#habitList');
+  if(!data.habits.length){box.innerHTML=`<div class="empty"><div class="big">🌱</div>還沒有習慣。先到「痛點索引」找靈感，或直接到「設計習慣」建立第一個。<br><br><button class="btn primary" onclick="document.querySelector('.tabs button[data-v=design]').click()">＋ 建立第一個習慣</button></div>`;return;}
+  box.innerHTML=data.habits.map(h=>{
+    const st=streakOf(h);const done=!!h.log[today()];
+    // last 14 days chain
+    let chain='';const d=new Date();d.setDate(d.getDate()-13);
+    for(let i=0;i<14;i++){const k=dstr(d);const isT=k===today();
+      chain+=`<div class="day"><div class="box ${h.log[k]?'done':''} ${isT?'today':''}">${h.log[k]?'✓':''}</div><div class="wl">${WD[d.getDay()]}</div></div>`;
+      d.setDate(d.getDate()+1);}
+    const chips=[h.cue&&`<span class="chip l1">提示</span>`,h.crave&&`<span class="chip l2">吸引力</span>`,h.easy&&`<span class="chip l3">輕而易舉</span>`,h.reward&&`<span class="chip l4">獎賞</span>`].filter(Boolean).join('');
+    const total=Object.keys(h.log).length;
+    return `<div class="habit" data-id="${h.id}">
+      <div class="htop">
+        <div><div class="hname">${esc(h.name)}</div>${h.identity?`<div class="hident">🪞 為了成為「${esc(h.identity)}」的人</div>`:''}</div>
+        <div class="streak"><div class="n">${st}</div><div class="l">連續天數 🔥</div></div>
+      </div>
+      ${h.stack?`<div style="font-size:12.5px;color:var(--ink-soft);margin-top:8px">🔗 ${esc(h.stack)}</div>`:''}
+      ${h.easy?`<div style="font-size:12.5px;color:var(--easy);font-weight:700;margin-top:6px">⚡ 兩分鐘版：${esc(h.easy)}</div>`:''}
+      <div class="chain">${chain}</div>
+      ${chips?`<div class="hmeta">${chips}</div>`:''}
+      ${missedYesterdayOnly(h)?`<div class="warn">⚠️ 昨天中斷了——絕不錯過兩次！今天一定要接回來。</div>`:''}
+      <div class="todaybtn"><button class="${done?'done':''}" data-toggle="${h.id}">${done?'✓ 今天完成了，投下一票！':'標記今天完成'}</button></div>
+      ${done&&h.identity?`<div class="vote">🗳️ +1 票給「${esc(h.identity)}」的自己　累計 ${total} 次</div>`:''}
+      <div class="hactions"><button class="del" data-del="${h.id}">刪除</button></div>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>{
+    const h=data.habits.find(x=>x.id===b.dataset.toggle);const k=today();
+    if(h.log[k])delete h.log[k];else h.log[k]=true;save();renderHabits();
+  });
+  box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+    if(confirm('確定刪除這個習慣？連續紀錄也會一起刪除。')){data.habits=data.habits.filter(x=>x.id!==b.dataset.del);save();renderHabits();}
+  });
+}
+
+/* ---------- toast ---------- */
+let tt;function toast(msg){const b=$('#savebadge');b.textContent=msg;b.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>{b.classList.remove('show');b.textContent='已儲存 ✓';},1800);}
+
+/* ---------- decorative 1% dots ---------- */
+(function dots(){
+  const hero=$('#hero');const cols=['#f5b301','#3b82f6','#e64980','#12b886','#f97316','#ffffff'];
+  const pts=[[6,20,7],[14,64,5],[24,40,6],[86,26,7],[92,60,5],[78,72,6],[70,18,5],[40,80,5],[58,68,6],[33,15,5]];
+  pts.forEach((p,i)=>{const el=document.createElement('div');el.className='dot';
+    el.style.left=p[0]+'%';el.style.top=p[1]+'%';el.style.width=el.style.height=p[2]+'px';
+    el.style.background=cols[i%cols.length];el.style.opacity=(i%3===0?.85:.5);hero.appendChild(el);});
+})();
+
+/* ---------- init ---------- */
+renderPains();renderHabits();
+</script>
+</body>
+</html>
