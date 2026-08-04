@@ -17,6 +17,7 @@
   "shortcuts": [
     { "name": "工作日誌", "short_name": "工作日誌", "url": "./worklog/" },
     { "name": "讀書計劃", "short_name": "讀書計劃", "url": "./study/" },
+    { "name": "讀書報告", "short_name": "讀書報告", "url": "./reading/" },
     { "name": "原子習慣", "short_name": "原子習慣", "url": "./habits/" }
   ]
 }

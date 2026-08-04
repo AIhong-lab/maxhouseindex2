@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>讀書報告 · 卡片盒</title>
+<meta name="description" content="子彈筆記快速捕捉 × 卡片盒筆記原子卡片。邊讀邊記、煉成永久卡、連結成網，一鍵組裝讀書報告。">
+<meta name="theme-color" content="#5b4ee0">
+<style>
+  :root{
+    --paper:#f3f2f9; --surface:#ffffff; --panel:#f7f6fc;
+    --card:#fbf7ee; --card-line:#ece2cf;
+    --ink:#1d1a2b; --ink-soft:#54506a; --ink-mute:#8a86a0;
+    --line:#e4e1ef; --dot:#cfc9e6;
+    --accent:#5b4ee0; --accent-d:#4a3fc4; --accent-soft:#ede9ff;
+    --gold:#a9791a; --teal:#0e8f80; --rose:#c2447a; --slate:#5b6b86;
+    --danger:#d64545;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Roboto Mono",monospace;
+    --shadow:0 12px 34px rgba(29,26,43,.12); --shadow-sm:0 2px 10px rgba(29,26,43,.08);
+    --r:15px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#0f0e17; --surface:#191825; --panel:#15141f;
+      --card:#211d18; --card-line:#3a3226;
+      --ink:#efeaf7; --ink-soft:#b3adc6; --ink-mute:#7d7893;
+      --line:rgba(255,255,255,.10); --dot:rgba(255,255,255,.10);
+      --accent:#9a8dff; --accent-d:#8072f0; --accent-soft:rgba(154,141,255,.16);
+      --gold:#e6b34d; --teal:#2ec4b2; --rose:#f07aa6; --slate:#93a2bd;
+      --danger:#ff6b6b;
+      --shadow:0 16px 40px rgba(0,0,0,.5); --shadow-sm:0 2px 12px rgba(0,0,0,.35);
+    }
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:system-ui,-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+    background:var(--paper);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased;
+    padding-bottom:calc(env(safe-area-inset-bottom) + 40px)}
+  button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+  button{cursor:pointer;border:none;background:none}
+  .mono{font-family:var(--mono)}
+  ::selection{background:var(--accent-soft)}
+
+  /* topbar */
+  .top{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--paper) 88%,transparent);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+    padding:calc(env(safe-area-inset-top) + 10px) 16px 10px}
+  .top .in{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:16px}
+  .brand .bx{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#d6a24a,#9a5f1c);
+    display:grid;place-items:center;color:#fff;font-weight:900;font-size:15px}
+  .seg{margin-left:auto;display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:3px}
+  .seg button{padding:6px 12px;border-radius:8px;font-weight:800;font-size:13px;color:var(--ink-soft)}
+  .seg button.on{background:var(--surface);color:var(--accent);box-shadow:var(--shadow-sm)}
+
+  .wrap{max-width:900px;margin:0 auto;padding:18px 16px 0}
+
+  /* buttons */
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:11px;font-weight:800;font-size:14px;
+    background:var(--surface);border:1px solid var(--line);color:var(--ink);transition:.14s;box-shadow:var(--shadow-sm)}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-d));color:#fff;border-color:transparent}
+  .btn.ghost{background:transparent;box-shadow:none}
+  .btn.sm{padding:7px 12px;font-size:13px}
+  .btn.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,var(--line))}
+
+  .eye{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .page-head h1{font-size:23px;font-weight:900}
+  .page-head p{font-size:13.5px;color:var(--ink-mute);margin-top:2px}
+
+  /* shelf */
+  .shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .bcard{display:flex;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:15px;box-shadow:var(--shadow-sm);text-align:left;transition:.14s;align-items:flex-start;width:100%}
+  .bcard:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .cover{width:56px;height:78px;border-radius:7px;flex:0 0 auto;color:#f0d69a;font-weight:900;font-size:12px;
+    background:linear-gradient(150deg,#1a2a44,#0d1526);display:grid;place-items:center;text-align:center;padding:6px;line-height:1.25}
+  .bcard .bi{flex:1;min-width:0}
+  .bcard .bt{font-weight:850;font-size:16px;line-height:1.35}
+  .bcard .ba{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+  .bcard .bs{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .tagi{font-size:11px;font-weight:800;color:var(--ink-mute);background:var(--panel);border:1px solid var(--line);
+    border-radius:6px;padding:3px 8px;display:inline-flex;gap:5px;align-items:center}
+  .tagi .star{color:var(--gold)}
+
+  .empty{text-align:center;padding:50px 20px;color:var(--ink-mute)}
+  .empty .big{font-size:44px;margin-bottom:8px}
+  .empty p{font-size:14px;margin-bottom:16px}
+  .empty .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+  /* book detail */
+  .book-head{display:flex;gap:16px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--r);padding:18px;box-shadow:var(--shadow-sm);margin-bottom:16px}
+  .book-head .bi{flex:1;min-width:0}
+  .book-head h1{font-size:20px;font-weight:900}
+  .book-head .by{font-size:13px;color:var(--ink-soft);margin:3px 0 9px}
+  .book-head .row{display:flex;flex-wrap:wrap;gap:7px}
+  .book-head .one{margin-top:11px;font-size:13.5px;border-left:3px solid var(--accent);padding-left:11px;color:var(--ink)}
+  .book-head .acts{display:flex;flex-direction:column;gap:7px;flex:0 0 auto}
+
+  .tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+  .tabs button{padding:10px 4px;margin-right:14px;font-weight:800;font-size:15px;color:var(--ink-mute);border-bottom:2.5px solid transparent;margin-bottom:-1px}
+  .tabs button.on{color:var(--accent);border-color:var(--accent)}
+  .tabs button .ct{font-family:var(--mono);font-size:11px;color:var(--ink-mute);margin-left:5px}
+
+  /* rapid log (dot grid) */
+  .addbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--line);
+    border-radius:13px;padding:12px;box-shadow:var(--shadow-sm);margin-bottom:14px}
+  .sigpick{display:flex;gap:5px;flex-wrap:wrap}
+  .sigpick button{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--panel);
+    font-family:var(--mono);font-size:16px;font-weight:800;display:grid;place-items:center;transition:.12s}
+  .sigpick button.on{border-color:currentColor;box-shadow:0 0 0 2px color-mix(in srgb,currentColor 25%,transparent)}
+  .s-quote{color:var(--gold)} .s-idea{color:var(--accent)} .s-q{color:var(--rose)} .s-act{color:var(--teal)} .s-key{color:var(--slate)}
+  .addbar input.tx{flex:1;min-width:150px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:var(--paper)}
+  .addbar input.pg{width:74px;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:var(--paper)}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)}
+
+  .log{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:6px 4px;
+    background-image:radial-gradient(var(--dot) 1.1px,transparent 1.2px);background-size:22px 22px;background-position:14px 16px}
+  .log .inner{padding:12px 14px}
+  .logdate{font-family:var(--mono);font-size:11.5px;color:var(--ink-mute);font-weight:700;margin:8px 0 8px}
+  .entry{display:flex;gap:11px;align-items:baseline;padding:5px 0}
+  .entry .sig{font-family:var(--mono);font-size:15px;font-weight:800;flex:0 0 auto;width:18px;text-align:center}
+  .entry .tx{font-size:15px;flex:1}
+  .entry .pg{font-family:var(--mono);font-size:11px;color:var(--ink-mute);margin-left:4px}
+  .entry.done .tx{color:var(--ink-mute);text-decoration:line-through}
+  .entry .del{opacity:0;color:var(--ink-mute);font-size:16px;padding:0 4px;transition:.12s}
+  .entry:hover .del{opacity:.7}
+  .entry .act-chk{cursor:pointer}
+
+  /* cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:13px}
+  .zk{background:var(--card);border:1px solid var(--card-line);border-radius:12px;padding:14px 15px;box-shadow:var(--shadow-sm);
+    display:flex;flex-direction:column;gap:8px;position:relative}
+  .zk .zh{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--card-line);padding-bottom:7px}
+  .zk .id{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent)}
+  .zk .src{font-family:var(--mono);font-size:10px;color:var(--ink-mute);text-align:right}
+  .zk .zt{font-size:15px;font-weight:850}
+  .zk .zb{font-size:13.5px;color:var(--ink-soft);white-space:pre-wrap}
+  .zk .links{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .lk{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);
+    border:1px solid transparent;border-radius:6px;padding:3px 8px}
+  button.lk{cursor:pointer} button.lk:hover{border-color:var(--accent)}
+  .lk.ext{color:var(--ink-mute);background:var(--panel);border:1px dashed var(--line)}
+  .zk .zact{display:flex;gap:8px;margin-top:4px}
+  .zk .zact button{font-size:12px;font-weight:700;color:var(--ink-mute)}
+  .zk .zact button:hover{color:var(--accent)}
+  .zk .zact button.d:hover{color:var(--danger)}
+
+  /* report */
+  .report{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+  .report .rtag{font-family:var(--mono);font-size:11px;color:var(--ink-mute);letter-spacing:.04em}
+  .report h2{font-size:19px;font-weight:850;margin:5px 0}
+  .report .sum{font-size:14.5px;border-left:3px solid var(--accent);padding-left:12px;margin:12px 0 16px;color:var(--ink)}
+  .rb{margin-top:15px}
+  .rb .bt{font-size:13px;font-weight:850;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .rb .bt .n{font-family:var(--mono);color:var(--accent);font-size:12px}
+  .rl{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .rl li{font-size:14px;color:var(--ink-soft);padding-left:15px;position:relative}
+  .rl li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .rl li b{color:var(--ink)}
+  .cite{font-family:var(--mono);font-size:10.5px;color:var(--accent);background:var(--accent-soft);border-radius:5px;padding:1px 6px;margin-left:3px}
+  .todo{display:flex;gap:9px;align-items:baseline;font-size:14px;color:var(--ink-soft)}
+  .todo .bx{font-family:var(--mono);color:var(--teal);font-weight:800}
+  .rep-acts{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}
+  .hint{font-size:12.5px;color:var(--ink-mute);text-align:center;padding:22px}
+
+  /* fab */
+  .fab{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:40;
+    width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-d));color:#fff;
+    font-size:26px;display:grid;place-items:center;box-shadow:0 8px 22px color-mix(in srgb,var(--accent) 50%,transparent)}
+
+  /* modal */
+  .modal{position:fixed;inset:0;z-index:60;display:none;align-items:flex-end;justify-content:center;
+    background:rgba(15,14,23,.5);backdrop-filter:blur(3px)}
+  .modal.show{display:flex}
+  .sheet{background:var(--surface);width:100%;max-width:560px;max-height:92vh;overflow-y:auto;
+    border-radius:20px 20px 0 0;box-shadow:var(--shadow);padding:20px 18px calc(env(safe-area-inset-bottom) + 18px)}
+  @media(min-width:600px){.modal{align-items:center}.sheet{border-radius:20px}}
+  .sheet h3{font-size:18px;font-weight:850;margin-bottom:14px}
+  .field{margin-bottom:13px}
+  .field label{display:block;font-size:12.5px;font-weight:800;color:var(--ink-soft);margin-bottom:5px}
+  .field input,.field textarea,.field select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+  .field textarea{resize:vertical;min-height:84px;line-height:1.6}
+  .field .hintline{font-size:11.5px;color:var(--ink-mute);margin-top:5px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .rating{display:flex;gap:4px}
+  .rating button{font-size:22px;color:var(--ink-mute)} .rating button.on{color:var(--gold)}
+  .sheet-foot{display:flex;gap:10px;margin-top:8px}
+  .sheet-foot .btn{flex:1;justify-content:center}
+
+  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 22px);transform:translateX(-50%) translateY(80px);
+    background:var(--ink);color:var(--paper);padding:11px 20px;border-radius:24px;font-size:13.5px;font-weight:700;
+    box-shadow:var(--shadow);z-index:80;opacity:0;transition:.25s}
+  .toast.show{transform:translateX(-50%);opacity:1}
+  .toast.err{background:var(--danger);color:#fff}
+
+  @media(max-width:560px){.shelf,.cards{grid-template-columns:1fr}.book-head{flex-direction:column}.book-head .acts{flex-direction:row;flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<a href="../" aria-label="回工具箱首頁" style="position:fixed;left:14px;bottom:calc(env(safe-area-inset-bottom) + 84px);z-index:45;display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;background:rgba(91,78,224,.94);color:#fff;font:700 13px/1 system-ui,'Noto Sans TC',sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.3)">⌂ 工具箱</a>
+
+<div class="top"><div class="in">
+  <div class="brand"><span class="bx">卡</span>讀書報告</div>
+  <div class="seg" id="nav">
+    <button data-v="shelf" class="on">書櫃</button>
+    <button data-v="box">卡片盒</button>
+  </div>
+</div></div>
+
+<div class="wrap" id="app"></div>
+
+<button class="fab" id="fab" title="新增">＋</button>
+
+<div class="modal" id="modal"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const LS='reading.data.v1';
+const pad=n=>String(n).padStart(2,'0');
+const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SIG={
+  quote:{sym:'★',label:'金句',cls:'s-quote'},
+  idea:{sym:'✎',label:'想法',cls:'s-idea'},
+  q:{sym:'?',label:'疑問',cls:'s-q'},
+  act:{sym:'→',label:'行動',cls:'s-act'},
+  key:{sym:'◆',label:'重點',cls:'s-key'}
+};
+
+let data={books:[],logs:[],cards:[]};
+try{const d=JSON.parse(localStorage.getItem(LS));if(d&&typeof d==='object'){data.books=d.books||[];data.logs=d.logs||[];data.cards=d.cards||[];}}catch(e){}
+let st={view:'shelf', bookId:null, tab:'log', logSig:'key', boxQuery:''};
+
+let saveT;
+function save(){localStorage.setItem(LS,JSON.stringify(data));}
+function toast(m,type){const t=$('#toast');t.textContent=m;t.className='toast show'+(type==='err'?' err':'');clearTimeout(saveT);saveT=setTimeout(()=>t.className='toast',1400);}
+
+/* ---------- helpers ---------- */
+const book=id=>data.books.find(b=>b.id===id);
+const bookLogs=id=>data.logs.filter(l=>l.bookId===id);
+const bookCards=id=>data.cards.filter(c=>c.bookId===id);
+const cardByNo=no=>data.cards.find(c=>c.number.toLowerCase()===String(no).trim().toLowerCase());
+function nextCardNo(b){
+  const prefix=(b.prefix||'C').toUpperCase();
+  const nums=bookCards(b.id).map(c=>{const m=(c.number||'').match(/(\d+)\s*$/);return m?parseInt(m[1]):0;});
+  const n=(nums.length?Math.max(...nums):0)+1;
+  return `${prefix}-${pad(n)}`;
+}
+function download(name,text){const bl=new Blob([text],{type:'text/markdown;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
+
+/* ---------- nav ---------- */
+$$('#nav button').forEach(b=>b.onclick=()=>{st.view=b.dataset.v;st.bookId=null;$$('#nav button').forEach(x=>x.classList.toggle('on',x===b));render();});
+$('#fab').onclick=()=>{
+  if(st.view==='shelf')openBookEditor();
+  else if(st.view==='book'){ if(st.tab==='card')openCardEditor(); else if(st.tab==='log'){$('#log-tx')&&$('#log-tx').focus();} else toast('切到「日誌」或「卡片」分頁新增'); }
+  else openBookEditor();
+};
+
+/* ---------- render root ---------- */
+function render(){
+  const app=$('#app');
+  if(st.view==='shelf')app.innerHTML=viewShelf();
+  else if(st.view==='book')app.innerHTML=viewBook();
+  else app.innerHTML=viewBox();
+  bindDynamic();
+  window.scrollTo({top:0,behavior:'auto'});
+}
+
+/* ---------- shelf ---------- */
+function viewShelf(){
+  if(!data.books.length){
+    return `<div class="empty"><div class="big">📚</div>
+      <p>還沒有書。新增第一本，開始邊讀邊記、煉成卡片。</p>
+      <div class="row"><button class="btn primary" onclick="openBookEditor()">＋ 新增書</button>
+      <button class="btn" onclick="loadSample()">載入《馬斯克寶典》範例</button></div></div>`;
+  }
+  const cards=data.books.map(b=>{
+    const lg=bookLogs(b.id).length, cd=bookCards(b.id).length;
+    return `<button class="bcard" onclick="openBook('${b.id}')">
+      <div class="cover">${esc(b.title).slice(0,6)}</div>
+      <div class="bi"><div class="bt">${esc(b.title)}</div>
+        <div class="ba">${esc(b.author||'—')}</div>
+        <div class="bs">
+          ${b.rating?`<span class="tagi"><span class="star">${'★'.repeat(b.rating)}</span></span>`:''}
+          <span class="tagi">✍️ ${lg} 日誌</span>
+          <span class="tagi">🗂️ ${cd} 卡片</span>
+          ${b.finished?`<span class="tagi">讀畢 ${esc(b.finished)}</span>`:'<span class="tagi">閱讀中</span>'}
+        </div>
+      </div></button>`;
+  }).join('');
+  return `<div class="page-head"><div><div class="eye">書櫃</div><h1>我的書 · ${data.books.length}</h1>
+    <p>點一本書，進到它的日誌、卡片與報告。</p></div>
+    <button class="btn primary" onclick="openBookEditor()">＋ 新增書</button></div>
+    <div class="shelf">${cards}</div>`;
+}
+function openBook(id){st.view='book';st.bookId=id;st.tab='log';render();}
+
+/* ---------- book detail ---------- */
+function viewBook(){
+  const b=book(st.bookId); if(!b){st.view='shelf';return viewShelf();}
+  const lg=bookLogs(b.id).length, cd=bookCards(b.id).length;
+  const head=`<button class="btn ghost sm" onclick="backShelf()" style="margin-bottom:12px">← 書櫃</button>
+    <div class="book-head">
+      <div class="cover">${esc(b.title).slice(0,6)}</div>
+      <div class="bi"><h1>${esc(b.title)}</h1>
+        <div class="by">${esc(b.author||'—')}${b.type?' · '+esc(b.type):''}</div>
+        <div class="row">
+          ${b.rating?`<span class="tagi"><span class="star">${'★'.repeat(b.rating)}</span></span>`:''}
+          ${b.started?`<span class="tagi">起 ${esc(b.started)}</span>`:''}
+          ${b.finished?`<span class="tagi">畢 ${esc(b.finished)}</span>`:''}
+          <span class="tagi mono">前綴 ${esc((b.prefix||'C').toUpperCase())}</span>
+        </div>
+        ${b.oneLine?`<div class="one">${esc(b.oneLine)}</div>`:''}
+      </div>
+      <div class="acts"><button class="btn ghost sm" onclick="openBookEditor('${b.id}')">✎ 編輯</button></div>
+    </div>
+    <div class="tabs" id="tabs">
+      <button data-t="log" class="${st.tab==='log'?'on':''}">日誌<span class="ct">${lg}</span></button>
+      <button data-t="card" class="${st.tab==='card'?'on':''}">卡片<span class="ct">${cd}</span></button>
+      <button data-t="report" class="${st.tab==='report'?'on':''}">報告</button>
+    </div>`;
+  let body='';
+  if(st.tab==='log')body=tabLog(b);
+  else if(st.tab==='card')body=tabCard(b);
+  else body=tabReport(b);
+  return head+`<div id="tab-body">${body}</div>`;
+}
+function backShelf(){st.view='shelf';st.bookId=null;$$('#nav button').forEach(x=>x.classList.toggle('on',x.dataset.v==='shelf'));render();}
+
+/* ----- LOG tab ----- */
+function tabLog(b){
+  const sigBtns=Object.entries(SIG).map(([k,s])=>`<button type="button" class="${s.cls} ${st.logSig===k?'on':''}" data-sig="${k}" title="${s.label}">${s.sym}</button>`).join('');
+  const addbar=`<div class="addbar">
+    <div class="sigpick" id="sigpick">${sigBtns}</div>
+    <input class="tx" id="log-tx" placeholder="${SIG[st.logSig].label}… 一行一則，Enter 送出">
+    <input class="pg" id="log-pg" inputmode="numeric" placeholder="頁碼">
+    <button class="btn primary sm" onclick="addLog()">記下</button>
+  </div>`;
+  const logs=bookLogs(b.id).slice().sort((a,c)=>(a.date+a.id).localeCompare(c.date+c.id));
+  if(!logs.length)return addbar+`<div class="hint">還沒有日誌。選一個符號、打一行、按「記下」——★金句 ✎想法 ?疑問 →行動 ◆重點。</div>`;
+  let html='',lastDate='';
+  logs.forEach(l=>{
+    if(l.date!==lastDate){html+=`<div class="logdate">${esc(l.date)}</div>`;lastDate=l.date;}
+    const s=SIG[l.sig]||SIG.key;
+    const chk=l.sig==='act'?`<span class="sig ${s.cls} act-chk" onclick="toggleDone('${l.id}')" title="標記完成">${l.done?'✓':s.sym}</span>`
+      :`<span class="sig ${s.cls}">${s.sym}</span>`;
+    html+=`<div class="entry ${l.done?'done':''}">${chk}<span class="tx">${esc(l.text)}${l.page?`<span class="pg">p.${esc(l.page)}</span>`:''}</span>
+      <button class="del" onclick="delLog('${l.id}')" title="刪除">×</button></div>`;
+  });
+  return addbar+`<div class="log"><div class="inner">${html}</div></div>`;
+}
+function addLog(){
+  const b=book(st.bookId);if(!b)return;
+  const tx=$('#log-tx'),pg=$('#log-pg');
+  const text=tx.value.trim();if(!text){tx.focus();return;}
+  data.logs.push({id:uid(),bookId:b.id,date:todayStr(),sig:st.logSig,text,page:pg.value.trim(),done:false});
+  save();tx.value='';pg.value='';renderTabBody();$('#log-tx')&&$('#log-tx').focus();
+}
+function toggleDone(id){const l=data.logs.find(x=>x.id===id);if(l){l.done=!l.done;save();renderTabBody();}}
+function delLog(id){data.logs=data.logs.filter(x=>x.id!==id);save();renderTabBody();}
+
+/* ----- CARD tab ----- */
+function tabCard(b){
+  const add=`<div style="margin-bottom:14px"><button class="btn primary" onclick="openCardEditor()">＋ 新增永久卡片</button>
+    <span style="font-size:12.5px;color:var(--ink-mute);margin-left:10px">一張卡一個想法，用自己的話寫。</span></div>`;
+  const cards=bookCards(b.id).slice().sort((a,c)=>(a.number||'').localeCompare(c.number||'',undefined,{numeric:true}));
+  if(!cards.length)return add+`<div class="hint">還沒有卡片。把日誌裡最有價值的想法，改寫成一張永久卡。</div>`;
+  return add+`<div class="cards">${cards.map(cardHtml).join('')}</div>`;
+}
+function cardHtml(c){
+  const links=(c.links||[]).map(x=>{
+    const hit=cardByNo(x);
+    return hit?`<button class="lk" onclick="gotoCard('${hit.id}')">→ ${esc(x)}</button>`:`<span class="lk ext">→ ${esc(x)}</span>`;
+  }).join('');
+  return `<article class="zk" id="c-${c.id}">
+    <div class="zh"><span class="id">${esc(c.number)}</span><span class="src">${esc(c.source||'')}</span></div>
+    <div class="zt">${esc(c.title)}</div>
+    <div class="zb">${esc(c.body)}</div>
+    ${links?`<div class="links">${links}</div>`:''}
+    <div class="zact"><button onclick="openCardEditor('${c.id}')">✎ 編輯</button><button class="d" onclick="delCard('${c.id}')">刪除</button></div>
+  </article>`;
+}
+function gotoCard(id){
+  const c=data.cards.find(x=>x.id===id);if(!c)return;
+  if(c.bookId!==st.bookId){st.bookId=c.bookId;}
+  st.view='book';st.tab='card';render();
+  setTimeout(()=>{const el=$('#c-'+id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.transition='box-shadow .2s';el.style.boxShadow='0 0 0 3px var(--accent)';setTimeout(()=>el.style.boxShadow='',1200);}},60);
+}
+function delCard(id){if(!confirm('刪除這張卡片？'))return;data.cards=data.cards.filter(x=>x.id!==id);save();renderTabBody();}
+
+/* ----- REPORT tab ----- */
+function reportMd(b){
+  const cards=bookCards(b.id).slice().sort((a,c)=>(a.number||'').localeCompare(c.number||'',undefined,{numeric:true}));
+  const acts=bookLogs(b.id).filter(l=>l.sig==='act');
+  const qs=bookLogs(b.id).filter(l=>l.sig==='q');
+  let s=`# 讀書報告 · ${b.title}\n`;
+  if(b.oneLine)s+=`> ${b.oneLine}\n`;
+  s+=`\n作者：${b.author||'—'}　讀畢：${b.finished||'—'}　評分：${b.rating?'★'.repeat(b.rating):'—'}\n`;
+  s+=`\n## 核心想法（來自卡片）\n`;
+  s+=cards.length?cards.map(c=>`- **${c.title}**：${c.body}〔${c.number}〕`).join('\n'):'（尚無卡片）';
+  s+=`\n\n## 我要採取的行動\n`;
+  s+=acts.length?acts.map(a=>`- [${a.done?'x':' '}] ${a.text}${a.page?`（p.${a.page}）`:''}`).join('\n'):'（尚無行動）';
+  if(qs.length)s+=`\n\n## 待解決的問題\n`+qs.map(q=>`- ${q.text}${q.page?`（p.${q.page}）`:''}`).join('\n');
+  const ext=[];cards.forEach(c=>(c.links||[]).forEach(x=>{if(!cardByNo(x))ext.push(x);}));
+  if(ext.length)s+=`\n\n## 延伸連結\n`+[...new Set(ext)].map(x=>`- ${x}`).join('\n');
+  s+=`\n`;
+  return s;
+}
+function tabReport(b){
+  const cards=bookCards(b.id).slice().sort((a,c)=>(a.number||'').localeCompare(c.number||'',undefined,{numeric:true}));
+  const acts=bookLogs(b.id).filter(l=>l.sig==='act');
+  const qs=bookLogs(b.id).filter(l=>l.sig==='q');
+  if(!cards.length&&!acts.length)return `<div class="hint">報告會從你的卡片與「→行動」日誌自動組裝。先去「日誌」記幾則、「卡片」煉一兩張，這裡就會長出來。</div>`;
+  const core=cards.map(c=>`<li><b>${esc(c.title)}</b>：${esc(c.body)}<span class="cite">${esc(c.number)}</span></li>`).join('')||'<li style="color:var(--ink-mute)">尚無卡片</li>';
+  const todos=acts.map(a=>`<div class="todo"><span class="bx">${a.done?'☑':'□'}</span><span>${esc(a.text)}${a.page?` <span class="cite">p.${esc(a.page)}</span>`:''}</span></div>`).join('')||'<div style="color:var(--ink-mute);font-size:14px">尚無行動</div>';
+  const ques=qs.length?`<div class="rb"><div class="bt"><span class="n">03</span>待解決的問題</div><ul class="rl">${qs.map(q=>`<li>${esc(q.text)}</li>`).join('')}</ul></div>`:'';
+  return `<div class="rep-acts">
+      <button class="btn primary sm" onclick="copyReport()">📋 複製報告</button>
+      <button class="btn sm" onclick="dlReport()">📄 下載 .md</button>
+      <button class="btn sm" onclick="copyAI()">🤖 複製給 AI 潤飾</button>
+    </div>
+    <div class="report">
+      <div class="rtag">READING REPORT · ${esc(b.title)} · ${esc(b.finished||todayStr())}</div>
+      <h2>從《${esc(b.title)}》帶走的想法</h2>
+      ${b.oneLine?`<div class="sum">${esc(b.oneLine)}</div>`:''}
+      <div class="rb"><div class="bt"><span class="n">01</span>核心想法（來自卡片）</div><ul class="rl">${core}</ul></div>
+      <div class="rb"><div class="bt"><span class="n">02</span>我要採取的行動（來自 → 行動）</div>${todos}</div>
+      ${ques}
+    </div>`;
+}
+function copyReport(){navigator.clipboard.writeText(reportMd(book(st.bookId))).then(()=>toast('報告已複製 ✓'),()=>toast('複製失敗','err'));}
+function dlReport(){const b=book(st.bookId);download(`讀書報告-${b.title}.md`,reportMd(b));}
+function copyAI(){
+  const b=book(st.bookId);
+  const p=`請幫我把下面這份讀書報告潤飾得更通順、有條理，但**保留我的觀點與所有卡片編號、行動項目**，不要加入我沒寫的內容：\n\n`+reportMd(b);
+  navigator.clipboard.writeText(p).then(()=>toast('已複製，貼進 ChatGPT／Claude 即可 ✓'),()=>toast('複製失敗','err'));
+}
+
+/* ---------- BOX (all cards search) ---------- */
+function viewBox(){
+  const q=st.boxQuery.trim().toLowerCase();
+  let cards=data.cards.slice();
+  if(q)cards=cards.filter(c=>(c.title+c.body+c.number+(c.source||'')).toLowerCase().includes(q));
+  cards.sort((a,c)=>(c.createdAt||0)-(a.createdAt||0));
+  const head=`<div class="page-head"><div><div class="eye">卡片盒</div><h1>所有卡片 · ${data.cards.length}</h1>
+    <p>跨書搜尋你累積的每一個想法。</p></div></div>
+    <div style="margin-bottom:14px"><input id="box-q" value="${esc(st.boxQuery)}" placeholder="🔍 搜尋卡片標題、內容、編號…"
+      style="width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:11px;background:var(--surface)"></div>`;
+  if(!data.cards.length)return head+`<div class="hint">還沒有任何卡片。先到書櫃選一本書，開始煉卡。</div>`;
+  if(!cards.length)return head+`<div class="hint">沒有符合「${esc(st.boxQuery)}」的卡片。</div>`;
+  const list=cards.map(c=>{
+    const b=book(c.bookId);
+    return `<article class="zk">
+      <div class="zh"><span class="id">${esc(c.number)}</span><span class="src">${esc(b?b.title:'')}${c.source?' · '+esc(c.source):''}</span></div>
+      <div class="zt">${esc(c.title)}</div><div class="zb">${esc(c.body)}</div>
+      ${(c.links&&c.links.length)?`<div class="links">${c.links.map(x=>{const h=cardByNo(x);return h?`<button class="lk" onclick="gotoCard('${h.id}')">→ ${esc(x)}</button>`:`<span class="lk ext">→ ${esc(x)}</span>`;}).join('')}</div>`:''}
+      <div class="zact"><button onclick="gotoCard('${c.id}')">在書中開啟 →</button></div>
+    </article>`;
+  }).join('');
+  return head+`<div class="cards">${list}</div>`;
+}
+
+/* ---------- dynamic bindings ---------- */
+function bindDynamic(){
+  if(st.view==='book'){
+    $$('#tabs button').forEach(b=>b.onclick=()=>{st.tab=b.dataset.t;$$('#tabs button').forEach(x=>x.classList.toggle('on',x===b));renderTabBody();});
+    bindLogInputs();
+  }
+  if(st.view==='box'){
+    const q=$('#box-q');
+    if(q)q.oninput=()=>{st.boxQuery=q.value;const pos=q.selectionStart;renderBoxKeepFocus();};
+  }
+}
+function bindLogInputs(){
+  const sp=$('#sigpick');
+  if(sp)sp.querySelectorAll('button').forEach(b=>b.onclick=()=>{st.logSig=b.dataset.sig;sp.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));const tx=$('#log-tx');if(tx){tx.placeholder=SIG[st.logSig].label+'… 一行一則，Enter 送出';tx.focus();}});
+  const tx=$('#log-tx');if(tx)tx.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addLog();}};
+  const pg=$('#log-pg');if(pg)pg.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addLog();}};
+}
+function renderTabBody(){const b=book(st.bookId);if(!b)return;
+  const el=$('#tab-body');if(!el)return;
+  el.innerHTML=st.tab==='log'?tabLog(b):st.tab==='card'?tabCard(b):tabReport(b);
+  // update tab counts
+  $$('#tabs button').forEach(btn=>{const t=btn.dataset.t;const ct=btn.querySelector('.ct');if(ct)ct.textContent=t==='log'?bookLogs(b.id).length:t==='card'?bookCards(b.id).length:'';});
+  if(st.tab==='log')bindLogInputs();
+}
+function renderBoxKeepFocus(){
+  const app=$('#app');const sel=document.activeElement&&document.activeElement.id==='box-q';
+  app.innerHTML=viewBox();bindDynamic();
+  if(sel){const q=$('#box-q');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length);}}
+}
+
+/* ---------- BOOK editor ---------- */
+function openBookEditor(id){
+  const b=id?book(id):null;
+  const r=b?b.rating||0:0;
+  $('#modal').innerHTML=`<div class="sheet">
+    <h3>${b?'編輯書':'新增書'}</h3>
+    <div class="field"><label>書名 *</label><input id="e-title" value="${b?esc(b.title):''}" placeholder="例：馬斯克寶典"></div>
+    <div class="grid2">
+      <div class="field"><label>作者</label><input id="e-author" value="${b?esc(b.author||''):''}" placeholder="作者／編者"></div>
+      <div class="field"><label>類型</label><input id="e-type" value="${b?esc(b.type||''):''}" placeholder="思維／創業…"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>開始日期</label><input id="e-started" type="date" value="${b?esc(b.started||''):''}"></div>
+      <div class="field"><label>讀畢日期</label><input id="e-finished" type="date" value="${b?esc(b.finished||''):''}"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>評分</label><div class="rating" id="e-rating">${[1,2,3,4,5].map(i=>`<button type="button" data-r="${i}" class="${i<=r?'on':''}">★</button>`).join('')}</div></div>
+      <div class="field"><label>卡片編號前綴</label><input id="e-prefix" maxlength="3" value="${b?esc(b.prefix||''):''}" placeholder="如 M（馬斯克）"><div class="hintline">新卡片會自動編號，如 M-01、M-02</div></div>
+    </div>
+    <div class="field"><label>一句話評價</label><textarea id="e-one" placeholder="用一句話總結這本書對你的意義">${b?esc(b.oneLine||''):''}</textarea></div>
+    <div class="sheet-foot">
+      <button class="btn ghost" onclick="closeModal()">取消</button>
+      ${b?`<button class="btn danger" onclick="delBook('${b.id}')">刪除</button>`:''}
+      <button class="btn primary" onclick="saveBook('${b?b.id:''}')">儲存</button>
+    </div></div>`;
+  openModal();
+  let rr=r;$('#e-rating').querySelectorAll('button').forEach(bt=>bt.onclick=()=>{rr=+bt.dataset.r;if(rr===$('#e-rating').dataset.cur*1)rr=0;$('#e-rating').dataset.cur=rr;$('#e-rating').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.r<=rr));});
+  $('#e-rating').dataset.cur=r;
+  $('#modal').dataset.rating=r;
+  window._getRating=()=>{const on=$('#e-rating').querySelectorAll('button.on').length;return on;};
+}
+function saveBook(id){
+  const title=$('#e-title').value.trim();
+  if(!title){toast('請填書名','err');$('#e-title').focus();return;}
+  const rating=window._getRating?window._getRating():0;
+  const fields={title,author:$('#e-author').value.trim(),type:$('#e-type').value.trim(),
+    started:$('#e-started').value,finished:$('#e-finished').value,
+    prefix:($('#e-prefix').value.trim()||'C'),oneLine:$('#e-one').value.trim(),rating};
+  if(id){Object.assign(book(id),fields);}
+  else{const nb={id:uid(),createdAt:Date.now(),...fields};data.books.push(nb);st.view='book';st.bookId=nb.id;st.tab='log';}
+  save();closeModal();render();toast('已儲存 ✓');
+}
+function delBook(id){
+  if(!confirm('刪除這本書？它的日誌與卡片也會一併刪除。'))return;
+  data.books=data.books.filter(b=>b.id!==id);
+  data.logs=data.logs.filter(l=>l.bookId!==id);
+  data.cards=data.cards.filter(c=>c.bookId!==id);
+  save();closeModal();backShelf();toast('已刪除');
+}
+
+/* ---------- CARD editor ---------- */
+function openCardEditor(id){
+  const b=book(st.bookId);if(!b)return;
+  const c=id?data.cards.find(x=>x.id===id):null;
+  const number=c?c.number:nextCardNo(b);
+  const linksStr=c?(c.links||[]).join(', '):'';
+  $('#modal').innerHTML=`<div class="sheet">
+    <h3>${c?'編輯卡片':'新增永久卡片'}</h3>
+    <div class="grid2">
+      <div class="field"><label>編號</label><input id="c-no" class="mono" value="${esc(number)}"></div>
+      <div class="field"><label>出處（頁碼／章）</label><input id="c-src" value="${c?esc(c.source||''):esc(b.title+' p.')}" placeholder="${esc(b.title)} p.132"></div>
+    </div>
+    <div class="field"><label>卡片標題（一個想法）*</label><input id="c-title" value="${c?esc(c.title):''}" placeholder="例：有用 ＞ 完美"></div>
+    <div class="field"><label>內容（用自己的話寫成完整句子）*</label><textarea id="c-body" placeholder="不要抄原文——用你自己的話，把這個想法講清楚。">${c?esc(c.body):''}</textarea></div>
+    <div class="field"><label>連結到（用逗號分隔）</label><input id="c-links" value="${esc(linksStr)}" placeholder="M-04, 習慣·身分認同, G-07">
+      <div class="hintline">填其他卡片編號會變成可點連結；填文字則是待建的想法。</div></div>
+    <div class="sheet-foot">
+      <button class="btn ghost" onclick="closeModal()">取消</button>
+      <button class="btn primary" onclick="saveCard('${c?c.id:''}')">儲存卡片</button>
+    </div></div>`;
+  openModal();$('#c-title').focus();
+}
+function saveCard(id){
+  const b=book(st.bookId);if(!b)return;
+  const title=$('#c-title').value.trim(),body=$('#c-body').value.trim();
+  if(!title||!body){toast('標題與內容都要填','err');return;}
+  const links=$('#c-links').value.split(/[,，]/).map(x=>x.trim()).filter(Boolean);
+  const number=$('#c-no').value.trim()||nextCardNo(b);
+  const source=$('#c-src').value.trim();
+  if(id){Object.assign(data.cards.find(x=>x.id===id),{number,title,body,source,links});}
+  else{data.cards.push({id:uid(),bookId:b.id,number,title,body,source,links,createdAt:Date.now()});}
+  save();closeModal();st.tab='card';renderTabBody();toast('卡片已儲存 ✓');
+}
+
+/* ---------- modal utils ---------- */
+function openModal(){$('#modal').classList.add('show');document.body.style.overflow='hidden';}
+function closeModal(){$('#modal').classList.remove('show');$('#modal').innerHTML='';document.body.style.overflow='';}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+
+/* ---------- sample ---------- */
+function loadSample(){
+  const bid=uid();
+  data.books.push({id:bid,createdAt:Date.now(),title:'馬斯克寶典',author:'Eric Jorgenson 編',type:'思維／創業',
+    started:'2026-07-30',finished:'2026-08-01',prefix:'M',rating:5,
+    oneLine:'把物理學當信仰的人，攤開他怎麼想事情——回到第一性原理，做真正重要的事。'});
+  const L=(sig,text,page,date,done)=>data.logs.push({id:uid(),bookId:bid,date,sig,text,page,done:!!done});
+  L('quote','「物理學是定律，其餘一切只是建議。」','58','2026-07-30');
+  L('idea','benchmark＝類比思考，難怪只能微幅改善。想到台積電那套。','61','2026-07-30');
+  L('key','語意樹：先長樹幹（原理），樹葉（細節）才有地方掛。','77','2026-07-30');
+  L('q','第一性原理在資源很少時，真的推得動嗎？','64','2026-07-30');
+  L('quote','「要成為一個有用的人，讓貢獻大於消耗。」','132','2026-07-31');
+  L('idea','有用＞完美——這根本是完美主義的解藥。','134','2026-07-31');
+  L('act','下週一對一，主動請主管挑我的毛病（練求負評）。','171','2026-07-31',true);
+  L('act','用第一性原理，把產品定價從頭重算一次，別抄同業。','64','2026-07-31');
+  const C=(number,title,body,source,links)=>data.cards.push({id:uid(),bookId:bid,number,title,body,source,links,createdAt:Date.now()+Math.random()});
+  C('M-01','有用 ＞ 完美','與其問「我夠不夠完美」，不如問「我對別人有沒有用」。把力氣放在創造價值，就不需要靠完美來證明自己——這是完美主義最實際的解藥。','馬斯克寶典 p.132',['M-04','習慣·身分認同']);
+  C('M-02','類比帶來迭代，第一性原理帶來顛覆','照別人的做法推理（類比）省力，但只能微幅改善；把問題拆到最根本的事實重推，才可能得到不一樣的答案。','馬斯克寶典 p.61',['M-03','資源限制下可行？']);
+  C('M-03','先種樹幹，再撿樹葉','把知識當一棵樹：先把根本原理（樹幹）建起來，細節與技巧（樹葉）才有地方依附。','馬斯克寶典 p.77',['M-02','L-09 卡片盒·由下而上']);
+  C('M-04','主動求負評是最便宜的成長','刻意去請別人挑毛病，尤其是朋友。把回饋當資訊而非攻擊，就能用很低成本快速修正假設。','馬斯克寶典 p.171',['M-01']);
+  C('M-05','夠重要就放手做','當一件事對你夠重要，即使勝算不高也該做。把「風險調整後報酬率」拿掉，剩下的才是你真正想投入的事。','馬斯克寶典 p.208',['M-01','G-07 恆毅力·熱情與堅持']);
+  save();st.view='book';st.bookId=bid;st.tab='log';render();toast('已載入範例，隨時可刪除 ✓');
+}
+
+/* ---------- PWA ---------- */
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('../sw.js').catch(()=>{}));}
+
+render();
+</script>
+</body>
+</html>

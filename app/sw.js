@@ -1,10 +1,11 @@
 /* MAX 工具箱 Service Worker — 一個 App 涵蓋多個工具，離線快取 + 通知 */
-const CACHE = 'maxtools-v1';
+const CACHE = 'maxtools-v2';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './worklog/', './worklog/index.html',
   './study/', './study/index.html',
   './habits/', './habits/index.html',
+  './reading/', './reading/index.html',
 ];
 
 self.addEventListener('install', (e) => {
