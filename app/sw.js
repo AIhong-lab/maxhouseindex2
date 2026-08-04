@@ -1,7 +1,8 @@
 /* MAX 工具箱 Service Worker — 一個 App 涵蓋多個工具，離線快取 + 通知 */
-const CACHE = 'maxtools-v3';
+const CACHE = 'maxtools-v4';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
+  './brain/', './brain/index.html',
   './worklog/', './worklog/index.html',
   './study/', './study/index.html',
   './habits/', './habits/index.html',
