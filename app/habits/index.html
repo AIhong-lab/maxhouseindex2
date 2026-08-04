@@ -318,7 +318,7 @@ function missedYesterdayOnly(h){
 }
 function renderHabits(){
   const box=$('#habitList');
-  if(!data.habits.length){box.innerHTML=`<div class="empty"><div class="big">🌱</div>還沒有習慣。先到「痛點索引」找靈感，或直接到「設計習慣」建立第一個。<br><br><button class="btn primary" onclick="document.querySelector('.tabs button[data-v=design]').click()">＋ 建立第一個習慣</button></div>`;return;}
+  if(!data.habits.length){box.innerHTML=`<div class="empty"><div class="big">🌱</div>還沒有習慣。先到「痛點索引」找靈感，或直接到「設計習慣」建立第一個。<br><br><button class="btn primary" onclick="document.querySelector('.tabs button[data-v=design]').click()">＋ 建立第一個習慣</button> <button class="btn" onclick="loadSampleHabits()" style="margin-left:8px">載入範例</button></div>`;return;}
   box.innerHTML=data.habits.map(h=>{
     const st=streakOf(h);const done=!!h.log[today()];
     // last 14 days chain
@@ -363,6 +363,18 @@ let tt;function toast(msg){const b=$('#savebadge');b.textContent=msg;b.classList
     el.style.left=p[0]+'%';el.style.top=p[1]+'%';el.style.width=el.style.height=p[2]+'px';
     el.style.background=cols[i%cols.length];el.style.opacity=(i%3===0?.85:.5);hero.appendChild(el);});
 })();
+
+/* ---------- sample ---------- */
+function loadSampleHabits(){
+  if(!data.identity){data.identity='我想成為每天閱讀、規律運動的人';const idi=$('#identity');if(idi)idi.value=data.identity;}
+  data.habits.push({id:uid(),name:'每天讀 10 分鐘',identity:'一個持續學習的人',
+    stack:'在「刷完牙」之後，我會「翻開書讀 10 分鐘」',
+    cue:'把書放在枕頭上（讓提示看得見）',crave:'讀完在追蹤器打勾、累積連續紀錄',
+    easy:'先只讀一頁——先精通「出現」',reward:'打勾＋泡一杯茶',created:today(),log:{}});
+  save();
+  try{goTab('track');}catch(e){renderHabits();}
+  try{toast('已載入範例習慣，可隨時刪除 🌱');}catch(e){}
+}
 
 /* ---------- init ---------- */
 renderPains();renderHabits();

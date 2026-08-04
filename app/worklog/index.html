@@ -659,7 +659,7 @@ function renderDashboard(){
     <div class="two-col">
       <div>
         <div class="section-title"><h2>最近的紀錄</h2><a href="#" onclick="go('journal');return false">看全部 →</a></div>
-        <div id="dash-recent">${recent.length?recent.map(entryCard).join(''):emptyBox('還沒有任何紀錄','按下右下角「寫日誌」，開始累積你的知識資產。','📝')}</div>
+        <div id="dash-recent">${recent.length?recent.map(entryCard).join(''):(live().length?emptyBox('這段期間沒有紀錄','按右下角「寫日誌」繼續累積。','📝'):`<div class="empty"><span class="ic">📝</span><h3>還沒有任何紀錄</h3><p>按右下角「寫日誌」開始，或先載入範例看看工作日誌長怎樣。</p><button class="btn primary" onclick="loadSampleWL()"><i class="ic">＋</i> 載入範例</button></div>`)}</div>
       </div>
       <div>
         <div class="section-title"><h2>連續紀錄</h2></div>
@@ -681,6 +681,14 @@ function renderDashboard(){
   refreshReminderUI();
 }
 function emptyBox(h,p,ic){return `<div class="empty"><span class="ic">${ic}</span><h3>${esc(h)}</h3><p>${esc(p)}</p></div>`;}
+function loadSampleWL(){
+  const dm=off=>{const x=new Date();x.setDate(x.getDate()-off);return `${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`;};
+  const push=o=>entries.push(Object.assign({id:uid(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),deleted:false,tags:[],highlight:false,project:'',background:'',process:'',result:'',reflection:'',metrics:''},o));
+  push({date:dm(0),title:'把客戶報表自動化，省下每週 3 小時',project:'報表系統',type:'專案里程碑',background:'每週手動整理 Excel，耗時又易錯。',process:'用排程自動抓資料、自動產出。',result:'每週省 3 小時、錯誤歸零，主管很滿意。',reflection:'先做最痛的那塊就先上線，別追求一次到位。',metrics:'每週省 3 小時、錯誤 0',tags:['自動化','效率'],highlight:true});
+  push({date:dm(2),title:'跟主管一對一：拿到對簡報的負面回饋',type:'學習心得',background:'簡報後主管私下給了幾點批評。',reflection:'結論放太後面，聽眾抓不到重點；下次先講結論。',tags:['溝通','回饋']});
+  push({date:dm(4),title:'決定不接這個外包案',type:'決策紀錄',background:'一個報酬不錯但方向不合的邀約。',reflection:'用第一性原理想：對三年後的目標沒幫助，就婉拒。',tags:['取捨']});
+  saveData();render();try{toast('已載入範例，可隨時刪除 ✓','ok');}catch(e){}
+}
 
 function miniHeat(){
   const days=56;const map={};live().forEach(e=>map[e.date]=(map[e.date]||0)+1);

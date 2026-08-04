@@ -84,7 +84,12 @@
     border-radius:6px;padding:3px 8px;display:inline-flex;gap:5px;align-items:center}
   .tagi .star{color:var(--gold)}
 
-  .empty{text-align:center;padding:50px 20px;color:var(--ink-mute)}
+  .first3{max-width:520px;margin:0 auto 20px;display:grid;gap:8px;text-align:left}
+  .first3 .s{display:flex;gap:11px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+  .first3 .s .n{font-family:var(--mono);font-weight:800;color:var(--accent);flex:0 0 auto}
+  .first3 .s .t{font-size:13.5px;color:var(--ink-soft)}
+  .first3 .s .t b{color:var(--ink)}
+  .empty{text-align:center;padding:44px 20px 30px;color:var(--ink-mute)}
   .empty .big{font-size:44px;margin-bottom:8px}
   .empty p{font-size:14px;margin-bottom:16px}
   .empty .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
@@ -275,10 +280,17 @@ function render(){
 /* ---------- shelf ---------- */
 function viewShelf(){
   if(!data.books.length){
-    return `<div class="empty"><div class="big">📚</div>
-      <p>還沒有書。新增第一本，開始邊讀邊記、煉成卡片。</p>
-      <div class="row"><button class="btn primary" onclick="openBookEditor()">＋ 新增書</button>
-      <button class="btn" onclick="loadSample()">載入《馬斯克寶典》範例</button></div></div>`;
+    return `<div style="text-align:center;padding:30px 8px 6px"><div style="font-size:44px;margin-bottom:6px">🗂️</div>
+        <div style="font-weight:900;font-size:19px;margin-bottom:4px">三步，把一本書變成你的知識網</div>
+        <p style="color:var(--ink-mute);font-size:13.5px;margin-bottom:18px">子彈筆記快速捕捉 × 卡片盒原子卡片</p></div>
+      <div class="first3">
+        <div class="s"><span class="n">1</span><span class="t"><b>邊讀邊記</b>：用符號快速捕捉金句、想法、行動（★✎?→◆）。</span></div>
+        <div class="s"><span class="n">2</span><span class="t"><b>煉成卡片</b>：把想法改寫成一張張「自己的話」的永久卡，可互相連結。</span></div>
+        <div class="s"><span class="n">3</span><span class="t"><b>組裝報告</b>：卡片＋「→行動」自動組成讀書報告，不用重寫。</span></div>
+      </div>
+      <div class="empty"><p>先按「載入範例」看它怎麼運作，或直接新增你正在讀的書。</p>
+      <div class="row"><button class="btn primary" onclick="loadSample()">🗂️ 載入《馬斯克寶典》範例</button>
+      <button class="btn" onclick="openBookEditor()">＋ 新增書</button></div></div>`;
   }
   const cards=data.books.map(b=>{
     const lg=bookLogs(b.id).length, cd=bookCards(b.id).length;

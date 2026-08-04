@@ -167,6 +167,10 @@ textarea.note:focus{outline:none;border-color:var(--brand)}
 
   <!-- STEP 1: CALENDAR -->
   <section class="view on" id="v-cal">
+    <div id="study-sample" style="display:none;background:var(--brand-soft);border:1px solid var(--brand);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13.5px;color:var(--brand-deep);display:none;align-items:center;gap:10px;flex-wrap:wrap">
+      <span>🎏 第一次用？先看排好的樣子。</span>
+      <button onclick="loadSampleStudy()" style="padding:7px 13px;border-radius:9px;background:var(--brand);color:#fff;font-weight:800;font-size:13px">載入範例</button>
+    </div>
     <div class="card">
       <h2>📅 第一步：月曆時間盤點</h2>
       <div class="sub">先別急著排讀什麼。點一下日期，標出哪天忙、哪天有空。先知道自己有哪些時間，比塞滿行程更重要。</div>
@@ -431,8 +435,20 @@ function renderHist(){
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
+/* ---------- sample ---------- */
+function loadSampleStudy(){
+  const key=off=>{const x=new Date();x.setDate(x.getDate()+off);return `${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`;};
+  data.calendar[key(1)]={s:'busy'}; data.calendar[key(2)]={s:'free'}; data.calendar[key(3)]={s:'free'}; data.calendar[key(4)]={s:'mid'}; data.calendar[key(6)]={s:'fixed'};
+  data.week['0_13']='read'; data.week['1_13']='read'; data.week['2_8']='free'; data.week['3_13']='read'; data.week['4_9']='fixed';
+  const td=todayStr();
+  data.daily[td]={mit:[{t:'數學：複習二次函數',done:true},{t:'英文：閱讀 2 篇＋單字 20',done:false},{t:'理化：計算題 10 題',done:false}],plan:'4',actual:'2.5',note:'數學較熟，題目可再多練；理化計算要加強。'};
+  save();renderCal();renderWeek();loadDay(td);
+  const b=$('#study-sample'); if(b)b.style.display='none';
+}
+
 /* ---------- init ---------- */
 renderCal();renderWeek();loadDay(todayStr());
+(function(){const empty=!Object.keys(data.calendar).length&&!Object.keys(data.week).length&&!Object.keys(data.daily).length;const b=$('#study-sample');if(b)b.style.display=empty?'flex':'none';})();
 
 /* ---------- PWA：註冊 Service Worker（可加入主畫面、離線使用）---------- */
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('../sw.js').catch(()=>{}));}
