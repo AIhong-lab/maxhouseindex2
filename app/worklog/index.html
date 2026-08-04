@@ -6,12 +6,6 @@
 <title>工作日誌 · 第二大腦</title>
 <meta name="description" content="每天 5 分鐘記錄，累積成自己的知識資產。全文搜尋、專案知識庫、作品集、AI 脈絡整理、每日提醒與 Google Drive 雲端同步。">
 <meta name="theme-color" content="#0f2c4e">
-<link rel="manifest" href="./manifest.webmanifest">
-<link rel="apple-touch-icon" href="./icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="工作日誌">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -391,6 +385,7 @@ select.f:focus,input.f:focus{border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
+<a href="../" aria-label="回工具箱首頁" style="position:fixed;left:14px;bottom:14px;z-index:9999;display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;background:rgba(15,44,78,.9);color:#fff;font:700 13px/1 system-ui,'Noto Sans TC',sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.3);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">⌂ 工具箱</a>
 <div class="app">
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
@@ -1321,8 +1316,8 @@ function requestNotif(showToast){
 }
 function fireNotification(title,body){
   if(!('Notification'in window)||Notification.permission!=='granted'){toast('請先允許瀏覽器通知','err');return;}
-  navigator.serviceWorker?.ready.then(reg=>reg.showNotification(title,{body,icon:'./icon-192.png',tag:'worklog-daily',renotify:true}))
-    .catch(()=>new Notification(title,{body,icon:'./icon-192.png'}));
+  navigator.serviceWorker?.ready.then(reg=>reg.showNotification(title,{body,icon:'../icon-192.png',tag:'worklog-daily',renotify:true}))
+    .catch(()=>new Notification(title,{body,icon:'../icon-192.png'}));
   if(!navigator.serviceWorker){try{new Notification(title,{body});}catch(e){}}
 }
 function checkReminder(){
@@ -1716,7 +1711,7 @@ function init(){
   setInterval(checkReminder,60000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkReminder();});
   // service worker
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('../sw.js').catch(()=>{});
   // expose for inline handlers
   Object.assign(window,{go,openEditor,saveEntry,delEntry,openDetail,closeSheet,closeModal,toggleStar,openAI,openInterview,openProject,exportPortfolio,
     backToMe,switchToUser,toggleRole,openCreateUser,createUser,doSignOut,renderAdmin,loadUsers,openFbSetup,showAuthGate});

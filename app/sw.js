@@ -1,6 +1,11 @@
-/* 工作日誌 Service Worker — 離線快取 + 通知點擊 */
-const CACHE = 'worklog-v2';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+/* MAX 工具箱 Service Worker — 一個 App 涵蓋多個工具，離線快取 + 通知 */
+const CACHE = 'maxtools-v1';
+const SHELL = [
+  './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
+  './worklog/', './worklog/index.html',
+  './study/', './study/index.html',
+  './habits/', './habits/index.html',
+];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(() => {}));
@@ -20,11 +25,11 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // 只快取自家同源的 app 資源；Google API / 字型走網路
+  // 只處理自家同源資源；Google 字型 / Firebase / 其他 API 走網路
   if (url.origin !== self.location.origin) return;
 
   if (req.mode === 'navigate') {
-    // 導覽：網路優先，離線退回快取
+    // 導覽：網路優先，離線退回快取（找不到就回工具箱首頁）
     e.respondWith(
       fetch(req)
         .then((res) => {
@@ -47,7 +52,7 @@ self.addEventListener('fetch', (e) => {
   );
 });
 
-// 提醒通知點擊 → 開啟 / 聚焦 App
+/* ---- 工作日誌「每日提醒」通知 ---- */
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
   e.waitUntil(
@@ -55,12 +60,11 @@ self.addEventListener('notificationclick', (e) => {
       for (const client of list) {
         if ('focus' in client) return client.focus();
       }
-      if (self.clients.openWindow) return self.clients.openWindow('./index.html');
+      if (self.clients.openWindow) return self.clients.openWindow('./worklog/');
     })
   );
 });
 
-// 由頁面觸發的提醒（App 開啟時）
 self.addEventListener('message', (e) => {
   if (e.data && e.data.type === 'notify') {
     const { title, body } = e.data;
