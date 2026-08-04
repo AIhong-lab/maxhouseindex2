@@ -156,7 +156,29 @@
     box-shadow:var(--shadow);z-index:80;opacity:0;transition:.25s}
   .toast.show{transform:translateX(-50%);opacity:1}
   @media(min-width:520px){.brand .nm{display:inline}}
+
+  /* sync button + sheet */
+  .syncbtn{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;
+    padding:7px 11px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink-mute)}
+  .syncbtn.on{color:var(--tag);border-color:color-mix(in srgb,var(--tag) 40%,var(--line))}
+  .syncbtn .d{width:8px;height:8px;border-radius:50%;background:currentColor}
+  .modal{position:fixed;inset:0;z-index:70;display:none;align-items:flex-end;justify-content:center;background:rgba(15,14,23,.5);backdrop-filter:blur(3px)}
+  .modal.show{display:flex}
+  .sheet{background:var(--surface);width:100%;max-width:540px;max-height:92vh;overflow-y:auto;border-radius:20px 20px 0 0;
+    box-shadow:var(--shadow);padding:22px 20px calc(env(safe-area-inset-bottom) + 20px)}
+  @media(min-width:600px){.modal{align-items:center}.sheet{border-radius:20px}}
+  .sheet h3{font-size:19px;font-weight:850;margin-bottom:6px}
+  .sheet p{font-size:13.5px;color:var(--ink-soft);margin-bottom:12px}
+  .sheet ol{margin:0 0 14px 20px;font-size:13.5px;color:var(--ink-soft)} .sheet li{margin:5px 0}
+  .sheet textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:11px;padding:11px 13px;
+    background:var(--paper);font-family:var(--mono);font-size:12px;line-height:1.5;resize:vertical}
+  .sheet .foot{display:flex;gap:10px;margin-top:14px}
+  .sheet .foot .btn{flex:1;justify-content:center}
+  .statusline{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:14px;font-weight:700}
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <a href="../" aria-label="回工具箱首頁" style="position:fixed;left:14px;bottom:calc(env(safe-area-inset-bottom) + 86px);z-index:45;display:none;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;background:rgba(75,63,196,.94);color:#fff;font:700 13px/1 system-ui,'Noto Sans TC',sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.3)" id="hubPill">⌂ 工具箱</a>
@@ -164,7 +186,7 @@
 <div class="top"><div class="in">
   <a class="brand" href="../" style="text-decoration:none;color:inherit"><span class="bx">腦</span><span class="nm">第二大腦</span></a>
   <div class="search"><span class="ic">🔍</span><input id="q" placeholder="搜尋所有卡片（標題、內容、#標籤）…"></div>
-  <a class="hubline" href="../">⌂ 工具箱</a>
+  <button class="syncbtn" id="syncBtn" title="跨裝置同步"><span class="d"></span><span id="syncLbl">同步</span></button>
 </div></div>
 
 <div id="app">
@@ -174,6 +196,7 @@
 
 <button class="fab" id="fab" title="快速捕捉">⚡</button>
 <div class="toast" id="toast"></div>
+<div class="modal" id="syncModal"></div>
 
 <script>
 "use strict";
@@ -193,19 +216,20 @@ function save(){localStorage.setItem(LS,JSON.stringify(data));}
 function toast(m){const t=$('#toast');t.textContent=m;t.className='toast show';clearTimeout(saveT);saveT=setTimeout(()=>t.className='toast',1300);}
 
 /* ---------- derive ---------- */
-const note=id=>data.notes.find(n=>n.id===id);
+const liveNotes=()=>data.notes.filter(n=>!n.deleted);
+const note=id=>data.notes.find(n=>n.id===id&&!n.deleted);
 const titleOf=n=>{const t=(n.body||'').trim().split(/\n/)[0].trim();return t||'（無標題）';};
 const norm=s=>String(s||'').trim().toLowerCase();
 function tagsOf(n){const m=(n.body||'').match(/#([^\s#\[\]]+)/g)||[];return [...new Set(m.map(x=>x.slice(1)))];}
 function linkTitlesOf(n){const m=(n.body||'').match(/\[\[([^\]]+)\]\]/g)||[];return [...new Set(m.map(x=>x.slice(2,-2).trim()))];}
-const noteByTitle=t=>data.notes.find(n=>norm(titleOf(n))===norm(t));
-function backlinks(n){const t=norm(titleOf(n));return data.notes.filter(m=>m.id!==n.id&&linkTitlesOf(m).some(x=>norm(x)===t));}
-function allTags(){const c={};data.notes.forEach(n=>tagsOf(n).forEach(t=>c[t]=(c[t]||0)+1));return Object.entries(c).sort((a,b)=>b[1]-a[1]);}
+const noteByTitle=t=>liveNotes().find(n=>norm(titleOf(n))===norm(t));
+function backlinks(n){const t=norm(titleOf(n));return liveNotes().filter(m=>m.id!==n.id&&linkTitlesOf(m).some(x=>norm(x)===t));}
+function allTags(){const c={};liveNotes().forEach(n=>tagsOf(n).forEach(t=>c[t]=(c[t]||0)+1));return Object.entries(c).sort((a,b)=>b[1]-a[1]);}
 
 function capture(text,keep){
   const body=text.trim();if(!body)return null;
-  const n={id:uid(),body,status:keep?'kept':'inbox',createdAt:Date.now(),updatedAt:Date.now()};
-  data.notes.unshift(n);save();return n;
+  const n={id:uid(),body,status:keep?'kept':'inbox',deleted:false,createdAt:Date.now(),updatedAt:Date.now()};
+  data.notes.unshift(n);save();pushNote(n);return n;
 }
 
 /* ---------- render ---------- */
@@ -218,14 +242,15 @@ function render(){
 }
 function filteredNotes(){
   const q=norm(st.q);
-  let notes=data.notes.slice();
+  let notes=liveNotes();
   if(q)notes=notes.filter(n=>norm(n.body).includes(q));
   else if(st.tag)notes=notes.filter(n=>tagsOf(n).some(t=>norm(t)===norm(st.tag)));
   else if(st.filter==='inbox')notes=notes.filter(n=>n.status==='inbox');
   return notes.sort((a,b)=>b.updatedAt-a.updatedAt);
 }
 function listHtml(){
-  const inboxN=data.notes.filter(n=>n.status==='inbox').length;
+  const inboxN=liveNotes().filter(n=>n.status==='inbox').length;
+  const totalN=liveNotes().length;
   const cap=`<div class="capture ac">
     <textarea id="cap" rows="1" placeholder="⚡ 靈光乍現？丟進來… 第一行是標題。#標籤 分類、[[標題]] 連到別張卡。Enter 捕捉"></textarea>
     <div class="acbox" id="ac-cap"></div>
@@ -239,12 +264,12 @@ function listHtml(){
     const tags=allTags().slice(0,10).map(([t,c])=>`<button class="chip tag ${st.tag===t?'on':''}" onclick="setTag('${esc(t)}')">#${esc(t)} <span class="ct">${c}</span></button>`).join('');
     chips=`<div class="chips">
       <button class="chip ${st.filter==='inbox'&&!st.tag?'on':''}" onclick="setFilter('inbox')">⚡ 收件匣 <span class="ct">${inboxN}</span></button>
-      <button class="chip ${st.filter==='all'&&!st.tag?'on':''}" onclick="setFilter('all')">🗂️ 全部 <span class="ct">${data.notes.length}</span></button>
+      <button class="chip ${st.filter==='all'&&!st.tag?'on':''}" onclick="setFilter('all')">🗂️ 全部 <span class="ct">${totalN}</span></button>
       ${tags}</div>`;
   }
   const notes=filteredNotes();
   let body;
-  if(!data.notes.length){
+  if(!totalN){
     body=`<div class="empty"><div class="big">🧠</div><p>這是你的第二大腦。<b>有想法先丟上面的框</b>——不用分類、不用完整，之後再連結整理。</p>
       <p style="margin-top:12px"><button class="btn" onclick="seedBrain()">看個範例</button></p></div>`;
   }else if(!notes.length){
@@ -305,8 +330,8 @@ function openTitle(title){let n=noteByTitle(title);if(!n){n=capture(title,true);
 function setFilter(f){st.filter=f;st.tag='';st.q='';$('#q').value='';render();}
 function setTag(t){st.tag=t;st.q='';$('#q').value='';render();if(!isWide())window.scrollTo({top:0,behavior:'auto'});}
 function clearQ(){st.q='';$('#q').value='';render();}
-function toggleKeep(id){const n=note(id);if(n){n.status=n.status==='inbox'?'kept':'inbox';n.updatedAt=Date.now();save();render();}}
-function delNote(id){if(!confirm('刪除這張卡片？'))return;data.notes=data.notes.filter(n=>n.id!==id);save();goHome();toast('已刪除');}
+function toggleKeep(id){const n=note(id);if(n){n.status=n.status==='inbox'?'kept':'inbox';n.updatedAt=Date.now();save();pushNote(n);render();}}
+function delNote(id){if(!confirm('刪除這張卡片？'))return;const n=note(id);if(n){n.deleted=true;n.updatedAt=Date.now();save();pushNote(n);}goHome();toast('已刪除');}
 
 /* ---------- autocomplete for [[ ---------- */
 function acState(){return {ta:null,box:null,items:[],idx:0,open:false};}
@@ -361,7 +386,7 @@ function bind(){
   if(ed){
     AC.ed.ta=ed;AC.ed.box=$('#ac-ed');
     autoGrow(ed,200);
-    ed.oninput=()=>{const n=note(st.id);if(n){n.body=ed.value;n.updatedAt=Date.now();save();autoGrow(ed,200);const pv=$('#pv');if(pv)pv.innerHTML=renderBody(n);}updateAC('ed');
+    ed.oninput=()=>{const n=note(st.id);if(n){n.body=ed.value;n.updatedAt=Date.now();save();queuePush(n);autoGrow(ed,200);const pv=$('#pv');if(pv)pv.innerHTML=renderBody(n);}updateAC('ed');
       // refresh list titles live (debounced-ish)
       const pl=$('#paneList');if(pl){/* light: update on next render */}};
     ed.onkeydown=e=>{acKeydown('ed',e);};
@@ -395,10 +420,102 @@ function seedBrain(){
   save();st.filter='all';render();toast('已載入範例，可隨時刪除 ✓');
 }
 
+/* ================= 跨裝置同步（Firebase · 本機優先 · 登入才啟用）================= */
+const LS_FB='maxtools.fbconfig.v1';
+function getFbConfig(){for(const k of [LS_FB,'worklog.fbconfig.v1']){try{const o=JSON.parse(localStorage.getItem(k));if(o&&o.apiKey)return o;}catch(e){}}return null;}
+function parseCfg(txt){let t=(txt||'').trim();const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0||b<=a)return null;t=t.slice(a,b+1);
+  try{return (new Function('return ('+t+')'))();}catch(e){try{return JSON.parse(t);}catch(_){return null;}}}
+const Sync={on:false,uid:null,email:'',db:null,auth:null,unsub:null,ready:false};
+function pushNote(n){ if(!Sync.on||!Sync.db||!Sync.uid||!n)return;
+  try{Sync.db.collection('users').doc(Sync.uid).collection('brain_notes').doc(n.id).set(JSON.parse(JSON.stringify(n))).catch(()=>{});}catch(e){} }
+let _pq={};
+function queuePush(n){ if(!Sync.on)return; clearTimeout(_pq[n.id]); _pq[n.id]=setTimeout(()=>pushNote(n),800); }
+function initSync(){
+  const cfg=getFbConfig();
+  if(!cfg||typeof firebase==='undefined'||!firebase.initializeApp){updateSyncBtn();return;}
+  try{
+    if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(cfg);
+    Sync.auth=firebase.auth(); Sync.db=firebase.firestore();
+    try{Sync.db.enablePersistence({synchronizeTabs:true}).catch(()=>{});}catch(e){}
+    Sync.ready=true;
+    Sync.auth.onAuthStateChanged(u=>onAuth(u),()=>updateSyncBtn());
+  }catch(e){updateSyncBtn();}
+}
+function onAuth(u){
+  if(!u){Sync.on=false;Sync.uid=null;Sync.email='';if(Sync.unsub){Sync.unsub();Sync.unsub=null;}updateSyncBtn();return;}
+  Sync.uid=u.uid;Sync.email=u.email||'';Sync.on=true;updateSyncBtn();
+  const col=Sync.db.collection('users').doc(u.uid).collection('brain_notes');
+  col.get().then(snap=>{
+    const cloud={};snap.forEach(d=>cloud[d.id]=d.data());
+    const local={};data.notes.forEach(n=>local[n.id]=n);
+    const ids=new Set([...Object.keys(cloud),...Object.keys(local)]);
+    const merged=[];
+    ids.forEach(id=>{const c=cloud[id],l=local[id];
+      if(c&&l)merged.push((c.updatedAt||0)>=(l.updatedAt||0)?c:l);else merged.push(c||l);});
+    data.notes=merged.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));save();
+    ids.forEach(id=>{const c=cloud[id],l=local[id];if(l&&(!c||(l.updatedAt||0)>(c.updatedAt||0)))pushNote(l);});
+    render();toast('已連上同步 ☁️');
+    Sync.unsub=col.onSnapshot(s=>{let ch=false;
+      s.docChanges().forEach(x=>{const d=x.doc.data();const cur=data.notes.find(n=>n.id===x.doc.id);
+        if(!cur){data.notes.unshift(d);ch=true;}
+        else if((d.updatedAt||0)>(cur.updatedAt||0)){Object.assign(cur,d);ch=true;}});
+      if(ch){data.notes.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));save();render();}
+    },()=>{});
+  }).catch(()=>{updateSyncBtn();});
+}
+function syncSignIn(){ if(!Sync.auth){toast('請先貼上 Firebase 設定');return;}
+  const p=new firebase.auth.GoogleAuthProvider();
+  Sync.auth.signInWithPopup(p).catch(e=>{const c=(e&&e.code)||'';
+    if(/popup|environment|cancelled/.test(c))Sync.auth.signInWithRedirect(p);else toast('登入失敗：'+c);});
+  closeSync();}
+function syncSignOut(){ if(Sync.auth)Sync.auth.signOut(); closeSync(); toast('已登出，改為只存本機'); }
+function saveFbConfig(){
+  const cfg=parseCfg($('#fbcfg').value);
+  if(!cfg||!cfg.apiKey||!cfg.projectId){toast('設定看起來不完整，請整段貼上 firebaseConfig');return;}
+  localStorage.setItem(LS_FB,JSON.stringify(cfg));
+  closeSync();initSync();setTimeout(openSync,300);toast('設定已存 ✓ 接著請登入');
+}
+function updateSyncBtn(){
+  const b=$('#syncBtn'),l=$('#syncLbl');if(!b||!l)return;
+  if(Sync.on){b.classList.add('on');l.textContent='已同步';}
+  else{b.classList.remove('on');l.textContent=getFbConfig()?'登入同步':'同步';}
+}
+function openSync(){
+  const m=$('#syncModal');let inner;
+  if(Sync.on){
+    inner=`<h3>☁️ 跨裝置同步：已開啟</h3>
+      <div class="statusline">✅ 已登入 <span class="mono" style="color:var(--accent)">${esc(Sync.email||'')}</span></div>
+      <p style="margin-top:12px">你的電腦、手機、電子書閱讀器只要用<b>同一個 Google 帳號</b>登入這個網頁，卡片就會自動同步。離線時照記，連上網自動補傳。</p>
+      <div class="foot"><button class="btn ghost" onclick="closeSync()">關閉</button><button class="btn danger" onclick="syncSignOut()">登出（只存本機）</button></div>`;
+  }else if(getFbConfig()){
+    inner=`<h3>☁️ 開啟跨裝置同步</h3>
+      <p>設定已就緒。用你自己的 Google 帳號登入，三台就會同步同一份。</p>
+      <div class="foot"><button class="btn ghost" onclick="closeSync()">關閉</button><button class="btn primary" onclick="syncSignIn()">用 Google 登入</button></div>
+      <p style="margin-top:14px;font-size:12px;color:var(--ink-mute)">想換一組設定？<a href="#" onclick="localStorage.removeItem('maxtools.fbconfig.v1');closeSync();setTimeout(openSync,60);return false" style="color:var(--accent)">重設 Firebase 設定</a></p>`;
+  }else{
+    inner=`<h3>☁️ 設定跨裝置同步</h3>
+      <p>資料預設只存在這台裝置。要讓<b>電腦／手機／電子書閱讀器</b>共用同一份，需要一次性接上你自己的免費 Firebase（約 10 分鐘）。</p>
+      <ol>
+        <li>到 <b>console.firebase.google.com</b> 用你的 Google 帳號建立一個專案</li>
+        <li>Build → <b>Firestore Database</b> → 建立（正式或測試模式皆可，稍後貼安全規則）</li>
+        <li>Build → <b>Authentication</b> → Sign-in method → 啟用 <b>Google</b></li>
+        <li>專案設定 ⚙️ → 你的應用程式 → 新增「網頁」App → 複製整段 <b>firebaseConfig</b></li>
+        <li>把它整段貼到下面：</li>
+      </ol>
+      <textarea id="fbcfg" placeholder="const firebaseConfig = {\n  apiKey: &quot;...&quot;,\n  authDomain: &quot;...&quot;,\n  projectId: &quot;...&quot;,\n  ...\n};"></textarea>
+      <div class="foot"><button class="btn ghost" onclick="closeSync()">關閉</button><button class="btn primary" onclick="saveFbConfig()">存設定</button></div>`;
+  }
+  m.innerHTML=`<div class="sheet">${inner}</div>`;m.classList.add('show');document.body.style.overflow='hidden';
+}
+function closeSync(){const m=$('#syncModal');m.classList.remove('show');m.innerHTML='';document.body.style.overflow='';}
+$('#syncBtn').addEventListener('click',openSync);
+$('#syncModal').addEventListener('click',e=>{if(e.target.id==='syncModal')closeSync();});
+
 /* ---------- PWA ---------- */
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('../sw.js').catch(()=>{}));}
 
 render();
+initSync();
 setTimeout(()=>{const c=$('#cap');if(c&&!data.notes.length)c.focus();},60);
 </script>
 </body>

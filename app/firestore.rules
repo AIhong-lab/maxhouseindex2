@@ -1,0 +1,14 @@
+rules_version = '2';
+// MAX 工具箱 · Firestore 安全性規則（個人自用版）
+// 每個登入者只能讀寫「自己」的資料，涵蓋第二大腦（brain_notes）、工作日誌（entries）等所有子集合。
+// 部署：Firebase 控制台 → Firestore Database → 規則 → 貼上並「發布」。
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+  }
+}
