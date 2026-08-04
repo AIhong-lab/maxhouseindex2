@@ -7,7 +7,11 @@
 <meta name="description" content="每天 5 分鐘記錄，累積成自己的知識資產。全文搜尋、專案知識庫、作品集、AI 脈絡整理、每日提醒與 Google Drive 雲端同步。">
 <meta name="theme-color" content="#0f2c4e">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="apple-touch-icon" href="../logo.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="工作日誌">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -1317,8 +1321,8 @@ function requestNotif(showToast){
 }
 function fireNotification(title,body){
   if(!('Notification'in window)||Notification.permission!=='granted'){toast('請先允許瀏覽器通知','err');return;}
-  navigator.serviceWorker?.ready.then(reg=>reg.showNotification(title,{body,icon:'../logo.png',tag:'worklog-daily',renotify:true}))
-    .catch(()=>new Notification(title,{body,icon:'../logo.png'}));
+  navigator.serviceWorker?.ready.then(reg=>reg.showNotification(title,{body,icon:'./icon-192.png',tag:'worklog-daily',renotify:true}))
+    .catch(()=>new Notification(title,{body,icon:'./icon-192.png'}));
   if(!navigator.serviceWorker){try{new Notification(title,{body});}catch(e){}}
 }
 function checkReminder(){

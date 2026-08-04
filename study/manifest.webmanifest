@@ -1,13 +1,13 @@
 {
-  "name": "工作日誌 · 第二大腦",
-  "short_name": "工作日誌",
-  "description": "每天 5 分鐘記錄，累積成自己的知識資產。支援全文搜尋、專案知識庫、作品集、AI 脈絡整理、每日提醒與 Google Drive 雲端同步。",
+  "name": "讀書計劃 · Lorna 諾娜老師實驗室",
+  "short_name": "讀書計劃",
+  "description": "三步驟設計專屬自己的讀書計劃：月曆時間盤點、一週時間表、每日任務清單。不是時間不夠，而是要搞清楚時間管理。",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f2c4e",
-  "theme_color": "#0f2c4e",
+  "background_color": "#4f46e5",
+  "theme_color": "#4f46e5",
   "lang": "zh-Hant-TW",
   "icons": [
     { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

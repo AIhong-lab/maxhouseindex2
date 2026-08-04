@@ -1,5 +1,5 @@
-/* 工作日誌 Service Worker — 離線快取 + 通知點擊 */
-const CACHE = 'worklog-v2';
+/* 讀書計劃 Service Worker — 離線快取 */
+const CACHE = 'studyplan-v1';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -20,11 +20,9 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // 只快取自家同源的 app 資源；Google API / 字型走網路
   if (url.origin !== self.location.origin) return;
 
   if (req.mode === 'navigate') {
-    // 導覽：網路優先，離線退回快取
     e.respondWith(
       fetch(req)
         .then((res) => {
@@ -37,7 +35,6 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // 其他同源資源：快取優先
   e.respondWith(
     caches.match(req).then((cached) => cached || fetch(req).then((res) => {
       const copy = res.clone();
@@ -45,31 +42,4 @@ self.addEventListener('fetch', (e) => {
       return res;
     }).catch(() => cached))
   );
-});
-
-// 提醒通知點擊 → 開啟 / 聚焦 App
-self.addEventListener('notificationclick', (e) => {
-  e.notification.close();
-  e.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-      for (const client of list) {
-        if ('focus' in client) return client.focus();
-      }
-      if (self.clients.openWindow) return self.clients.openWindow('./index.html');
-    })
-  );
-});
-
-// 由頁面觸發的提醒（App 開啟時）
-self.addEventListener('message', (e) => {
-  if (e.data && e.data.type === 'notify') {
-    const { title, body } = e.data;
-    self.registration.showNotification(title || '工作日誌提醒', {
-      body: body || '今天還沒留下紀錄，花 5 分鐘寫一則吧。',
-      icon: './icon-192.png',
-      badge: './icon-192.png',
-      tag: 'worklog-daily',
-      renotify: true,
-    });
-  }
 });

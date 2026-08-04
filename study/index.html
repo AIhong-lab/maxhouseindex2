@@ -6,6 +6,12 @@
 <title>讀書計劃 · Lorna 諾娜老師實驗室</title>
 <meta name="description" content="三步驟設計專屬自己的讀書計劃：月曆時間盤點、一週時間表、每日任務清單。不是時間不夠，而是要搞清楚時間管理。">
 <meta name="theme-color" content="#4f46e5">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="讀書計劃">
 <style>
 :root{
   --ink:#1e293b; --ink-soft:#64748b; --ink-mute:#94a3b8;
@@ -432,6 +438,9 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 
 /* ---------- init ---------- */
 renderCal();renderWeek();loadDay(todayStr());
+
+/* ---------- PWA：註冊 Service Worker（可加入主畫面、離線使用）---------- */
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
 </script>
 </body>
 </html>

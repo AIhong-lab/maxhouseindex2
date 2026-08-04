@@ -1,13 +1,13 @@
 {
-  "name": "工作日誌 · 第二大腦",
-  "short_name": "工作日誌",
-  "description": "每天 5 分鐘記錄，累積成自己的知識資產。支援全文搜尋、專案知識庫、作品集、AI 脈絡整理、每日提醒與 Google Drive 雲端同步。",
+  "name": "原子習慣 · 實踐工具",
+  "short_name": "原子習慣",
+  "description": "把《原子習慣》從『知道』變『做到』。痛點索引、四大法則習慣設計器、每日追蹤與連續紀錄。每天進步 1%。",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f2c4e",
-  "theme_color": "#0f2c4e",
+  "background_color": "#17172b",
+  "theme_color": "#17172b",
   "lang": "zh-Hant-TW",
   "icons": [
     { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

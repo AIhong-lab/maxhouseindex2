@@ -6,6 +6,12 @@
 <title>原子習慣 · 實踐工具</title>
 <meta name="description" content="把《原子習慣》從『知道』變『做到』。痛點索引、四大法則習慣設計器、每日追蹤與連續紀錄。每天進步 1%。">
 <meta name="theme-color" content="#17172b">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="原子習慣">
 <style>
 :root{
   --paper:#faf9f5; --card:#ffffff; --ink:#17172b; --ink-soft:#575768; --ink-mute:#9a9aab;
@@ -365,6 +371,9 @@ let tt;function toast(msg){const b=$('#savebadge');b.textContent=msg;b.classList
 
 /* ---------- init ---------- */
 renderPains();renderHabits();
+
+/* ---------- PWA：註冊 Service Worker（可加入主畫面、離線使用）---------- */
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
 </script>
 </body>
 </html>
