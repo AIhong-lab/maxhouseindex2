@@ -57,6 +57,9 @@
   @media(min-width:900px){
     #app{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start;padding:20px 24px 40px}
     .pane-list{position:sticky;top:78px;max-height:calc(100vh - 96px);overflow-y:auto;padding-right:2px}
+    body.wideview #app{grid-template-columns:1fr}
+    body.wideview .pane-detail{display:none}
+    body.wideview .pane-list{position:static;max-height:none;overflow:visible}
   }
   @media(max-width:899px){
     #app{padding-bottom:calc(env(safe-area-inset-bottom) + 96px)}
@@ -200,6 +203,34 @@
   .prio-pick button.on.p1{background:#e0517a;color:#fff;border-color:transparent}
   .prio-pick button.on.p2{background:#e0a82e;color:#fff;border-color:transparent}
   .prio-pick button.on.p3{background:#8b86a4;color:#fff;border-color:transparent}
+  /* due badge + calendar */
+  .duebadge{font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--panel);border:1px solid var(--line);color:var(--ink-mute);margin-left:6px}
+  .duebadge.today{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
+  .duebadge.over{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,var(--line))}
+  .calnav{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .calnav button{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:900;color:var(--accent);font-size:18px}
+  .calnav .lab{font-weight:800;font-size:15px}
+  .calnav .today{width:auto;padding:0 13px;font-size:13px;height:36px}
+  .week{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+  @media(min-width:900px){.week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:start}}
+  .day{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 11px;min-height:64px}
+  .day.today{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .day.past{opacity:.65}
+  .dh{font-size:13px;font-weight:800;margin-bottom:7px;display:flex;gap:6px;align-items:center}
+  .todaytag{font-size:10px;background:var(--accent);color:#fff;border-radius:6px;padding:1px 6px}
+  .dayempty{color:var(--ink-mute);font-size:12px}
+  .caltask{display:flex;align-items:center;gap:8px;padding:5px 0}
+  .caltask .cc{width:18px;height:18px;flex:0 0 auto;border-radius:50%;border:2px solid var(--ink-mute);display:grid;place-items:center;color:#fff;font-size:11px;background:none}
+  .caltask.done .cc{background:var(--tag);border-color:var(--tag)}
+  .caltask .ct2{flex:1;min-width:0;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .caltask.done .ct2{color:var(--ink-mute);text-decoration:line-through}
+  .caltask .calx{color:var(--ink-mute);font-size:15px;padding:0 3px;flex:0 0 auto}
+  .qbtn{font-size:11.5px;font-weight:800;padding:5px 10px;border-radius:8px;border:1px solid var(--line);color:var(--ink-soft);background:var(--surface)}
+  .qbtn:hover{border-color:var(--accent);color:var(--accent)}
+  .unsched{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-bottom:8px}
+  .unsched .ut{flex:1 1 140px;min-width:0;font-size:13.5px;font-weight:700;cursor:pointer}
+  .duectl{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:8px 22px 12px}
+  .duectl input[type=date]{padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--paper);font-size:13px}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -235,7 +266,7 @@ const isWide=()=>window.matchMedia('(min-width:900px)').matches;
 
 let data={notes:[]};
 try{const d=JSON.parse(localStorage.getItem(LS));if(d&&Array.isArray(d.notes))data=d;}catch(e){}
-let st={id:null, filter:'inbox', tag:'', q:'', capTask:false};
+let st={id:null, filter:'inbox', tag:'', q:'', capTask:false, weekOff:0};
 let saveT;
 function save(){localStorage.setItem(LS,JSON.stringify(data));}
 function toast(m){const t=$('#toast');t.textContent=m;t.className='toast show';clearTimeout(saveT);saveT=setTimeout(()=>t.className='toast',1300);}
@@ -263,6 +294,7 @@ function render(){
   $('#paneList').innerHTML=listHtml();
   $('#paneDetail').innerHTML=st.id?detailHtml():placeholderHtml();
   document.body.classList.toggle('detail', !!st.id && !isWide());
+  document.body.classList.toggle('wideview', st.filter==='cal' && !st.id && !st.q && !st.tag);
   $('#hubPill').style.display=(st.id&&!isWide())?'inline-flex':'none';
   bind();
 }
@@ -294,11 +326,13 @@ function listHtml(){
     chips=`<div class="chips">
       <button class="chip ${st.filter==='inbox'&&!st.tag?'on':''}" onclick="setFilter('inbox')">⚡ 收件匣 <span class="ct">${inboxN}</span></button>
       <button class="chip ${st.filter==='task'&&!st.tag?'on':''}" onclick="setFilter('task')">🎯 總清單 <span class="ct">${taskN}</span></button>
+      <button class="chip ${st.filter==='cal'&&!st.tag?'on':''}" onclick="setFilter('cal')">📅 行事曆</button>
       <button class="chip ${st.filter==='all'&&!st.tag?'on':''}" onclick="setFilter('all')">🗂️ 全部 <span class="ct">${totalN}</span></button>
       ${tags}</div>`;
   }
   let body;
   if(st.filter==='task'&&!st.q&&!st.tag){return cap+chips+taskListHtml();}
+  if(st.filter==='cal'&&!st.q&&!st.tag){return cap+chips+calHtml();}
   const notes=filteredNotes();
   if(!totalN){
     body=`<div class="empty"><div class="big">🧠</div><p>這是你的第二大腦。<b>有想法先丟上面的框</b>——不用分類、不用完整，之後再連結整理。</p>
@@ -342,13 +376,45 @@ function taskRow(n){
   const rest=(n.body||'').split('\n').slice(1).join(' ').trim();
   return `<div class="trow ${n.taskDone?'done':''}">
     <button class="tchk" onclick="toggleTaskDone('${n.id}')" title="${n.taskDone?'標為未完成':'完成'}">${n.taskDone?'✓':''}</button>
-    <div class="tbody" onclick="openNote('${n.id}')"><div class="tt">${esc(titleOf(n))}</div>
+    <div class="tbody" onclick="openNote('${n.id}')"><div class="tt">${esc(titleOf(n))}${n.due?`<span class="duebadge ${dueClass(n.due)}">${dueLabel(n.due)}</span>`:''}</div>
       <div class="tm">優先：${pl}${rest?' · '+esc(rest):''}</div></div>
     <span class="pdot p${p}" title="優先度"></span></div>`;
 }
 function setTask(id,on){const n=note(id);if(!n)return;n.isTask=on;if(on){if(!n.prio)n.prio=2;if(n.status==='inbox')n.status='kept';}n.updatedAt=Date.now();save();pushNote(n);render();}
 function setPrio(id,p){const n=note(id);if(!n)return;n.prio=p;n.updatedAt=Date.now();save();pushNote(n);render();}
 function toggleTaskDone(id){const n=note(id);if(!n)return;n.taskDone=!n.taskDone;n.doneAt=n.taskDone?Date.now():null;n.updatedAt=Date.now();save();pushNote(n);render();}
+/* ---- 到期日 / 行事曆 ---- */
+function isoOf(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
+function todayISO(){return isoOf(new Date());}
+function addDaysISO(iso,n){const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return isoOf(d);}
+const WDN=['日','一','二','三','四','五','六'];
+function dueLabel(due){if(!due)return '';const t=todayISO();if(due<t)return '逾期';if(due===t)return '今天';if(due===addDaysISO(t,1))return '明天';const d=new Date(due+'T00:00:00');return `${d.getMonth()+1}/${d.getDate()}（${WDN[d.getDay()]}）`;}
+function dueClass(due){if(!due)return '';const t=todayISO();if(due<t)return 'over';if(due===t)return 'today';return '';}
+function setDue(id,iso){const n=note(id);if(!n)return;n.due=iso||null;if(iso&&!n.isTask){n.isTask=true;if(!n.prio)n.prio=2;n.taskDone=false;if(n.status==='inbox')n.status='kept';}n.updatedAt=Date.now();save();pushNote(n);render();}
+function calWeek(n,reset){st.weekOff=reset?0:st.weekOff+n;render();}
+function weekDays(){const base=new Date();base.setHours(0,0,0,0);const dow=(base.getDay()+6)%7;
+  const mon=new Date(base);mon.setDate(base.getDate()-dow+st.weekOff*7);
+  return Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return isoOf(d);});}
+function calHtml(){
+  const days=weekDays(),t=todayISO();
+  const tasks=liveNotes().filter(n=>n.isTask&&!n.taskDone);
+  const unsched=tasks.filter(n=>!n.due).sort((a,b)=>(a.prio||2)-(b.prio||2)||b.updatedAt-a.updatedAt);
+  const wl=`${days[0].slice(5).replace('-','/')} – ${days[6].slice(5).replace('-','/')}`;
+  let html=`<div class="calnav"><button onclick="calWeek(-1)">‹</button><div class="lab">${st.weekOff===0?'本週':(st.weekOff>0?'+'+st.weekOff+' 週':st.weekOff+' 週')} ${wl}</div><button onclick="calWeek(1)">›</button><button class="today" onclick="calWeek(0,true)">今天</button></div><div class="week">`;
+  days.forEach(iso=>{const d=new Date(iso+'T00:00:00');
+    const dt=tasks.filter(n=>n.due===iso).sort((a,b)=>(a.prio||2)-(b.prio||2));
+    html+=`<div class="day ${iso===t?'today':''} ${iso<t?'past':''}"><div class="dh"><b>週${WDN[d.getDay()]}</b> ${d.getMonth()+1}/${d.getDate()} ${iso===t?'<span class="todaytag">今天</span>':''}</div>
+      ${dt.length?dt.map(n=>`<div class="caltask ${n.taskDone?'done':''}"><button class="cc" onclick="toggleTaskDone('${n.id}')">${n.taskDone?'✓':''}</button><span class="ct2" onclick="openNote('${n.id}')">${esc(titleOf(n))}</span><button class="calx" onclick="clearDue('${n.id}')" title="移出行事曆">×</button></div>`).join(''):'<div class="dayempty">—</div>'}</div>`;});
+  html+='</div>';
+  html+=`<div class="section-t">未排程 · ${unsched.length}</div>`;
+  html+= unsched.length? unsched.map(n=>`<div class="unsched"><span class="ut" onclick="openNote('${n.id}')">${esc(titleOf(n))}</span>
+      <button class="qbtn" onclick="setDue('${n.id}','${t}')">今天</button>
+      <button class="qbtn" onclick="setDue('${n.id}','${addDaysISO(t,1)}')">明天</button>
+      <button class="qbtn" onclick="openNote('${n.id}')">選日期…</button></div>`).join('')
+      : '<div class="none">開放任務都排進行事曆了 👍</div>';
+  return html;
+}
+function clearDue(id){setDue(id,null);}
 function placeholderHtml(){
   return `<div class="ph"><div class="big">🔗</div>
     <div style="font-weight:800;color:var(--ink-soft);margin-bottom:4px">選一張卡開始，或在左邊捕捉新想法</div>
@@ -367,6 +433,12 @@ function detailHtml(){
         ${n.isTask?`<span>優先</span><span class="prio-pick">${[1,2,3].map(p=>`<button class="p${p} ${(n.prio||2)===p?'on':''}" onclick="setPrio('${n.id}',${p})">${({1:'高',2:'中',3:'低'})[p]}</button>`).join('')}</span>
         <button class="tb" onclick="toggleTaskDone('${n.id}')">${n.taskDone?'↩ 標未完成':'✓ 完成'}</button>`:''}
       </div>
+      ${n.isTask?`<div class="duectl"><span style="font-weight:800">到期</span>
+        <input type="date" value="${n.due||''}" onchange="setDue('${n.id}',this.value)">
+        <button class="qbtn" onclick="setDue('${n.id}','${todayISO()}')">今天</button>
+        <button class="qbtn" onclick="setDue('${n.id}','${addDaysISO(todayISO(),1)}')">明天</button>
+        ${n.due?`<button class="qbtn" onclick="clearDue('${n.id}')">清除</button><span class="duebadge ${dueClass(n.due)}">${dueLabel(n.due)}</span>`:''}
+      </div>`:''}
       <div class="meta">
         <span>建立 ${new Date(n.createdAt).toLocaleString('zh-TW',{hour12:false}).slice(0,16)}</span>
         <span class="acts">
