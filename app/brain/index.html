@@ -175,6 +175,31 @@
   .sheet .foot{display:flex;gap:10px;margin-top:14px}
   .sheet .foot .btn{flex:1;justify-content:center}
   .statusline{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:14px;font-weight:700}
+  /* tasks (Jocko 總清單) */
+  .captoggle{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--ink-mute);cursor:pointer;user-select:none}
+  .captoggle input{accent-color:var(--accent);width:15px;height:15px}
+  .captoggle.on{color:var(--accent)}
+  .tasks{display:flex;flex-direction:column;gap:9px}
+  .tfirst{background:linear-gradient(135deg,var(--accent-soft),var(--surface));border:1px solid color-mix(in srgb,var(--accent) 32%,var(--line));border-radius:15px;padding:4px 8px 10px;margin-bottom:12px}
+  .tfirst .lead{font-size:12px;font-weight:900;color:var(--accent);padding:9px 6px 6px}
+  .trow{display:flex;align-items:flex-start;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+  .trow:hover{border-color:var(--accent)}
+  .tchk{width:22px;height:22px;flex:0 0 auto;border-radius:50%;border:2px solid var(--ink-mute);display:grid;place-items:center;color:#fff;font-size:13px;margin-top:1px;background:none}
+  .trow.done .tchk{background:var(--tag);border-color:var(--tag)}
+  .tbody{flex:1;min-width:0;cursor:pointer}
+  .tbody .tt{font-weight:800;font-size:15px;line-height:1.4}
+  .trow.done .tt{color:var(--ink-mute);text-decoration:line-through}
+  .tbody .tm{font-size:12px;color:var(--ink-mute);margin-top:2px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  .pdot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;margin-top:6px}
+  .p1{background:#e0517a} .p2{background:#e0a82e} .p3{background:#8b86a4}
+  .taskctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 22px 4px;font-size:13px;color:var(--ink-soft);border-top:1px solid var(--line)}
+  .taskctl .tb{font-weight:800;padding:6px 11px;border-radius:9px;border:1px solid var(--line);color:var(--ink-soft)}
+  .taskctl .tb.act{background:var(--accent);color:#fff;border-color:transparent}
+  .prio-pick{display:inline-flex;gap:5px}
+  .prio-pick button{font-size:12.5px;font-weight:800;padding:5px 10px;border-radius:8px;border:1px solid var(--line);color:var(--ink-soft)}
+  .prio-pick button.on.p1{background:#e0517a;color:#fff;border-color:transparent}
+  .prio-pick button.on.p2{background:#e0a82e;color:#fff;border-color:transparent}
+  .prio-pick button.on.p3{background:#8b86a4;color:#fff;border-color:transparent}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -210,7 +235,7 @@ const isWide=()=>window.matchMedia('(min-width:900px)').matches;
 
 let data={notes:[]};
 try{const d=JSON.parse(localStorage.getItem(LS));if(d&&Array.isArray(d.notes))data=d;}catch(e){}
-let st={id:null, filter:'inbox', tag:'', q:''};
+let st={id:null, filter:'inbox', tag:'', q:'', capTask:false};
 let saveT;
 function save(){localStorage.setItem(LS,JSON.stringify(data));}
 function toast(m){const t=$('#toast');t.textContent=m;t.className='toast show';clearTimeout(saveT);saveT=setTimeout(()=>t.className='toast',1300);}
@@ -226,9 +251,10 @@ const noteByTitle=t=>liveNotes().find(n=>norm(titleOf(n))===norm(t));
 function backlinks(n){const t=norm(titleOf(n));return liveNotes().filter(m=>m.id!==n.id&&linkTitlesOf(m).some(x=>norm(x)===t));}
 function allTags(){const c={};liveNotes().forEach(n=>tagsOf(n).forEach(t=>c[t]=(c[t]||0)+1));return Object.entries(c).sort((a,b)=>b[1]-a[1]);}
 
-function capture(text,keep){
+function capture(text,keep,isTask){
   const body=text.trim();if(!body)return null;
-  const n={id:uid(),body,status:keep?'kept':'inbox',deleted:false,createdAt:Date.now(),updatedAt:Date.now()};
+  const n={id:uid(),body,status:(keep||isTask)?'kept':'inbox',deleted:false,createdAt:Date.now(),updatedAt:Date.now()};
+  if(isTask){n.isTask=true;n.prio=2;n.taskDone=false;}
   data.notes.unshift(n);save();pushNote(n);return n;
 }
 
@@ -254,21 +280,26 @@ function listHtml(){
   const cap=`<div class="capture ac">
     <textarea id="cap" rows="1" placeholder="⚡ 靈光乍現？丟進來… 第一行是標題。#標籤 分類、[[標題]] 連到別張卡。Enter 捕捉"></textarea>
     <div class="acbox" id="ac-cap"></div>
-    <div class="cbar"><span class="hint">Enter <b>捕捉</b> · Shift+Enter 換行</span>
-      <button class="btn primary sm" id="capBtn">捕捉</button></div>
+    <div class="cbar">
+      <label class="captoggle ${st.capTask?'on':''}"><input type="checkbox" id="capTask" ${st.capTask?'checked':''}> 🎯 當任務</label>
+      <button class="btn primary sm" id="capBtn">${st.capTask?'加入清單':'捕捉'}</button>
+    </div>
   </div>`;
   let chips;
   const q=norm(st.q);
   if(st.q){chips=`<div class="chips"><span class="chip on">🔍 ${esc(st.q)}</span><button class="chip" onclick="clearQ()">✕</button></div>`;}
   else{
     const tags=allTags().slice(0,10).map(([t,c])=>`<button class="chip tag ${st.tag===t?'on':''}" onclick="setTag('${esc(t)}')">#${esc(t)} <span class="ct">${c}</span></button>`).join('');
+    const taskN=liveNotes().filter(n=>n.isTask&&!n.taskDone).length;
     chips=`<div class="chips">
       <button class="chip ${st.filter==='inbox'&&!st.tag?'on':''}" onclick="setFilter('inbox')">⚡ 收件匣 <span class="ct">${inboxN}</span></button>
+      <button class="chip ${st.filter==='task'&&!st.tag?'on':''}" onclick="setFilter('task')">🎯 總清單 <span class="ct">${taskN}</span></button>
       <button class="chip ${st.filter==='all'&&!st.tag?'on':''}" onclick="setFilter('all')">🗂️ 全部 <span class="ct">${totalN}</span></button>
       ${tags}</div>`;
   }
-  const notes=filteredNotes();
   let body;
+  if(st.filter==='task'&&!st.q&&!st.tag){return cap+chips+taskListHtml();}
+  const notes=filteredNotes();
   if(!totalN){
     body=`<div class="empty"><div class="big">🧠</div><p>這是你的第二大腦。<b>有想法先丟上面的框</b>——不用分類、不用完整，之後再連結整理。</p>
       <p style="margin-top:12px"><button class="btn" onclick="seedBrain()">看個範例</button></p></div>`;
@@ -289,6 +320,35 @@ function noteCard(n){
     <div class="nf">${tags}${tot?`<span class="lkcount">🔗 ${tot}</span>`:''}<span class="nd">${fmt(n.updatedAt)}</span></div>
   </button>`;
 }
+function taskListHtml(){
+  const open=liveNotes().filter(n=>n.isTask&&!n.taskDone).sort((a,b)=>(a.prio||2)-(b.prio||2)||b.updatedAt-a.updatedAt);
+  const done=liveNotes().filter(n=>n.isTask&&n.taskDone).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
+  if(!open.length&&!done.length)
+    return `<div class="empty"><div class="big">🎯</div><p><b>總清單是空的。</b>捕捉時勾「🎯 當任務」，或在任一張卡按「設為任務」。</p>
+      <p style="margin-top:10px;font-size:12.5px">Jocko 的方法：任務全寫進這一個地方 → 依優先度排好 → 早上先解決第一件。就這樣。</p></div>`;
+  let html='';
+  if(open.length){
+    const first=open[0],rest=open.slice(1);
+    html+=`<div class="tfirst"><div class="lead">🔥 先做這一件</div>${taskRow(first)}</div>`;
+    if(rest.length)html+=`<div class="tasks">${rest.map(taskRow).join('')}</div>`;
+  }else{
+    html+=`<div class="empty" style="padding:26px"><div class="big">🎉</div><p>開放任務都清光了，做得好！</p></div>`;
+  }
+  if(done.length)html+=`<div class="section-t">已完成 · ${done.length}</div><div class="tasks">${done.map(taskRow).join('')}</div>`;
+  return html;
+}
+function taskRow(n){
+  const p=n.prio||2, pl={1:'高',2:'中',3:'低'}[p];
+  const rest=(n.body||'').split('\n').slice(1).join(' ').trim();
+  return `<div class="trow ${n.taskDone?'done':''}">
+    <button class="tchk" onclick="toggleTaskDone('${n.id}')" title="${n.taskDone?'標為未完成':'完成'}">${n.taskDone?'✓':''}</button>
+    <div class="tbody" onclick="openNote('${n.id}')"><div class="tt">${esc(titleOf(n))}</div>
+      <div class="tm">優先：${pl}${rest?' · '+esc(rest):''}</div></div>
+    <span class="pdot p${p}" title="優先度"></span></div>`;
+}
+function setTask(id,on){const n=note(id);if(!n)return;n.isTask=on;if(on){if(!n.prio)n.prio=2;if(n.status==='inbox')n.status='kept';}n.updatedAt=Date.now();save();pushNote(n);render();}
+function setPrio(id,p){const n=note(id);if(!n)return;n.prio=p;n.updatedAt=Date.now();save();pushNote(n);render();}
+function toggleTaskDone(id){const n=note(id);if(!n)return;n.taskDone=!n.taskDone;n.doneAt=n.taskDone?Date.now():null;n.updatedAt=Date.now();save();pushNote(n);render();}
 function placeholderHtml(){
   return `<div class="ph"><div class="big">🔗</div>
     <div style="font-weight:800;color:var(--ink-soft);margin-bottom:4px">選一張卡開始，或在左邊捕捉新想法</div>
@@ -302,6 +362,11 @@ function detailHtml(){
       <textarea class="edit" id="ed" placeholder="第一行＝標題，接著寫內容。#標籤 · [[連到別張卡]]">${esc(n.body)}</textarea>
       <div class="acbox" id="ac-ed"></div>
       <div class="preview"><div class="pl">預覽（可點連結與標籤）</div><div class="pv" id="pv">${renderBody(n)}</div></div>
+      <div class="taskctl">
+        <button class="tb ${n.isTask?'act':''}" onclick="setTask('${n.id}',${n.isTask?'false':'true'})">${n.isTask?'🎯 任務中':'🎯 設為任務'}</button>
+        ${n.isTask?`<span>優先</span><span class="prio-pick">${[1,2,3].map(p=>`<button class="p${p} ${(n.prio||2)===p?'on':''}" onclick="setPrio('${n.id}',${p})">${({1:'高',2:'中',3:'低'})[p]}</button>`).join('')}</span>
+        <button class="tb" onclick="toggleTaskDone('${n.id}')">${n.taskDone?'↩ 標未完成':'✓ 完成'}</button>`:''}
+      </div>
       <div class="meta">
         <span>建立 ${new Date(n.createdAt).toLocaleString('zh-TW',{hour12:false}).slice(0,16)}</span>
         <span class="acts">
@@ -322,8 +387,9 @@ function renderBody(n){
 }
 
 /* ---------- actions ---------- */
-function doCapture(){const ta=$('#cap');if(!ta)return;const n=capture(ta.value);if(!n){ta.focus();return;}
-  ta.value='';toast('已捕捉 ⚡');render();const c=$('#cap');if(c)c.focus();}
+function doCapture(){const ta=$('#cap');if(!ta)return;const isTask=!!(($('#capTask')||{}).checked)||st.capTask;
+  const n=capture(ta.value,false,isTask);if(!n){ta.focus();return;}
+  ta.value='';toast(isTask?'已加入總清單 🎯':'已捕捉 ⚡');render();const c=$('#cap');if(c)c.focus();}
 function openNote(id){st.id=id;render();if(!isWide())window.scrollTo({top:0,behavior:'auto'});}
 function goHome(){st.id=null;render();}
 function openTitle(title){let n=noteByTitle(title);if(!n){n=capture(title,true);toast('已建立新卡片 ✓');}st.id=n.id;render();}
@@ -382,6 +448,7 @@ function bind(){
     cap.onblur=()=>setTimeout(()=>closeAC('cap'),150);
   }
   const cb=$('#capBtn');if(cb)cb.onclick=doCapture;
+  bindCapTask();
   const ed=$('#ed');
   if(ed){
     AC.ed.ta=ed;AC.ed.box=$('#ac-ed');
@@ -401,6 +468,11 @@ function bindListOnly(){
     cap.onkeydown=e=>{if(acKeydown('cap',e))return;if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doCapture();}};
     cap.onblur=()=>setTimeout(()=>closeAC('cap'),150);}
   const cb=$('#capBtn');if(cb)cb.onclick=doCapture;
+  bindCapTask();
+}
+function bindCapTask(){
+  const ct=$('#capTask');if(!ct)return;
+  ct.onchange=()=>{st.capTask=ct.checked;const lb=ct.closest('.captoggle');if(lb)lb.classList.toggle('on',ct.checked);const b=$('#capBtn');if(b)b.textContent=ct.checked?'加入清單':'捕捉';};
 }
 
 /* search box */
