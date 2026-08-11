@@ -330,7 +330,11 @@ function viewBook(){
         </div>
         ${b.oneLine?`<div class="one">${esc(b.oneLine)}</div>`:''}
       </div>
-      <div class="acts"><button class="btn ghost sm" onclick="openBookEditor('${b.id}')">✎ 編輯</button></div>
+      <div class="acts">
+        <button class="btn ghost sm" onclick="openImport()">⬇️ 匯入畫線</button>
+        <button class="btn ghost sm" onclick="importBookToBrain('${b.id}')">🧠 匯進大腦</button>
+        <button class="btn ghost sm" onclick="openBookEditor('${b.id}')">✎ 編輯</button>
+      </div>
     </div>
     <div class="tabs" id="tabs">
       <button data-t="log" class="${st.tab==='log'?'on':''}">日誌<span class="ct">${lg}</span></button>
@@ -363,6 +367,7 @@ function tabLog(b){
     const chk=l.sig==='act'?`<span class="sig ${s.cls} act-chk" onclick="toggleDone('${l.id}')" title="標記完成">${l.done?'✓':s.sym}</span>`
       :`<span class="sig ${s.cls}">${s.sym}</span>`;
     html+=`<div class="entry ${l.done?'done':''}">${chk}<span class="tx">${esc(l.text)}${l.page?`<span class="pg">p.${esc(l.page)}</span>`:''}</span>
+      <button class="del" onclick="entryToCard('${l.id}')" title="煉成卡片">🗂️</button>
       <button class="del" onclick="delLog('${l.id}')" title="刪除">×</button></div>`;
   });
   return addbar+`<div class="log"><div class="inner">${html}</div></div>`;
@@ -372,10 +377,12 @@ function addLog(){
   const tx=$('#log-tx'),pg=$('#log-pg');
   const text=tx.value.trim();if(!text){tx.focus();return;}
   data.logs.push({id:uid(),bookId:b.id,date:todayStr(),sig:st.logSig,text,page:pg.value.trim(),done:false});
-  save();tx.value='';pg.value='';renderTabBody();$('#log-tx')&&$('#log-tx').focus();
+  save();tx.value='';renderTabBody();const t=$('#log-tx');if(t)t.focus();/* 保留頁碼與符號，連續畫線更快 */
 }
 function toggleDone(id){const l=data.logs.find(x=>x.id===id);if(l){l.done=!l.done;save();renderTabBody();}}
 function delLog(id){data.logs=data.logs.filter(x=>x.id!==id);save();renderTabBody();}
+function entryToCard(id){const l=data.logs.find(x=>x.id===id);const b=book(st.bookId);if(!l||!b)return;
+  window._cardPrefill={title:'',body:l.text,source:b.title+(l.page?(' p.'+l.page):'')};openCardEditor();}
 
 /* ----- CARD tab ----- */
 function tabCard(b){
@@ -416,6 +423,8 @@ function reportMd(b){
   s+=`\n作者：${b.author||'—'}　讀畢：${b.finished||'—'}　評分：${b.rating?'★'.repeat(b.rating):'—'}\n`;
   s+=`\n## 核心想法（來自卡片）\n`;
   s+=cards.length?cards.map(c=>`- **${c.title}**：${c.body}〔${c.number}〕`).join('\n'):'（尚無卡片）';
+  const quotes=bookLogs(b.id).filter(l=>l.sig==='quote');
+  if(quotes.length)s+=`\n\n## 書摘金句\n`+quotes.map(q=>`> ${q.text}${q.page?`（p.${q.page}）`:''}`).join('\n');
   s+=`\n\n## 我要採取的行動\n`;
   s+=acts.length?acts.map(a=>`- [${a.done?'x':' '}] ${a.text}${a.page?`（p.${a.page}）`:''}`).join('\n'):'（尚無行動）';
   if(qs.length)s+=`\n\n## 待解決的問題\n`+qs.map(q=>`- ${q.text}${q.page?`（p.${q.page}）`:''}`).join('\n');
@@ -562,23 +571,25 @@ function delBook(id){
 function openCardEditor(id){
   const b=book(st.bookId);if(!b)return;
   const c=id?data.cards.find(x=>x.id===id):null;
+  const pre=(!c&&window._cardPrefill)?window._cardPrefill:null;
   const number=c?c.number:nextCardNo(b);
   const linksStr=c?(c.links||[]).join(', '):'';
   $('#modal').innerHTML=`<div class="sheet">
-    <h3>${c?'編輯卡片':'新增永久卡片'}</h3>
+    <h3>${c?'編輯卡片':(pre?'煉成永久卡片':'新增永久卡片')}</h3>
+    ${pre?`<p style="font-size:12.5px;color:var(--ink-mute);margin:-6px 0 12px">原文已帶入內容——把它<b>改寫成自己的話</b>，取個標題。</p>`:''}
     <div class="grid2">
       <div class="field"><label>編號</label><input id="c-no" class="mono" value="${esc(number)}"></div>
-      <div class="field"><label>出處（頁碼／章）</label><input id="c-src" value="${c?esc(c.source||''):esc(b.title+' p.')}" placeholder="${esc(b.title)} p.132"></div>
+      <div class="field"><label>出處（頁碼／章）</label><input id="c-src" value="${c?esc(c.source||''):esc((pre&&pre.source)||(b.title+' p.'))}" placeholder="${esc(b.title)} p.132"></div>
     </div>
-    <div class="field"><label>卡片標題（一個想法）*</label><input id="c-title" value="${c?esc(c.title):''}" placeholder="例：有用 ＞ 完美"></div>
-    <div class="field"><label>內容（用自己的話寫成完整句子）*</label><textarea id="c-body" placeholder="不要抄原文——用你自己的話，把這個想法講清楚。">${c?esc(c.body):''}</textarea></div>
+    <div class="field"><label>卡片標題（一個想法）*</label><input id="c-title" value="${c?esc(c.title):esc((pre&&pre.title)||'')}" placeholder="例：有用 ＞ 完美"></div>
+    <div class="field"><label>內容（用自己的話寫成完整句子）*</label><textarea id="c-body" placeholder="不要抄原文——用你自己的話，把這個想法講清楚。">${c?esc(c.body):esc((pre&&pre.body)||'')}</textarea></div>
     <div class="field"><label>連結到（用逗號分隔）</label><input id="c-links" value="${esc(linksStr)}" placeholder="M-04, 習慣·身分認同, G-07">
       <div class="hintline">填其他卡片編號會變成可點連結；填文字則是待建的想法。</div></div>
     <div class="sheet-foot">
       <button class="btn ghost" onclick="closeModal()">取消</button>
       <button class="btn primary" onclick="saveCard('${c?c.id:''}')">儲存卡片</button>
     </div></div>`;
-  openModal();$('#c-title').focus();
+  openModal();window._cardPrefill=null;$('#c-title').focus();
 }
 function saveCard(id){
   const b=book(st.bookId);if(!b)return;
@@ -592,6 +603,75 @@ function saveCard(id){
   save();closeModal();st.tab='card';renderTabBody();toast('卡片已儲存 ✓');
 }
 
+/* ---------- 匯入畫線 ---------- */
+function parseHighlights(text){
+  text=(text||'').replace(/\r\n/g,'\n').trim();if(!text)return [];
+  const out=[];
+  if(text.includes('==========')){
+    text.split(/\n?==========\n?/).forEach(block=>{
+      const lines=block.split('\n').map(s=>s.trim()).filter(Boolean);
+      if(lines.length<3)return;
+      const meta=lines[1];
+      if(/書籤|Bookmark/i.test(meta))return;
+      const body=lines.slice(2).join(' ').trim();if(!body)return;
+      const pm=meta.match(/第\s*(\d+)\s*頁|位置\s*#?(\d+)|page\s*(\d+)|Location\s*(\d+)/i);
+      out.push({text:body,page:pm?(pm[1]||pm[2]||pm[3]||pm[4]||''):''});
+    });
+  }
+  if(!out.length){
+    text.split(/\n\s*\n/).forEach(p=>{const t=p.split('\n').map(s=>s.replace(/^[-*•]\s*/,'').trim()).filter(Boolean).join(' ').trim();if(t.length>=2)out.push({text:t,page:''});});
+  }
+  return out.slice(0,800);
+}
+function openImport(){
+  const b=book(st.bookId);if(!b)return;
+  $('#modal').innerHTML=`<div class="sheet">
+    <h3>⬇️ 匯入畫線 · 《${esc(b.title)}》</h3>
+    <p style="font-size:13px;color:var(--ink-soft);margin-bottom:12px">支援 Kindle「My Clippings.txt」，或任何「一段一則」的畫線文字（Kobo／BOOX 匯出的 .txt，或直接貼上）。自動抓頁碼／位置。</p>
+    <div class="field"><label>選擇檔案（.txt）</label><input type="file" id="imp-file" accept=".txt,text/plain"></div>
+    <div class="field"><label>或直接貼上畫線</label><textarea id="imp-text" rows="6" placeholder="一段一則，段落之間空一行即可"></textarea></div>
+    <div class="field"><label>匯入成</label>
+      <select id="imp-as"><option value="quote">★ 金句日誌（推薦，之後再煉成卡片）</option><option value="card">🗂️ 直接成永久卡片</option></select></div>
+    <div class="sheet-foot"><button class="btn ghost" onclick="closeModal()">取消</button><button class="btn primary" onclick="doImport()">匯入</button></div>
+  </div>`;
+  openModal();
+  const f=$('#imp-file');if(f)f.onchange=e=>{const file=e.target.files&&e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{$('#imp-text').value=r.result;toast('檔案已載入，按「匯入」');};r.readAsText(file);};
+}
+function doImport(){
+  const b=book(st.bookId);if(!b)return;
+  const hs=parseHighlights(($('#imp-text')||{}).value);
+  if(!hs.length){toast('沒有解析到畫線，換個檔或直接貼文字','err');return;}
+  const as=$('#imp-as').value;
+  if(as==='card'){
+    hs.forEach((h,i)=>data.cards.push({id:uid(),bookId:b.id,number:nextCardNo(b),title:h.text.slice(0,18),body:h.text,source:b.title+(h.page?(' p.'+h.page):''),links:[],createdAt:Date.now()+i}));
+    st.tab='card';
+  }else{
+    hs.forEach(h=>data.logs.push({id:uid(),bookId:b.id,date:todayStr(),sig:'quote',text:h.text,page:h.page||'',done:false}));
+    st.tab='log';
+  }
+  save();closeModal();renderTabBody();toast(`已匯入 ${hs.length} 則 ✓`);
+}
+/* ---------- 匯進第二大腦（同源直接寫入 brain.data.v1）---------- */
+function importBookToBrain(bookId){
+  const b=book(bookId);if(!b)return;
+  const cards=bookCards(bookId);
+  if(!cards.length){toast('這本書還沒有卡片可匯入','err');return;}
+  if(!confirm(`把《${b.title}》的 ${cards.length} 張卡片匯進第二大腦？之後在第二大腦即可搜尋、連結、同步。`))return;
+  let brain={notes:[]};
+  try{const d=JSON.parse(localStorage.getItem('brain.data.v1'));if(d&&Array.isArray(d.notes))brain=d;}catch(e){}
+  const now=Date.now();
+  let hub=brain.notes.find(n=>n.origin&&n.origin.tool==='reading'&&n.origin.book===bookId&&n.origin.hub);
+  if(!hub){hub={id:'rb-'+bookId,body:`${b.title}\n${b.author?b.author+' · ':''}讀書筆記 #讀書`,status:'kept',deleted:false,createdAt:now,updatedAt:now,origin:{tool:'reading',book:bookId,hub:true}};brain.notes.unshift(hub);}
+  let added=0,updated=0;
+  cards.forEach(c=>{
+    const body=`${c.title}\n${c.body}\n\n來源：[[${b.title}]] ${c.source||''}〔${c.number}〕 #讀書`;
+    const ex=brain.notes.find(n=>n.origin&&n.origin.tool==='reading'&&n.origin.card===c.id);
+    if(ex){ex.body=body;ex.deleted=false;ex.updatedAt=now;updated++;}
+    else{brain.notes.unshift({id:'rc-'+c.id,body,status:'kept',deleted:false,createdAt:now,updatedAt:now,origin:{tool:'reading',book:bookId,card:c.id}});added++;}
+  });
+  try{localStorage.setItem('brain.data.v1',JSON.stringify(brain));}catch(e){toast('寫入失敗（空間不足？）','err');return;}
+  toast(`已匯入第二大腦：新增 ${added}、更新 ${updated} 張 ✓`);
+}
 /* ---------- modal utils ---------- */
 function openModal(){$('#modal').classList.add('show');document.body.style.overflow='hidden';}
 function closeModal(){$('#modal').classList.remove('show');$('#modal').innerHTML='';document.body.style.overflow='';}
