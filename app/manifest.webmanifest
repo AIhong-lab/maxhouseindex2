@@ -2,7 +2,7 @@
   "name": "MAX 工具箱",
   "short_name": "工具箱",
   "description": "一個 App，內含多個實用工具：工作日誌（第二大腦）、讀書計劃、原子習慣實踐。免登入、資料存本機、可離線使用。",
-  "start_url": "./",
+  "start_url": "./brain/",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

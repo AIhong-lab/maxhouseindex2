@@ -6,6 +6,12 @@
 <title>第二大腦 · 捕捉與連結</title>
 <meta name="description" content="靈光乍現隨手捕捉，煉成卡片、用 [[雙向連結]] 連成一張知識網，一個搜尋框翻遍全部。電腦雙欄多工、手機隨手記。">
 <meta name="theme-color" content="#4b3fc4">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="第二大腦">
 <style>
   :root{
     --paper:#f4f3fa; --surface:#ffffff; --panel:#f6f5fc; --raise:#ffffff;
@@ -231,18 +237,23 @@
   .unsched .ut{flex:1 1 140px;min-width:0;font-size:13.5px;font-weight:700;cursor:pointer}
   .duectl{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:8px 22px 12px}
   .duectl input[type=date]{padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--paper);font-size:13px}
+  .morelinks{display:grid;gap:8px;margin-bottom:6px}
+  .mlink{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:11px 13px;text-decoration:none;color:var(--ink);font-weight:800;font-size:14.5px}
+  .mlink span{font-weight:600;font-size:12px;color:var(--ink-mute);margin-top:2px}
+  .mlink:hover{border-color:var(--accent)}
+  .outbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .outbar .ol{font-size:12.5px;font-weight:800;color:var(--ink-soft)}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 </head>
 <body>
-<a href="../" aria-label="回工具箱首頁" style="position:fixed;left:14px;bottom:calc(env(safe-area-inset-bottom) + 86px);z-index:45;display:none;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;background:rgba(75,63,196,.94);color:#fff;font:700 13px/1 system-ui,'Noto Sans TC',sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.3)" id="hubPill">⌂ 工具箱</a>
-
 <div class="top"><div class="in">
-  <a class="brand" href="../" style="text-decoration:none;color:inherit"><span class="bx">腦</span><span class="nm">第二大腦</span></a>
+  <div class="brand" onclick="brandHome()" style="cursor:pointer"><span class="bx">腦</span><span class="nm">第二大腦</span></div>
   <div class="search"><span class="ic">🔍</span><input id="q" placeholder="搜尋所有卡片（標題、內容、#標籤）…"></div>
   <button class="syncbtn" id="syncBtn" title="跨裝置同步"><span class="d"></span><span id="syncLbl">同步</span></button>
+  <button class="syncbtn" id="moreBtn" title="更多工具與備份">☰</button>
 </div></div>
 
 <div id="app">
@@ -253,6 +264,7 @@
 <button class="fab" id="fab" title="快速捕捉">⚡</button>
 <div class="toast" id="toast"></div>
 <div class="modal" id="syncModal"></div>
+<div class="modal" id="moreModal"></div>
 
 <script>
 "use strict";
@@ -295,7 +307,6 @@ function render(){
   $('#paneDetail').innerHTML=st.id?detailHtml():placeholderHtml();
   document.body.classList.toggle('detail', !!st.id && !isWide());
   document.body.classList.toggle('wideview', st.filter==='cal' && !st.id && !st.q && !st.tag);
-  $('#hubPill').style.display=(st.id&&!isWide())?'inline-flex':'none';
   bind();
 }
 function filteredNotes(){
@@ -342,7 +353,8 @@ function listHtml(){
   }else{
     body=`<div class="list">${notes.map(noteCard).join('')}</div>`;
   }
-  return cap+chips+body;
+  const outbar=st.tag?`<div class="outbar"><span class="ol">#${esc(st.tag)}（${notes.length}）依類型輸出：</span><button class="qbtn" onclick="aiType()">🤖 整理給 AI</button><button class="qbtn" onclick="dlType()">📄 匯出 .md</button></div>`:'';
+  return cap+chips+outbar+body;
 }
 function noteCard(n){
   const tags=tagsOf(n).slice(0,3).map(t=>`<span class="tagchip">#${esc(t)}</span>`).join('');
@@ -552,7 +564,7 @@ $('#q').addEventListener('input',e=>{st.q=e.target.value;if(st.q&&st.id&&!isWide
   const qb=$('#q');/* keep focus */ if(document.activeElement!==qb){}});
 $('#q').addEventListener('input',()=>{const qb=$('#q');qb.focus();});
 $('#fab').onclick=()=>{if(st.id&&!isWide())goHome();setTimeout(()=>{const c=$('#cap');if(c){c.focus();c.scrollIntoView({block:'center'});}},40);};
-window.addEventListener('resize',()=>{document.body.classList.toggle('detail', !!st.id && !isWide());$('#hubPill').style.display=(st.id&&!isWide())?'inline-flex':'none';});
+window.addEventListener('resize',()=>{document.body.classList.toggle('detail', !!st.id && !isWide());});
 
 /* ---------- sample ---------- */
 function seedBrain(){
@@ -654,6 +666,60 @@ function openSync(){
 function closeSync(){const m=$('#syncModal');m.classList.remove('show');m.innerHTML='';document.body.style.overflow='';}
 $('#syncBtn').addEventListener('click',openSync);
 $('#syncModal').addEventListener('click',e=>{if(e.target.id==='syncModal')closeSync();});
+
+/* ================= 依類型輸出（把某個 #標籤的筆記整理/匯出）================= */
+function typeExportMd(){
+  const notes=filteredNotes();const label=st.tag?('#'+st.tag):(st.filter==='inbox'?'收件匣':'全部');
+  let s=`# ${label} · 筆記整理（${notes.length} 則）\n\n`;
+  notes.forEach(n=>{const t=titleOf(n);const rest=(n.body||'').split('\n').slice(1).join('\n').trim();s+=`## ${t}\n${rest?rest+'\n':''}\n`;});
+  return s;
+}
+function aiType(){
+  const label=st.tag?('#'+st.tag):'這些';
+  const p=`請把我以下「${label}」的筆記，整理成有條理的重點（若像工作紀錄就整理成週報；像讀書筆記就整理成讀書心得；像任務就整理成待辦清單）。保留我的原意，不要新增我沒寫的內容：\n\n`+typeExportMd();
+  navigator.clipboard.writeText(p).then(()=>toast('已複製給 AI 潤飾，貼進 ChatGPT／Claude ✓'),()=>toast('複製失敗'));
+}
+function dlType(){dl(`${st.tag||'筆記'}-整理.md`,typeExportMd());}
+
+/* ================= 更多（其他工具 + 備份 + 安裝）================= */
+function brandHome(){st.id=null;st.filter='inbox';st.tag='';st.q='';const q=$('#q');if(q)q.value='';render();}
+const BK_KEYS=['brain.data.v1','worklog.data.v1','worklog.settings.v1','studyplan.v1','reading.data.v1','atomichabits.v1'];
+function dl(name,text){const bl=new Blob([text],{type:'application/octet-stream'});const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
+function exportAll(){
+  const dump={_app:'MAX備份',_v:1,data:{}};let n=0;
+  BK_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!=null){dump.data[k]=v;n++;}});
+  if(!n){toast('目前沒有資料可備份');return;}
+  const d=new Date();const stamp=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
+  dl(`第二大腦備份-${stamp}.json`,JSON.stringify(dump));
+}
+function importAll(file){const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||!o.data)throw 0;const keys=Object.keys(o.data).filter(k=>BK_KEYS.includes(k));if(!keys.length){toast('檔案裡沒有可還原的資料');return;}if(!confirm(`將還原 ${keys.length} 項資料並覆蓋本機對應內容，確定？`))return;keys.forEach(k=>localStorage.setItem(k,o.data[k]));try{const d=JSON.parse(localStorage.getItem('brain.data.v1'));if(d&&Array.isArray(d.notes))data=d;}catch(e){}closeMore();render();toast('已還原 ✓');}catch(e){alert('檔案格式不正確，請選本工具「匯出備份」產生的 .json 檔。');}};r.readAsText(file);}
+function openMore(){
+  const m=$('#moreModal');
+  m.innerHTML=`<div class="sheet">
+    <h3>☰ 更多</h3>
+    <div class="section-t" style="margin-top:0">其他工具（進階／輸出用）</div>
+    <div class="morelinks">
+      <a class="mlink" href="../worklog/">🧭 工作日誌<span>結構化週報 / 履歷</span></a>
+      <a class="mlink" href="../reading/">📚 讀書報告<span>書櫃 · 卡片盒 · 匯入畫線</span></a>
+      <a class="mlink" href="../study/">📅 讀書計劃<span>排讀書時間</span></a>
+      <a class="mlink" href="../habits/">⚛️ 原子習慣<span>習慣追蹤</span></a>
+    </div>
+    <div class="section-t">備份 / 還原（涵蓋所有工具）</div>
+    <p style="font-size:12.5px;color:var(--ink-mute);margin:-4px 0 10px">資料只存這台裝置。換手機或清快取前，先匯出備份。</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn primary" onclick="exportAll()">⬇️ 匯出備份</button>
+      <button class="btn" onclick="document.getElementById('imp-all').click()">⬆️ 匯入還原</button>
+      <input type="file" id="imp-all" accept="application/json,.json" hidden onchange="if(this.files[0])importAll(this.files[0])">
+    </div>
+    <div class="section-t">加入主畫面（當 App 用）</div>
+    <p style="font-size:12.5px;color:var(--ink-soft)">iPhone：Safari 底部分享 → 加入主畫面。Android：Chrome 選單 → 安裝應用程式。</p>
+    <div class="sheet-foot" style="margin-top:16px"><button class="btn ghost" onclick="closeMore()" style="flex:1;justify-content:center">關閉</button></div>
+  </div>`;
+  m.classList.add('show');document.body.style.overflow='hidden';
+}
+function closeMore(){const m=$('#moreModal');m.classList.remove('show');m.innerHTML='';document.body.style.overflow='';}
+$('#moreBtn').addEventListener('click',openMore);
+$('#moreModal').addEventListener('click',e=>{if(e.target.id==='moreModal')closeMore();});
 
 /* ---------- PWA ---------- */
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('../sw.js').catch(()=>{}));}
