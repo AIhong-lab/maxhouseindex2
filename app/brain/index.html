@@ -243,6 +243,12 @@
   .mlink:hover{border-color:var(--accent)}
   .outbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
   .outbar .ol{font-size:12.5px;font-weight:800;color:var(--ink-soft)}
+  .fmtchips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:2px}
+  .fmtchips button{font-size:13px;font-weight:800;padding:7px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft)}
+  .fmtchips button.on{background:var(--accent);color:#fff;border-color:transparent}
+  .outprev{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 15px;font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:44vh;overflow:auto;margin:12px 0}
+  .review{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--gold) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--gold) 36%,var(--line));border-radius:13px;padding:12px 14px;margin-bottom:14px;font-size:13.5px;color:var(--ink-soft)}
+  .review b{color:var(--ink)} .review .sp{flex:1;min-width:130px}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -353,8 +359,9 @@ function listHtml(){
   }else{
     body=`<div class="list">${notes.map(noteCard).join('')}</div>`;
   }
-  const outbar=st.tag?`<div class="outbar"><span class="ol">#${esc(st.tag)}（${notes.length}）依類型輸出：</span><button class="qbtn" onclick="aiType()">🤖 整理給 AI</button><button class="qbtn" onclick="dlType()">📄 匯出 .md</button></div>`:'';
-  return cap+chips+outbar+body;
+  const outbar=st.tag?`<div class="outbar"><span class="ol">#${esc(st.tag)}（${notes.length}）</span><button class="qbtn" onclick="openOutput()">📤 整理成報告</button><button class="qbtn" onclick="dlType()">📄 .md</button></div>`:'';
+  const rb=(!st.tag&&!st.q)?reviewBanner():'';
+  return rb+cap+chips+outbar+body;
 }
 function noteCard(n){
   const tags=tagsOf(n).slice(0,3).map(t=>`<span class="tagchip">#${esc(t)}</span>`).join('');
@@ -680,6 +687,71 @@ function aiType(){
   navigator.clipboard.writeText(p).then(()=>toast('已複製給 AI 潤飾，貼進 ChatGPT／Claude ✓'),()=>toast('複製失敗'));
 }
 function dlType(){dl(`${st.tag||'筆記'}-整理.md`,typeExportMd());}
+/* 結構化輸出：依格式在本地先排好，再複製/下載/給 AI 潤飾 */
+const AI_INS={
+  '週報':'請把以下我的工作筆記整理成條理清楚的週報，分為：本週重點成果、進行中、問題與解法、下週計畫。保留我的原意，不要新增我沒寫的內容。',
+  '讀書心得':'請把以下讀書筆記整理成一篇讀書心得：3 個核心收穫、印象最深的金句、我要採取的 2 個行動。保留原意，不要杜撰。',
+  '時間軸':'請把以下筆記按時間整理成清楚的進度時間軸，並給一句總結。',
+  '摘要':'請把以下筆記整理成有條理的重點摘要（分類、去重）。保留原意，不要新增內容。'};
+function snip(n){return (n.body||'').split('\n').slice(1).join(' ').trim();}
+function buildReport(f,notes,tag){
+  const label=tag?('#'+tag):'筆記';
+  const sorted=notes.slice().sort((a,b)=>a.createdAt-b.createdAt);
+  const byDate={};sorted.forEach(n=>{const k=fmt(n.createdAt);(byDate[k]=byDate[k]||[]).push(n);});
+  if(f==='週報'){
+    let s=`# 週報 · ${label}\n\n## 本週紀錄\n`;
+    Object.keys(byDate).forEach(d=>{s+=`\n**${d}**\n`+byDate[d].map(n=>`- ${titleOf(n)}${snip(n)?'：'+snip(n):''}`).join('\n')+'\n';});
+    const done=notes.filter(n=>n.isTask&&n.taskDone),open=notes.filter(n=>n.isTask&&!n.taskDone);
+    if(done.length)s+=`\n## 完成的任務\n`+done.map(n=>`- [x] ${titleOf(n)}`).join('\n')+'\n';
+    if(open.length)s+=`\n## 進行中／待辦\n`+open.map(n=>`- [ ] ${titleOf(n)}`).join('\n')+'\n';
+    return s;
+  }
+  if(f==='讀書心得')return `# 讀書心得 · ${label}\n\n## 重點與收穫\n`+notes.map(n=>`- ${titleOf(n)}${snip(n)?'：'+snip(n):''}`).join('\n')+'\n';
+  if(f==='時間軸'){let s=`# 時間軸 · ${label}\n\n`;Object.keys(byDate).forEach(d=>{s+=`**${d}**\n`+byDate[d].map(n=>`- ${titleOf(n)}`).join('\n')+'\n\n';});return s;}
+  return `# ${label} 摘要（${notes.length}）\n\n`+notes.map(n=>`- **${titleOf(n)}**${snip(n)?'：'+snip(n):''}`).join('\n')+'\n';
+}
+let _outFmt='';
+function openOutput(){
+  const notes=filteredNotes(),tag=st.tag;
+  if(!_outFmt||['摘要','週報','讀書心得','時間軸'].indexOf(_outFmt)<0)_outFmt=tag==='工作'?'週報':tag==='讀書'?'讀書心得':'摘要';
+  const md=buildReport(_outFmt,notes,tag);
+  const fmts=['摘要','週報','讀書心得','時間軸'];
+  const m=$('#moreModal');
+  m.innerHTML=`<div class="sheet">
+    <h3>📤 整理輸出 · ${tag?('#'+esc(tag)):''}（${notes.length} 則）</h3>
+    <p style="font-size:12.5px;color:var(--ink-mute);margin:-4px 0 12px">選格式 → 下方預覽就是整理好的結果。要更精緻就按「給 AI 潤飾」。</p>
+    <div class="fmtchips">${fmts.map(x=>`<button class="${_outFmt===x?'on':''}" onclick="setOutFmt('${x}')">${x}</button>`).join('')}</div>
+    <div class="outprev">${esc(md)}</div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn primary" onclick="copyOut()">📋 複製</button>
+      <button class="btn" onclick="dlOut()">📄 下載 .md</button>
+      <button class="btn" onclick="copyOutAI()">🤖 給 AI 潤飾</button>
+      <button class="btn ghost" onclick="closeMore()">關閉</button>
+    </div></div>`;
+  m.classList.add('show');document.body.style.overflow='hidden';
+}
+function setOutFmt(f){_outFmt=f;openOutput();}
+function curOutMd(){return buildReport(_outFmt,filteredNotes(),st.tag);}
+function copyOut(){navigator.clipboard.writeText(curOutMd()).then(()=>toast('已複製 ✓'),()=>toast('複製失敗'));}
+function dlOut(){dl(`${st.tag||'筆記'}-${_outFmt}.md`,curOutMd());}
+function copyOutAI(){const p=(AI_INS[_outFmt]||AI_INS['摘要'])+'\n\n'+curOutMd();navigator.clipboard.writeText(p).then(()=>toast('已複製給 AI，貼進 ChatGPT／Claude ✓'),()=>toast('複製失敗'));}
+
+/* 定期整理提醒（Jocko：每 2 天清收件匣、排優先）*/
+function reviewInfo(){
+  const last=+localStorage.getItem('brain.lastReview')||0;
+  const days=(Date.now()-last)/86400000;
+  const inbox=liveNotes().filter(n=>n.status==='inbox').length;
+  const tasks=liveNotes().filter(n=>n.isTask&&!n.taskDone).length;
+  const due=last===0?inbox>0:(days>=2&&(inbox>0||tasks>0));
+  return {due,inbox,tasks};
+}
+function reviewBanner(){
+  const r=reviewInfo();if(!r.due)return '';
+  return `<div class="review">🗂️ <span class="sp"><b>定期整理時間到</b>：收件匣 ${r.inbox} 則、${r.tasks} 個待辦。花 2 分鐘清一下、排個優先度。</span>
+    <button class="qbtn" onclick="setFilter('inbox')">開始整理</button>
+    <button class="qbtn" onclick="markReviewed()">✓ 整理好了</button></div>`;
+}
+function markReviewed(){localStorage.setItem('brain.lastReview',String(Date.now()));toast('已記錄，2 天後再提醒 👍');render();}
 
 /* ================= 更多（其他工具 + 備份 + 安裝）================= */
 function brandHome(){st.id=null;st.filter='inbox';st.tag='';st.q='';const q=$('#q');if(q)q.value='';render();}
