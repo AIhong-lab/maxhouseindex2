@@ -262,10 +262,27 @@ function download(name,text){const bl=new Blob([text],{type:'text/markdown;chars
 /* ---------- nav ---------- */
 $$('#nav button').forEach(b=>b.onclick=()=>{st.view=b.dataset.v;st.bookId=null;$$('#nav button').forEach(x=>x.classList.toggle('on',x===b));render();});
 $('#fab').onclick=()=>{
-  if(st.view==='shelf')openBookEditor();
+  if(st.view==='shelf')quickAddBook();
   else if(st.view==='book'){ if(st.tab==='card')openCardEditor(); else if(st.tab==='log'){$('#log-tx')&&$('#log-tx').focus();} else toast('切到「日誌」或「卡片」分頁新增'); }
-  else openBookEditor();
+  else quickAddBook();
 };
+/* 極簡新增書：只打書名，直接開始記重點（起始日自動帶今天）*/
+function quickAddBook(){
+  $('#modal').innerHTML=`<div class="sheet">
+    <h3>新增一本書</h3>
+    <p style="font-size:13px;color:var(--ink-mute);margin-bottom:12px">先打書名就好，直接開始記重點。作者、評分等之後想補再從「✎ 編輯」加。</p>
+    <div class="field"><label>書名</label><input id="qb-title" placeholder="例：馬斯克寶典" autocomplete="off"></div>
+    <div class="sheet-foot"><button class="btn ghost" onclick="closeModal()">取消</button><button class="btn primary" onclick="quickSaveBook()">開始記 →</button></div>
+  </div>`;
+  openModal();const i=$('#qb-title');if(i){i.focus();i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();quickSaveBook();}};}
+}
+function quickSaveBook(){
+  const t=($('#qb-title')||{}).value?$('#qb-title').value.trim():'';
+  if(!t){toast('先打個書名','err');const i=$('#qb-title');if(i)i.focus();return;}
+  const nb={id:uid(),createdAt:Date.now(),title:t,author:'',type:'',started:todayStr(),finished:'',prefix:'',oneLine:'',rating:0};
+  data.books.push(nb);save();closeModal();st.view='book';st.bookId=nb.id;st.tab='log';render();
+  setTimeout(()=>{const x=$('#log-tx');if(x)x.focus();},80);
+}
 
 /* ---------- render root ---------- */
 function render(){
@@ -290,7 +307,7 @@ function viewShelf(){
       </div>
       <div class="empty"><p>先按「載入範例」看它怎麼運作，或直接新增你正在讀的書。</p>
       <div class="row"><button class="btn primary" onclick="loadSample()">🗂️ 載入《馬斯克寶典》範例</button>
-      <button class="btn" onclick="openBookEditor()">＋ 新增書</button></div></div>`;
+      <button class="btn" onclick="quickAddBook()">＋ 新增書</button></div></div>`;
   }
   const cards=data.books.map(b=>{
     const lg=bookLogs(b.id).length, cd=bookCards(b.id).length;
@@ -308,7 +325,7 @@ function viewShelf(){
   }).join('');
   return `<div class="page-head"><div><div class="eye">書櫃</div><h1>我的書 · ${data.books.length}</h1>
     <p>點一本書，進到它的日誌、卡片與報告。</p></div>
-    <button class="btn primary" onclick="openBookEditor()">＋ 新增書</button></div>
+    <button class="btn primary" onclick="quickAddBook()">＋ 新增書</button></div>
     <div class="shelf">${cards}</div>`;
 }
 function openBook(id){st.view='book';st.bookId=id;st.tab='log';render();}
