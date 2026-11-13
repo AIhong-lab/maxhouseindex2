@@ -47,8 +47,8 @@ function buildMenus_() {
         { label: '公寓補助',   type: 'uri', value: LINKS.site ? site + '#subsidy-apt' : '', fallback: '我想了解公寓補助' },
         { label: '透天補助',   type: 'uri', value: LINKS.site ? site + '#subsidy-house' : '', fallback: '我想了解透天補助' },
         { label: '報名講座',   type: 'uri', value: LINKS.lecture, fallback: '我要報名講座' },
-        { label: '說明會簡報', type: 'uri', value: LINKS.pdf, fallback: '請給我說明會簡報' },
-        { label: '一對一諮詢', type: 'msg', value: '我想預約一對一諮詢' },
+        { label: '官方簡報', type: 'uri', value: LINKS.pdf, fallback: '請給我說明會簡報' },
+        { label: '找專人問', type: 'msg', value: '我想預約一對一諮詢' },
       ],
     },
     {
@@ -57,7 +57,7 @@ function buildMenus_() {
         { label: '翻新實例', type: 'uri', value: LINKS.site ? site + '#showcase' : '', fallback: '我想看翻新實例' },
         { label: '出租規劃', type: 'uri', value: LINKS.site ? site + '#strategy' : '', fallback: '我想了解出租規劃' },
         { label: '甲醛檢測', type: 'msg', value: '我想預約甲醛檢測' },
-        { label: '預約勘查', type: 'msg', value: '我想預約到府勘查' },
+        { label: '到府勘查', type: 'msg', value: '我想預約到府勘查' },
         { label: '投報試算', type: 'msg', value: '我想做翻新投報試算' },
         { label: '常見問題', type: 'msg', value: '常見問題' },
       ],
@@ -77,9 +77,9 @@ function buildMenus_() {
 }
 
 // ===================== 版面座標（2500 x 1686，勿動除非改了圖） =====================
-const W = 2500, H = 1686, TAB_H = 260;
+const W = 2500, H = 1686, TAB_H = 280;
 const COL_X = [0, 833, 1666], COL_W = [833, 833, 834];
-const ROW_Y = [TAB_H, TAB_H + 713], ROW_H = [713, 713];
+const ROW_Y = [TAB_H, TAB_H + 703], ROW_H = [703, 703];
 const TAB_LABELS = ['老宅延壽', '老屋創收', '追蹤包租翁'];
 const ALIAS_PREFIX = 'maxhouse-';   // alias 名稱：maxhouse-tab1 ...
 

@@ -5,111 +5,112 @@
 <title>LINE 圖文選單設計稿</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
 <!--
-  LINE 圖文選單（分頁版）設計稿
-  尺寸：2500 x 1686（LINE 大型選單標準）
-  上方分頁列 0~260px，下方 2 列 x 3 欄按鈕
-  用 render.js 開 design.html?tab=1 / 2 / 3 各截一張
-  ※ 改版面時，按鈕座標要跟 richmenu.gs 裡的 AREAS 一致
+  LINE 圖文選單（分頁版・活潑款）
+  尺寸：2500 x 1686
+  上方分頁列 0~280px（三等分：0 / 833 / 1666）
+  下方按鈕 2 列 x 3 欄：y 280~983、983~1686
+  ※ 座標要跟 richmenu.gs 一致；改完執行 node render.js 重出圖
 -->
 <style>
-  :root{
-    --navy:#0f2c4e; --navy2:#1a3d6b; --gold:#d4af37; --gold2:#e8c94a;
-    --cream:#faf6ec; --ink:#1d2a38; --muted:#5a6a7a;
-  }
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{width:2500px;height:1686px;overflow:hidden;background:var(--cream);
-    font-family:"Noto Sans TC","WenQuanYi Zen Hei",sans-serif;color:var(--ink)}
-  /* 分頁列 */
-  .tabs{position:absolute;left:0;top:0;width:2500px;height:260px;display:flex;background:var(--navy)}
-  .tab{flex:1;display:flex;align-items:center;justify-content:center;gap:28px;
-    font-size:92px;font-weight:900;color:#9fb0c4;letter-spacing:4px;position:relative}
-  .tab + .tab::before{content:"";position:absolute;left:0;top:70px;bottom:70px;width:4px;background:#2b4a70}
-  .tab.on{background:var(--cream);color:var(--navy);border-radius:48px 48px 0 0}
-  .tab.on::before{display:none}
-  .tab.on + .tab::before{display:none}
-  .tab .dot{width:30px;height:30px;border-radius:50%;background:var(--gold)}
-  .tab:not(.on) .dot{background:#4b6688}
-  /* 按鈕格 */
-  .grid{position:absolute;left:0;top:260px;width:2500px;height:1426px;padding:34px;
-    display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:34px}
-  .cell{background:#fff;border:6px solid #eadfc4;border-radius:56px;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:26px;position:relative;overflow:hidden}
-  .cell.hot{background:var(--navy);border-color:var(--gold)}
-  .cell.hot .t{color:#fff} .cell.hot .s{color:var(--gold2)}
-  .cell.hot .ic{background:var(--gold);}
-  .cell.hot .ic svg{stroke:var(--navy)}
-  .ic{width:250px;height:250px;border-radius:50%;background:#f3ead3;display:flex;align-items:center;justify-content:center}
-  .ic svg{width:150px;height:150px;fill:none;stroke:var(--navy);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
-  .t{font-size:96px;font-weight:900;color:var(--navy);letter-spacing:3px;line-height:1}
-  .s{font-size:52px;font-weight:700;color:var(--muted);letter-spacing:2px;line-height:1}
-  .badge{position:absolute;top:38px;right:-70px;transform:rotate(35deg);background:var(--gold);
-    color:var(--navy);font-weight:900;font-size:44px;padding:10px 90px}
-  .logo{position:absolute;left:44px;top:300px;display:none}
+  html,body{width:2500px;height:1686px;overflow:hidden;
+    font-family:"Noto Sans TC","Noto Color Emoji",sans-serif;color:#2a2a2a;background:#fff}
+  .emo{font-family:"Noto Color Emoji";line-height:1}
+
+  /* ===== 分頁列 ===== */
+  .tabs{position:absolute;left:0;top:0;width:2500px;height:280px;display:flex;background:#fff4e2}
+  .tab{position:relative;width:833px;height:280px;display:flex;align-items:center;justify-content:center;gap:30px;padding-top:26px}
+  .tab:last-child{width:834px}
+  .tab .box{display:flex;align-items:center;gap:26px;padding:0 40px;height:200px;border-radius:60px;
+    background:#fff;border:7px solid var(--c);box-shadow:0 12px 0 var(--c)}
+  .tab .emo{font-size:96px}
+  .tab .nm{font-size:84px;font-weight:900;color:var(--c);letter-spacing:2px;line-height:1.05}
+  .tab .sub{font-size:44px;font-weight:700;color:#8a7a66;margin-top:8px;letter-spacing:1px}
+  /* 目前所在分頁：實心 + 往下接到內容區 */
+  .tab.on .box{background:var(--c);box-shadow:none;height:254px;margin-top:26px;border-radius:60px 60px 0 0;padding-bottom:26px}
+  .tab.on .nm{color:#fff}
+  .tab.on .sub{color:rgba(255,255,255,.9)}
+  .tab.on .box{border-bottom:none}
+  .here{position:absolute;top:6px;left:50%;transform:translateX(-50%);background:#2a2a2a;color:#fff;
+    font-size:38px;font-weight:900;padding:6px 26px;border-radius:30px;letter-spacing:2px;z-index:3;white-space:nowrap}
+
+  /* ===== 內容區 ===== */
+  .panel{position:absolute;left:0;top:280px;width:2500px;height:1406px;background:radial-gradient(rgba(255,255,255,.16) 9px,transparent 10px) 0 0/90px 90px,var(--c);
+    padding:28px 34px 40px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:30px 36px}
+  .dots{position:absolute;inset:280px 0 0 0;opacity:.13;
+    background-image:radial-gradient(#fff 9px,transparent 10px);background-size:90px 90px;pointer-events:none}
+  .card{position:relative;background:#fff;border-radius:64px;box-shadow:0 16px 0 var(--dark);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;overflow:visible}
+  .card .ic{width:260px;height:260px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center}
+  .card .ic .emo{font-size:160px}
+  .card .t{font-size:100px;font-weight:900;color:#262626;letter-spacing:3px;line-height:1.1;margin-top:8px}
+  .card .go{margin-top:10px;font-size:52px;font-weight:900;color:#fff;background:var(--dark);
+    padding:12px 46px;border-radius:50px;letter-spacing:2px}
+  .card.hot{background:#fffbe6;outline:10px solid #ffd23f;outline-offset:-10px}
+  .tag{position:absolute;top:-6px;right:28px;background:#ff4d6d;color:#fff;font-size:50px;font-weight:900;
+    padding:12px 34px;border-radius:40px;transform:rotate(8deg);box-shadow:0 8px 0 #c9183a;letter-spacing:2px}
+  .tag.y{background:#ffd23f;color:#5a3d00;box-shadow:0 8px 0 #d9a400}
 </style>
 </head>
 <body>
 <div class="tabs" id="tabs"></div>
-<div class="grid" id="grid"></div>
+<div class="panel" id="panel"></div>
 
 <script>
-// ===== 簡易線條圖示（不依賴外部圖示庫）=====
-const I = {
-  check:'<path d="M20 52 L42 74 L80 30"/><circle cx="50" cy="50" r="42"/>',
-  building:'<rect x="24" y="14" width="52" height="76" rx="4"/><path d="M38 30h8M54 30h8M38 46h8M54 46h8M38 62h8M54 62h8M44 90V76h12v14"/>',
-  house:'<path d="M12 48 L50 16 L88 48"/><path d="M22 40v48h56V40"/><rect x="42" y="62" width="16" height="26"/>',
-  mic:'<rect x="38" y="12" width="24" height="44" rx="12"/><path d="M26 46a24 24 0 0 0 48 0M50 70v16M36 88h28"/>',
-  doc:'<path d="M26 10h34l16 16v64H26z"/><path d="M60 10v16h16M36 48h30M36 62h30M36 76h20"/>',
-  chat:'<path d="M14 20h72v46H44L26 82V66H14z"/><path d="M30 38h40M30 50h26"/>',
-  hammer:'<path d="M18 82 L56 44"/><path d="M48 22 L70 14 L86 30 L78 52 L48 22z"/>',
-  key:'<circle cx="32" cy="50" r="18"/><path d="M50 50h38M76 50v14M66 50v10"/>',
-  flask:'<path d="M40 12v28L18 82a6 6 0 0 0 5 8h54a6 6 0 0 0 5-8L60 40V12M34 12h32M28 66h44"/>',
-  pin:'<path d="M50 90s-30-30-30-52a30 30 0 0 1 60 0c0 22-30 52-30 52z"/><circle cx="50" cy="38" r="11"/>',
-  calc:'<rect x="22" y="10" width="56" height="80" rx="8"/><rect x="32" y="20" width="36" height="16"/><path d="M34 52h4M50 52h4M66 52h-4M34 66h4M50 66h4M34 80h4M50 80h4M64 64v16"/>',
-  q:'<circle cx="50" cy="50" r="40"/><path d="M38 38a12 12 0 1 1 18 10c-4 3-6 5-6 10M50 70v2"/>',
-  at:'<circle cx="50" cy="50" r="14"/><path d="M64 50v6a10 10 0 0 0 20 0v-6a34 34 0 1 0-14 28"/>',
-  fb:'<rect x="14" y="14" width="72" height="72" rx="16"/><path d="M58 86V54h12l2-12H58v-8c0-4 2-6 6-6h8V18h-10c-12 0-18 7-18 18v6H34v12h10v32"/>',
-  yt:'<rect x="10" y="22" width="80" height="56" rx="16"/><path d="M42 36 L64 50 L42 64z"/>',
-  ig:'<rect x="14" y="14" width="72" height="72" rx="20"/><circle cx="50" cy="50" r="17"/><path d="M70 28v1"/>',
-  globe:'<circle cx="50" cy="50" r="40"/><path d="M10 50h80M50 10c-14 14-14 66 0 80M50 10c14 14 14 66 0 80"/>',
-  share:'<circle cx="72" cy="24" r="12"/><circle cx="28" cy="50" r="12"/><circle cx="72" cy="76" r="12"/><path d="M39 44l22-14M39 56l22 14"/>'
-};
-const svg = k => `<svg viewBox="0 0 100 100">${I[k]}</svg>`;
-
-// ===== 三個分頁的內容（要跟 richmenu.gs 的 MENUS 順序一致）=====
-const TABS = ['老宅延壽','老屋創收','追蹤包租翁'];
-const PAGES = {
-  1:[
-    {i:'check',   t:'補助快篩',   s:'30 秒看能不能申請', hot:true},
-    {i:'building',t:'公寓補助',   s:'電梯・外牆・管線'},
-    {i:'house',   t:'透天補助',   s:'結構補強・耐震'},
-    {i:'mic',     t:'報名講座',   s:'名額有限・免費', badge:'熱門'},
-    {i:'doc',     t:'說明會簡報', s:'官方 PDF 下載'},
-    {i:'chat',    t:'一對一諮詢', s:'專人回覆'}
+// ===== 三個分頁（順序要跟 richmenu.gs 一致）=====
+const TABS = [
+  {emo:'🏡', nm:'老宅延壽',   sub:'補助怎麼拿', c:'#ff7a2f', dark:'#c4500f', soft:'#ffe6d3'},
+  {emo:'💰', nm:'老屋創收',   sub:'老屋怎麼賺', c:'#1fb27a', dark:'#0c7d52', soft:'#d6f5e8'},
+  {emo:'📣', nm:'追蹤包租翁', sub:'看更多內容', c:'#4a7dff', dark:'#2450c4', soft:'#dde7ff'},
+];
+// 每頁 6 顆：左上→右上→左下→右下；go = 按了會怎樣
+const PAGES = [
+  [
+    {e:'✅', t:'補助快篩',   go:'30秒測 →', hot:true, tag:'免費'},
+    {e:'🏢', t:'公寓補助',   go:'看項目 →'},
+    {e:'🏠', t:'透天補助',   go:'看項目 →'},
+    {e:'🎤', t:'報名講座',   go:'搶位子 →', tag:'熱門', y:true},
+    {e:'📄', t:'官方簡報',   go:'下載 →'},
+    {e:'🙋', t:'找專人問',   go:'馬上問 →'},
   ],
-  2:[
-    {i:'hammer',  t:'翻新實例',   s:'Before / After', hot:true},
-    {i:'key',     t:'出租規劃',   s:'老屋變現金流'},
-    {i:'flask',   t:'甲醛檢測',   s:'入住前安心', badge:'NEW'},
-    {i:'pin',     t:'預約勘查',   s:'到府評估'},
-    {i:'calc',    t:'投報試算',   s:'翻新值不值得'},
-    {i:'q',       t:'常見問題',   s:'費用・工期・流程'}
+  [
+    {e:'🔨', t:'翻新實例',   go:'看前後 →', hot:true},
+    {e:'🔑', t:'出租規劃',   go:'看做法 →'},
+    {e:'🧪', t:'甲醛檢測',   go:'預約 →', tag:'NEW'},
+    {e:'📍', t:'到府勘查',   go:'預約 →'},
+    {e:'🧮', t:'投報試算',   go:'算算看 →'},
+    {e:'💡', t:'常見問題',   go:'快速看 →'},
   ],
-  3:[
-    {i:'at',      t:'Threads',    s:'每日房產乾貨', hot:true},
-    {i:'fb',      t:'Facebook',   s:'粉絲專頁'},
-    {i:'yt',      t:'YouTube',    s:'影片專區'},
-    {i:'ig',      t:'Instagram',  s:'翻新日常'},
-    {i:'globe',   t:'官方網站',   s:'補助一次看懂'},
-    {i:'share',   t:'分享好友',   s:'推薦包租翁'}
-  ]
-};
+  [
+    {e:'🧵', t:'Threads',    go:'每日乾貨 →', hot:true},
+    {e:'👍', t:'Facebook',   go:'按讚 →'},
+    {e:'▶️', t:'YouTube',    go:'看影片 →'},
+    {e:'📸', t:'Instagram',  go:'追蹤 →'},
+    {e:'🌐', t:'官方網站',   go:'逛逛 →'},
+    {e:'🎁', t:'分享好友',   go:'推薦 →', tag:'揪團', y:true},
+  ],
+];
 
-const tab = Number(new URLSearchParams(location.search).get('tab') || 1);
-document.getElementById('tabs').innerHTML = TABS.map((n,k)=>
-  `<div class="tab ${k+1===tab?'on':''}"><span class="dot"></span>${n}</div>`).join('');
-document.getElementById('grid').innerHTML = PAGES[tab].map(c=>
-  `<div class="cell ${c.hot?'hot':''}">${c.badge?`<div class="badge">${c.badge}</div>`:''}
-   <div class="ic">${svg(c.i)}</div><div class="t">${c.t}</div><div class="s">${c.s}</div></div>`).join('');
+const n = Number(new URLSearchParams(location.search).get('tab') || 1) - 1;
+const cur = TABS[n];
+document.documentElement.style.setProperty('--c', cur.c);
+document.documentElement.style.setProperty('--dark', cur.dark);
+document.documentElement.style.setProperty('--soft', cur.soft);
+
+document.getElementById('tabs').innerHTML = TABS.map((t,i)=>`
+  <div class="tab ${i===n?'on':''}" style="--c:${t.c}">
+    ${i===n?'<div class="here">你在這裡</div>':''}
+    <div class="box"><span class="emo">${t.emo}</span>
+      <div><div class="nm">${t.nm}</div><div class="sub">${i===n?t.sub:t.sub+' ›'}</div></div></div>
+  </div>`).join('');
+
+document.getElementById('panel').innerHTML = PAGES[n].map(c=>`
+  <div class="card ${c.hot?'hot':''}">
+    ${c.tag?`<div class="tag ${c.y?'y':''}">${c.tag}</div>`:''}
+    <div class="ic"><span class="emo">${c.e}</span></div>
+    <div class="t">${c.t}</div>
+    <div class="go">${c.go}</div>
+  </div>`).join('');
 </script>
 </body>
 </html>
