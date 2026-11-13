@@ -14,42 +14,42 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{width:2500px;height:1686px;overflow:hidden;
-    font-family:"Noto Sans TC","Noto Color Emoji",sans-serif;color:#2a2a2a;background:#fff}
+    font-family:"Noto Sans TC","Noto Color Emoji",sans-serif;color:#4a3b32;background:#fbf5ec}
   .emo{font-family:"Noto Color Emoji";line-height:1}
 
   /* ===== 分頁列 ===== */
-  .tabs{position:absolute;left:0;top:0;width:2500px;height:280px;display:flex;background:#fff4e2}
+  .tabs{position:absolute;left:0;top:0;width:2500px;height:280px;display:flex;background:#fbf5ec}
   .tab{position:relative;width:833px;height:280px;display:flex;align-items:center;justify-content:center;gap:30px;padding-top:26px}
   .tab:last-child{width:834px}
   .tab .box{display:flex;align-items:center;gap:26px;padding:0 40px;height:200px;border-radius:60px;
-    background:#fff;border:7px solid var(--c);box-shadow:0 12px 0 var(--c)}
+    background:#fffdf8;border:6px solid var(--c);box-shadow:0 10px 0 var(--soft2)}
   .tab .emo{font-size:96px}
-  .tab .nm{font-size:84px;font-weight:900;color:var(--c);letter-spacing:2px;line-height:1.05}
-  .tab .sub{font-size:44px;font-weight:700;color:#8a7a66;margin-top:8px;letter-spacing:1px}
+  .tab .nm{font-size:84px;font-weight:900;color:var(--dark);letter-spacing:2px;line-height:1.05}
+  .tab .sub{font-size:44px;font-weight:700;color:#9a8574;margin-top:8px;letter-spacing:1px}
   /* 目前所在分頁：實心 + 往下接到內容區 */
   .tab.on .box{background:var(--c);box-shadow:none;height:254px;margin-top:26px;border-radius:60px 60px 0 0;padding-bottom:26px}
   .tab.on .nm{color:#fff}
   .tab.on .sub{color:rgba(255,255,255,.9)}
   .tab.on .box{border-bottom:none}
-  .here{position:absolute;top:6px;left:50%;transform:translateX(-50%);background:#2a2a2a;color:#fff;
+  .here{position:absolute;top:6px;left:50%;transform:translateX(-50%);background:#fffdf8;color:var(--dark);border:5px solid var(--c);
     font-size:38px;font-weight:900;padding:6px 26px;border-radius:30px;letter-spacing:2px;z-index:3;white-space:nowrap}
 
   /* ===== 內容區 ===== */
-  .panel{position:absolute;left:0;top:280px;width:2500px;height:1406px;background:radial-gradient(rgba(255,255,255,.16) 9px,transparent 10px) 0 0/90px 90px,var(--c);
+  .panel{position:absolute;left:0;top:280px;width:2500px;height:1406px;background:radial-gradient(rgba(255,255,255,.22) 9px,transparent 10px) 0 0/90px 90px,var(--c);
     padding:28px 34px 40px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:30px 36px}
   .dots{position:absolute;inset:280px 0 0 0;opacity:.13;
     background-image:radial-gradient(#fff 9px,transparent 10px);background-size:90px 90px;pointer-events:none}
-  .card{position:relative;background:#fff;border-radius:64px;box-shadow:0 16px 0 var(--dark);
+  .card{position:relative;background:#fffdf8;border-radius:64px;box-shadow:0 14px 0 var(--soft2);
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;overflow:visible}
   .card .ic{width:260px;height:260px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center}
   .card .ic .emo{font-size:160px}
-  .card .t{font-size:100px;font-weight:900;color:#262626;letter-spacing:3px;line-height:1.1;margin-top:8px}
+  .card .t{font-size:100px;font-weight:900;color:#4a3b32;letter-spacing:3px;line-height:1.1;margin-top:8px}
   .card .go{margin-top:10px;font-size:52px;font-weight:900;color:#fff;background:var(--dark);
     padding:12px 46px;border-radius:50px;letter-spacing:2px}
-  .card.hot{background:#fffbe6;outline:10px solid #ffd23f;outline-offset:-10px}
-  .tag{position:absolute;top:-6px;right:28px;background:#ff4d6d;color:#fff;font-size:50px;font-weight:900;
-    padding:12px 34px;border-radius:40px;transform:rotate(8deg);box-shadow:0 8px 0 #c9183a;letter-spacing:2px}
-  .tag.y{background:#ffd23f;color:#5a3d00;box-shadow:0 8px 0 #d9a400}
+  .card.hot{background:var(--soft);outline:8px dashed var(--dark);outline-offset:-26px}
+  .tag{position:absolute;top:-6px;right:28px;background:#e07a5f;color:#fff;font-size:50px;font-weight:900;
+    padding:12px 34px;border-radius:40px;transform:rotate(8deg);box-shadow:0 8px 0 #b5553c;letter-spacing:2px}
+  .tag.y{background:#7fa886;color:#fff;box-shadow:0 8px 0 #557a5c}
 </style>
 </head>
 <body>
@@ -59,9 +59,9 @@
 <script>
 // ===== 三個分頁（順序要跟 richmenu.gs 一致）=====
 const TABS = [
-  {emo:'🏡', nm:'老宅延壽',   sub:'補助怎麼拿', c:'#ff7a2f', dark:'#c4500f', soft:'#ffe6d3'},
-  {emo:'💰', nm:'老屋創收',   sub:'老屋怎麼賺', c:'#1fb27a', dark:'#0c7d52', soft:'#d6f5e8'},
-  {emo:'📣', nm:'追蹤包租翁', sub:'看更多內容', c:'#4a7dff', dark:'#2450c4', soft:'#dde7ff'},
+  {emo:'🏡', nm:'老宅延壽',   sub:'補助怎麼拿', c:'#e9a07a', dark:'#b46a45', soft:'#fbe9dc', soft2:'#d08860'},
+  {emo:'💰', nm:'老屋創收',   sub:'老屋怎麼賺', c:'#9dbf9e', dark:'#5f8a63', soft:'#e7f1e4', soft2:'#7fa883'},
+  {emo:'☕', nm:'追蹤包租翁', sub:'看更多內容', c:'#dba59a', dark:'#a8685c', soft:'#f8e6e0', soft2:'#c48b7f'},
 ];
 // 每頁 6 顆：左上→右上→左下→右下；go = 按了會怎樣
 const PAGES = [
@@ -83,10 +83,10 @@ const PAGES = [
   ],
   [
     {e:'🧵', t:'Threads',    go:'每日乾貨 →', hot:true},
-    {e:'👍', t:'Facebook',   go:'按讚 →'},
+    {e:'💬', t:'Facebook',   go:'按讚 →'},
     {e:'▶️', t:'YouTube',    go:'看影片 →'},
     {e:'📸', t:'Instagram',  go:'追蹤 →'},
-    {e:'🌐', t:'官方網站',   go:'逛逛 →'},
+    {e:'🏡', t:'官方網站',   go:'逛逛 →'},
     {e:'🎁', t:'分享好友',   go:'推薦 →', tag:'揪團', y:true},
   ],
 ];
@@ -96,9 +96,10 @@ const cur = TABS[n];
 document.documentElement.style.setProperty('--c', cur.c);
 document.documentElement.style.setProperty('--dark', cur.dark);
 document.documentElement.style.setProperty('--soft', cur.soft);
+document.documentElement.style.setProperty('--soft2', cur.soft2);
 
 document.getElementById('tabs').innerHTML = TABS.map((t,i)=>`
-  <div class="tab ${i===n?'on':''}" style="--c:${t.c}">
+  <div class="tab ${i===n?'on':''}" style="--c:${t.c};--dark:${t.dark};--soft2:${t.soft2}">
     ${i===n?'<div class="here">你在這裡</div>':''}
     <div class="box"><span class="emo">${t.emo}</span>
       <div><div class="nm">${t.nm}</div><div class="sub">${i===n?t.sub:t.sub+' ›'}</div></div></div>
