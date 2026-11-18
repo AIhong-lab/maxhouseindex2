@@ -605,6 +605,22 @@
       '「DYB！DOB！帶著勇氣繼續前進吧！」'
     ];
 
+    // 走路時的隨機遭遇
+    const WILD_FOES = [
+      { name: '搗蛋小猴', icon: '🐒' }, { name: '迷路野豬', icon: '🐗' }, { name: '吵鬧蝙蝠群', icon: '🦇' },
+      { name: '豺狼 塔巴奇', icon: '🦊' }, { name: '毒蠍子', icon: '🦂' }, { name: '暴躁黃蜂', icon: '🐝' }
+    ];
+    const EVENT_FLAVOR = {
+      promise: { icon: '🐺', text: '路上遇到一隻迷路的小狼，牠想考考你懂不懂狼群的規矩！' },
+      knot: { icon: '🪢', text: '夥伴的背包帶鬆脫了，快用繩結知識幫忙！' },
+      firstaid: { icon: '🩹', text: '夥伴不小心跌倒受傷了！你知道該怎麼處理嗎？' },
+      direction: { icon: '🗺️', text: '地上掉了一張舊地圖，看懂它才能繼續前進！' },
+      camp: { icon: '🏕️', text: '發現一處別人留下的營地，想想露營的正確做法！' },
+      safety: { icon: '⚠️', text: '前方傳來奇怪的聲音……先想想安全守則！' },
+      nature: { icon: '🔍', text: '草叢裡有東西在動！考考你的自然觀察力！' },
+      badge: { icon: '📒', text: '撿到一本小黃本（進程手冊），翻開來有一道題目！' }
+    };
+
     // =========================================================================
     // 4. 工具
     // =========================================================================
@@ -947,6 +963,7 @@
     }
 
     let M = null; // 目前地圖
+    let stepsSinceEvent = 0;
     let mapPlayer = { x: 1, y: 9 };
     let visitedGrid = [];
     let walkTimer = null, hintTimer = null;
@@ -968,6 +985,7 @@
       cur.diff = d;
       M = generateMaze(d, cur.accent, cur.npc);
       mapPlayer = { ...M.start };
+      stepsSinceEvent = 0;
       visitedGrid = Array.from({ length: M.N }, () => Array(M.N).fill(false));
       revealAround(mapPlayer.x, mapPlayer.y);
       mode = 'map';
@@ -1122,8 +1140,91 @@
         startDialogue(cur.intro, () => startEncounter(), cur.type === 'battle' ? '進入戰鬥 ⚔️' : '開始考驗 📝');
         return false;
       }
+      stepsSinceEvent++;
+      if (!loot && maybeRandomEvent()) return false;
       renderForestMap();
       return true;
+    }
+
+    // =========================================================================
+    // 走路隨機遭遇：野外小考驗 或 野生動物
+    // =========================================================================
+    function maybeRandomEvent() {
+      const d = cur.diff;
+      const cooldown = Math.max(3, 6 - Math.floor(d.tier / 3));
+      if (stepsSinceEvent < cooldown) return false;
+      const chance = Math.min(0.32, (game === 'endless' ? 0.16 : 0.1) + d.tier * 0.012);
+      if (Math.random() >= chance) return false;
+      stepsSinceEvent = 0;
+      stopAutoWalk();
+      if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
+      Sfx.bump();
+      if (!reducedMotion) replayAnim(mapGridEl, 'shake');
+      // 先閃一下地圖，再進入事件
+      mode = 'event-intro';
+      const isBattle = Math.random() < 0.4;
+      $('map-quest-hint').textContent = isBattle ? '❗ 草叢裡衝出了野生動物！' : '❗ 發生了一件事……';
+      renderForestMap();
+      setTimeout(() => {
+        if (mode !== 'event-intro') return;
+        isBattle ? startWildBattle() : startWildQuiz();
+      }, 650);
+      return true;
+    }
+
+    function wildReward() {
+      const opts = [];
+      if (P.honey < 5) opts.push(() => { P.honey++; return '🍯 獲得森林蜂蜜 +1'; });
+      if (P.hp < P.maxHp) opts.push(() => { const b = P.hp; P.hp = Math.min(P.maxHp, P.hp + 15); return `💚 體力恢復 ${P.hp - b} HP`; });
+      opts.push(() => { P.atk += 1; return '⚔️ 勇氣 +1'; });
+      opts.push(() => { P.def += 1; return '🛡️ 智慧 +1'; });
+      const msg = opts[Math.floor(Math.random() * opts.length)]();
+      updateHud();
+      saveProgress();
+      return msg;
+    }
+
+    function startWildQuiz() {
+      mode = 'event';
+      hideAllPanels();
+      showPanel(quizPanel);
+      const cat = Object.keys(EVENT_FLAVOR)[Math.floor(Math.random() * Object.keys(EVENT_FLAVOR).length)];
+      const q = pickQuestions([cat], cur.diff.qLevel, 1)[0];
+      const fl = EVENT_FLAVOR[cat];
+      askQuestion(q, {
+        progress: '🎲 野外小考驗',
+        barPct: 0,
+        intro: { icon: fl.icon, text: fl.text + ' 答對有獎勵！' },
+        timeLimit: cur.diff.timeLimit,
+        retreat: false,
+        onAnswer: (correct) => {
+          let msg, dead = false;
+          if (correct) {
+            const reward = wildReward();
+            msg = '✅ 答對了！' + reward;
+            if (run) run.solved++;
+            $('quiz-feedback').textContent += '　' + reward;
+          } else {
+            const pen = Math.ceil(cur.diff.penalty / 2);
+            P.hp = game === 'story' ? Math.max(10, P.hp - pen) : Math.max(0, P.hp - pen);
+            updateHud();
+            $('quiz-feedback').textContent += `（HP -${pen}）`;
+            dead = P.hp <= 0;
+            msg = `❌ 答錯了，HP -${pen}，下次加油！`;
+          }
+          setTimeout(() => {
+            if (mode !== 'event') return;
+            if (dead) runOver('在野外考驗中體力耗盡');
+            else backToMap(msg);
+          }, correct ? 1300 : 2000);
+        }
+      });
+    }
+
+    function startWildBattle() {
+      const t = cur.diff.tier;
+      const base = WILD_FOES[Math.floor(Math.random() * WILD_FOES.length)];
+      startBattle({ ...base, name: `野生・${base.name}`, hp: 28 + t * 9, atk: 8 + Math.round(t * 1.6) }, 'wild');
     }
 
     // 地圖輸入
@@ -1208,7 +1309,7 @@
     }
 
     function answerQuiz(pick) {
-      if (quizLock || (mode !== 'quiz' && mode !== 'obstacle') || !currentQ) return;
+      if (quizLock || !['quiz', 'obstacle', 'event'].includes(mode) || !currentQ) return;
       if (pick >= currentQ.opts.length) return;
       quizLock = true;
       stopQuizTimer();
@@ -1338,32 +1439,46 @@
     const SKILL_CHARGE = 3;
     let enemyHp = 50, enemyMaxHp = 50, defending = false, battleLock = false;
     let skillCharge = 0, enemyCharged = false, battleTurns = 0;
+    let foe = null, foeKind = 'stage';
 
     function startEncounter() {
+      if (cur.type === 'battle') startBattle(cur.enemy, 'stage');
+      else { hideAllPanels(); startQuiz(); }
+    }
+
+    function startBattle(enemy, kind) {
       hideAllPanels();
-      if (cur.type === 'battle') {
+      foe = enemy;
+      foeKind = kind;
+      {
         mode = 'battle';
-        enemyHp = enemyMaxHp = cur.enemy.hp;
+        enemyHp = enemyMaxHp = foe.hp;
         defending = false;
         battleLock = false;
         skillCharge = 1;
         enemyCharged = false;
         battleTurns = 0;
-        $('enemy-icon').textContent = cur.enemy.icon;
-        $('enemy-name').textContent = cur.enemy.name;
-        $('battle-log').textContent = `遭遇「${cur.enemy.name}」！請選擇你的行動！`;
+        $('enemy-icon').textContent = foe.icon;
+        $('enemy-name').textContent = foe.name;
+        $('battle-log').textContent = kind === 'wild' ? `草叢裡衝出「${foe.name}」！打贏有獎勵！` : `遭遇「${foe.name}」！請選擇你的行動！`;
         updateBattleUI();
         showPanel(battlePanel);
-      } else {
-        startQuiz();
       }
+    }
+
+    function wildWin() {
+      mode = 'event';
+      Sfx.win();
+      const msg = wildReward();
+      if (run) run.solved++;
+      backToMap(`🏆 打贏了 ${foe.name}！${msg}`);
     }
 
     function updateBattleUI() {
       $('enemy-hp-txt').textContent = `敵方體力 ${Math.max(0, enemyHp)} / ${enemyMaxHp}`;
       $('enemy-hp-bar').style.width = `${Math.max(0, Math.round((enemyHp / enemyMaxHp) * 100))}%`;
       const intent = $('enemy-intent');
-      intent.textContent = enemyCharged ? '⚡ 蓄力中！下回合重擊' : `⚔️ 攻擊力 ${cur.enemy.atk}`;
+      intent.textContent = enemyCharged ? '⚡ 蓄力中！下回合重擊' : `⚔️ 攻擊力 ${foe.atk}`;
       intent.className = enemyCharged ? 'text-amber-600 animate-pulse' : 'text-gray-500';
       const ready = skillCharge >= SKILL_CHARGE;
       const skillBtn = $('act-skill');
@@ -1433,7 +1548,7 @@
 
       if (enemyHp <= 0) {
         $('enemy-icon').textContent = '💫';
-        setTimeout(() => { if (mode === 'battle') completeStage(); }, 800);
+        setTimeout(() => { if (mode === 'battle') (foeKind === 'wild' ? wildWin() : completeStage()); }, 800);
         return;
       }
       setTimeout(enemyTurn, 700);
@@ -1442,7 +1557,7 @@
     function enemyTurn() {
       if (mode !== 'battle') return;
       const logEl = $('battle-log');
-      const en = cur.enemy;
+      const en = foe;
       if (!enemyCharged && battleTurns >= 2 && Math.random() < cur.diff.chargeChance) {
         enemyCharged = true;
         Sfx.bump();
@@ -1468,6 +1583,17 @@
         setTimeout(() => {
           if (game === 'endless') { runOver(`被 ${en.name} 打倒了`); return; }
           mode = 'gameover';
+          if (foeKind === 'wild') {
+            showOverlay({
+              icon: '😵', chapter: cur.chapter, title: `被${en.name}打敗了！`,
+              sub: '伯魯把你背回安全的地方休息。補滿體力，繼續探索吧！',
+              buttons: [
+                { text: '補滿體力繼續探索 🌲', onClick: () => { P.hp = P.maxHp; P.honey = Math.max(2, P.honey); overlay.classList.add('hidden'); backToMap('💪 體力恢復了，繼續前進！'); } },
+                { text: '回到標題', onClick: goTitle }
+              ]
+            });
+            return;
+          }
           showOverlay({
             icon: '😵', chapter: cur.chapter, title: '體力耗盡了！',
             sub: '阿克拉扶起你：小狼不怕困難，補滿體力再挑戰一次！',
@@ -1668,7 +1794,7 @@
         showOverlay({
           icon: '🐺', chapter: '幼童軍 × 叢林奇談',
           title: '叢林奇談：毛克利的冒險',
-          sub: '探索迷宮、用幼童軍知識突破阻礙、回合制戰鬥，收集 12 枚徽章！',
+          sub: '探索迷宮、走路會遇到隨機考驗和野生動物、用幼童軍知識突破阻礙，收集 12 枚徽章！',
           buttons: [
             { text: '開始故事冒險 🚀', onClick: () => startChapter(0) },
             endlessBtn
@@ -1776,7 +1902,7 @@
       } else if (mode === 'battle') {
         const acts = { '1': 'atk', '2': 'skill', '3': 'def', '4': 'heal' };
         if (acts[e.key]) playerBattleTurn(acts[e.key]);
-      } else if (mode === 'quiz' || mode === 'obstacle') {
+      } else if (mode === 'quiz' || mode === 'obstacle' || mode === 'event') {
         const idx = { '1': 0, '2': 1, '3': 2, a: 0, b: 1, c: 2 }[e.key.toLowerCase()];
         if (idx !== undefined) answerQuiz(idx);
       }
