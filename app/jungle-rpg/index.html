@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1b4332" />
+  <title>叢林奇談：純正網頁 RPG 冒險</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800;900&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans TC', sans-serif;
+      background: #0f2017;
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .game-shell {
+      width: 100%;
+      max-width: 440px;
+      height: 100vh;
+      height: 100dvh;
+      max-height: 840px;
+      background: #fdfbf5;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    }
+    @media (min-width: 480px) {
+      .game-shell { height: 92vh; height: 92dvh; border-radius: 28px; border: 4px solid #fbbf24; }
+    }
+    @keyframes hop { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-2px) scale(1.06); } }
+    .cute-hop { animation: hop 1.4s ease-in-out infinite; }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+    .shake { animation: shake 0.35s ease-in-out; }
+    @keyframes floatUp { 0% { opacity: 0; transform: translate(-50%, 0) scale(0.8); } 15% { opacity: 1; transform: translate(-50%, -6px) scale(1.15); } 100% { opacity: 0; transform: translate(-50%, -46px) scale(1); } }
+    .dmg-float { position: absolute; left: 50%; top: 30%; font-weight: 900; font-size: 1.6rem; pointer-events: none; animation: floatUp 0.9s ease-out forwards; text-shadow: 0 2px 0 #fff, 0 0 6px rgba(0,0,0,.25); }
+    @keyframes popIn { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+    .pop-in { animation: popIn 0.25s ease-out; }
+    @keyframes flashRed { 0% { background: rgba(244,63,94,.35); } 100% { background: transparent; } }
+    .flash-red { animation: flashRed 0.4s ease-out; }
+    .rpg-box { background: rgba(17, 34, 24, 0.96); border: 3px solid #fbbf24; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45); }
+    button:disabled { opacity: .45; cursor: not-allowed; transform: none !important; }
+    button:focus-visible { outline: 3px solid #fbbf24; outline-offset: 2px; }
+    .caret::after { content: '▍'; animation: blink 0.8s steps(1) infinite; color: #fbbf24; margin-left: 2px; }
+    @keyframes blink { 50% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      .cute-hop, .shake, .pop-in, .flash-red, .animate-pulse { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-shell">
+    <!-- Top RPG Status HUD -->
+    <header class="bg-[#1b4332] text-white px-3.5 py-2.5 flex items-center justify-between shrink-0 z-20 border-b-2 border-amber-400/50">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-10 h-10 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center shrink-0 shadow-sm">
+          <svg viewBox="0 0 64 64" class="w-8 h-8" aria-hidden="true">
+            <polygon points="12,24 18,6 28,20" fill="#6b7280"/>
+            <polygon points="52,24 46,6 36,20" fill="#6b7280"/>
+            <polygon points="15,21 19,10 25,19" fill="#fca5a5"/>
+            <polygon points="49,21 45,10 39,19" fill="#fca5a5"/>
+            <circle cx="32" cy="34" r="19" fill="#9ca3af"/>
+            <ellipse cx="32" cy="40" rx="13" ry="10" fill="#f9fafb"/>
+            <circle cx="24" cy="31" r="3" fill="#111827"/>
+            <circle cx="40" cy="31" r="3" fill="#111827"/>
+            <circle cx="25" cy="30" r="1" fill="#ffffff"/>
+            <circle cx="41" cy="30" r="1" fill="#ffffff"/>
+            <polygon points="29,37 35,37 32,41" fill="#1f2937"/>
+            <path d="M28 43 Q32 47 36 43" fill="none" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+            <polygon points="20,49 44,49 32,59" fill="#f59e0b"/>
+            <circle cx="32" cy="51" r="2.5" fill="#1b4332"/>
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5">
+            <span class="font-black text-sm text-amber-300" id="hud-lv">Lv.1</span>
+            <span class="font-black text-sm truncate" id="hud-rank">剛入團</span>
+            <span class="text-xs text-emerald-200 font-bold" id="hud-ch-num">(1/12)</span>
+          </div>
+          <div class="flex items-center gap-2 mt-1">
+            <div class="w-24 h-2 bg-black/40 rounded-full overflow-hidden">
+              <div id="hud-hp-bar" class="h-full bg-rose-500 transition-all duration-300" style="width: 100%"></div>
+            </div>
+            <span id="hud-hp-txt" class="text-[11px] font-bold text-rose-200">HP 100/100</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <button id="btn-bag" type="button" class="px-2.5 py-1.5 rounded-lg bg-amber-500/25 hover:bg-amber-500/40 border border-amber-300/60 text-amber-200 text-xs font-bold">
+          🎖️ 榮譽帶 (<span id="bag-count">0</span>)
+        </button>
+        <button id="btn-sound" type="button" aria-label="切換音效" class="w-9 h-9 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center text-base">🔊</button>
+      </div>
+    </header>
+
+    <!-- Main RPG Stage -->
+    <div id="stage-area" class="relative flex-1 bg-gradient-to-b from-[#d8f3dc] to-[#95d5b2] flex flex-col justify-between p-4 overflow-y-auto">
+      <!-- Forest Maze Map Panel -->
+      <div id="map-panel" class="hidden flex-col items-center justify-center gap-2.5 my-auto">
+        <div id="map-quest-hint" class="px-4 py-1.5 rounded-full bg-white/90 border border-emerald-700/30 text-sm font-black text-emerald-950 shadow-sm text-center">❗ 阿克拉</div>
+        <div id="map-grid" style="touch-action: none;" class="grid grid-cols-7 gap-1.5 p-2.5 rounded-3xl bg-[#1e3f2d] border-4 border-amber-300 shadow-xl w-full max-w-[412px] aspect-square"></div>
+        <div class="flex items-center justify-between w-full max-w-[412px] gap-2">
+          <div class="text-[11px] font-bold text-emerald-900/80 leading-tight">點格子自動走・滑動或方向鍵移動<br><span id="map-loot-left">寶物 0/3</span></div>
+          <div class="grid grid-cols-3 gap-1 shrink-0" id="dpad">
+            <span></span>
+            <button type="button" data-dir="0,-1" aria-label="向北" class="w-10 h-9 rounded-lg bg-emerald-800 text-white font-black active:scale-90 shadow">▲</button>
+            <span></span>
+            <button type="button" data-dir="-1,0" aria-label="向西" class="w-10 h-9 rounded-lg bg-emerald-800 text-white font-black active:scale-90 shadow">◀</button>
+            <button type="button" data-dir="0,1" aria-label="向南" class="w-10 h-9 rounded-lg bg-emerald-800 text-white font-black active:scale-90 shadow">▼</button>
+            <button type="button" data-dir="1,0" aria-label="向東" class="w-10 h-9 rounded-lg bg-emerald-800 text-white font-black active:scale-90 shadow">▶</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene Banner -->
+      <div id="scene-card" class="rounded-2xl bg-white/90 border-2 border-emerald-900/15 p-4 shadow-sm text-center space-y-2 hidden">
+        <div id="sc-chapter" class="text-xs font-black text-emerald-800 uppercase tracking-wider"></div>
+        <div id="sc-emoji" class="text-6xl py-2">🐺</div>
+        <div id="sc-stats" class="flex justify-center gap-3 text-xs font-bold text-gray-700">
+          <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-900">⚔️ 勇氣 <span id="stat-atk">18</span></span>
+          <span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-900">🛡️ 智慧 <span id="stat-def">10</span></span>
+        </div>
+      </div>
+
+      <!-- Turn-Based Battle Panel -->
+      <div id="battle-panel" class="hidden flex-col gap-3 my-auto">
+        <div id="enemy-card" class="relative bg-white/95 rounded-2xl border-2 border-rose-400 p-4 shadow-md text-center space-y-2">
+          <div id="enemy-icon" class="text-6xl">🐯</div>
+          <div id="enemy-name" class="font-black text-lg text-gray-900">瘸老虎 邪漢</div>
+          <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+            <div id="enemy-hp-bar" class="h-full bg-rose-600 transition-all duration-300" style="width: 100%"></div>
+          </div>
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span id="enemy-hp-txt" class="text-rose-700">敵方體力 60 / 60</span>
+            <span id="enemy-intent" class="text-gray-500">🙂 普通狀態</span>
+          </div>
+          <div id="battle-log" class="text-sm font-bold text-emerald-900 bg-emerald-50 rounded-xl p-2.5 min-h-[44px] flex items-center justify-center" aria-live="polite"></div>
+          <div id="enemy-float-layer" class="absolute inset-0 pointer-events-none"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <button id="act-atk" type="button" class="py-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black text-base shadow">⚔️ 盡力出擊</button>
+          <button id="act-skill" type="button" class="py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-emerald-950 font-black text-base shadow">🐾 小隊支援</button>
+          <button id="act-def" type="button" class="py-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white font-bold text-sm shadow">🛡️ 守規律防禦</button>
+          <button id="act-heal" type="button" class="py-3 rounded-xl bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-bold text-sm shadow">🍯 蜂蜜補血</button>
+        </div>
+        <div class="text-[11px] text-center font-bold text-emerald-900/75">提示：敵人「蓄力」時用防禦可大幅減傷・小隊支援需集氣 3 回合・鍵盤 1～4</div>
+      </div>
+
+      <!-- Quiz Encounter Panel -->
+      <div id="quiz-panel" class="hidden flex-col gap-3 my-auto">
+        <div class="bg-white/95 rounded-2xl border-2 border-amber-400 p-4 shadow-md space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <span id="quiz-tag" class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-xs font-black">幼童軍進程考驗</span>
+            <span id="quiz-progress" class="font-black text-sm text-emerald-900 shrink-0">答對 0 / 4</span>
+          </div>
+          <div class="w-full h-2 bg-emerald-100 rounded-full overflow-hidden">
+            <div id="quiz-bar" class="h-full bg-emerald-600 transition-all duration-300" style="width:0%"></div>
+          </div>
+          <h3 id="quiz-q" class="text-lg font-black text-gray-900 leading-snug"></h3>
+          <div id="quiz-opts" class="space-y-2.5"></div>
+          <div id="quiz-feedback" class="text-sm font-bold min-h-[22px]" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <!-- RPG Dialogue Box -->
+      <div id="rpg-dialogue" class="rpg-box rounded-2xl p-4 text-white hidden mt-auto cursor-pointer">
+        <div class="flex items-start gap-3">
+          <div id="dlg-avatar" class="w-16 h-16 rounded-xl bg-amber-400/15 border-2 border-amber-300/60 flex items-center justify-center text-4xl shrink-0">🐺</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-1.5 gap-2">
+              <span id="dlg-speaker" class="text-sm font-black px-2.5 py-0.5 rounded bg-amber-400 text-emerald-950 truncate">狼王阿克拉</span>
+              <span id="dlg-page" class="text-xs text-amber-200/90 font-bold shrink-0">1 / 3</span>
+            </div>
+            <p id="dlg-text" class="text-base sm:text-lg font-medium text-emerald-50 leading-relaxed min-h-[68px]" aria-live="polite"></p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between mt-3">
+          <span class="text-[11px] text-emerald-200/70 font-bold">點對話框或按空白鍵繼續</span>
+          <button id="dlg-next" type="button" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-emerald-950 font-black text-sm shadow">繼續 ▶</button>
+        </div>
+      </div>
+
+      <!-- Title / Victory / GameOver Overlay -->
+      <div id="overlay" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[#142e21]/95 text-white z-20">
+        <div id="ov-icon" class="text-6xl mb-3">🐺</div>
+        <div id="ov-chapter" class="text-sm font-bold px-3.5 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-300/30 mb-2 hidden"></div>
+        <h1 id="ov-title" class="text-3xl font-black text-amber-300 mb-3">叢林奇談 RPG</h1>
+        <p id="ov-sub" class="text-base text-emerald-100 mb-6 max-w-[300px] leading-relaxed"></p>
+        <div class="flex flex-col gap-3 w-full max-w-[260px]">
+          <button id="ov-btn" type="button" class="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-emerald-950 font-black text-lg shadow-xl transition">開始冒險 🚀</button>
+          <button id="ov-story-btn" type="button" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-base shadow-lg hidden">📖 閱讀《叢林奇談》故事書</button>
+          <button id="ov-new-btn" type="button" class="w-full py-3 rounded-xl bg-white/15 hover:bg-white/25 text-emerald-100 font-bold text-sm border border-white/25 hidden">從第 1 篇重新開始 🔄</button>
+        </div>
+      </div>
+
+      <!-- Bag / Inventory Modal -->
+      <div id="bag-modal" class="absolute inset-0 bg-[#0f2017]/95 z-30 hidden flex-col p-4 text-white" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-between pb-3 border-b border-white/15">
+          <div class="font-black text-base text-amber-300">🎖️ 小黃本進程 & 技能章榮譽帶</div>
+          <button id="btn-close-bag" type="button" class="px-3 py-1.5 rounded-lg bg-white/15 text-sm font-bold">關閉 ✕</button>
+        </div>
+        <div id="bag-list" class="flex-1 overflow-y-auto py-3 space-y-2.5"></div>
+      </div>
+
+      <!-- Full Story Book Modal -->
+      <div id="story-modal" class="absolute inset-0 bg-[#fdfbf5] z-30 hidden flex-col text-gray-900" role="dialog" aria-modal="true">
+        <div class="bg-[#1b4332] text-white px-4 py-3 flex items-center justify-between shrink-0 border-b-2 border-amber-400">
+          <div class="font-black text-base text-amber-300">📖 《叢林奇談》故事書</div>
+          <button id="btn-close-story" type="button" class="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-sm font-bold">關閉 ✕</button>
+        </div>
+        <div id="story-content" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. Web Audio 合成音效（設定會記住；切到背景自動暫停）
+    // =========================================================================
+    const SOUND_KEY = 'jungle_rpg_sound';
+    const Sfx = (() => {
+      let ctx = null;
+      let enabled = true;
+      try { enabled = localStorage.getItem(SOUND_KEY) !== 'off'; } catch (e) {}
+      let bgmTimer = null;
+      let step = 0;
+      const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63];
+
+      function init() {
+        if (!ctx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) ctx = new AC();
+        }
+        if (ctx && ctx.state === 'suspended' && !document.hidden) ctx.resume().catch(() => {});
+      }
+
+      function tone(freq, dur, type = 'triangle', vol = 0.08) {
+        if (!enabled || !ctx || ctx.state !== 'running') return;
+        const t = ctx.currentTime;
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, t);
+        g.gain.setValueAtTime(0.001, t);
+        g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.start(t);
+        o.stop(t + dur + 0.02);
+      }
+
+      function startBgm() {
+        init();
+        if (bgmTimer) return;
+        bgmTimer = setInterval(() => {
+          tone(notes[step % notes.length], 0.35, 'sine', 0.022);
+          step++;
+        }, 480);
+      }
+
+      document.addEventListener('visibilitychange', () => {
+        if (!ctx) return;
+        if (document.hidden) ctx.suspend().catch(() => {});
+        else ctx.resume().catch(() => {});
+      });
+
+      return {
+        init,
+        startBgm,
+        get enabled() { return enabled; },
+        toggle() {
+          enabled = !enabled;
+          try { localStorage.setItem(SOUND_KEY, enabled ? 'on' : 'off'); } catch (e) {}
+          if (enabled) init();
+          return enabled;
+        },
+        blip() { init(); tone(440, 0.05, 'square', 0.035); },
+        coin() { init(); tone(659.25, 0.1, 'triangle', 0.09); setTimeout(() => tone(880, 0.14, 'triangle', 0.09), 60); },
+        hit() { init(); tone(150, 0.2, 'sawtooth', 0.09); },
+        bump() { init(); tone(110, 0.08, 'square', 0.04); },
+        crit() { init(); tone(988, 0.08, 'square', 0.07); setTimeout(() => tone(1318.5, 0.16, 'square', 0.07), 70); },
+        win() {
+          init();
+          [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => setTimeout(() => tone(f, 0.2, 'triangle', 0.1), i * 90));
+        }
+      };
+    })();
+
+    // =========================================================================
+    // 2. 12 篇劇本資料
+    // =========================================================================
+    const CUB_RANKS = [
+      '剛入團', '羚羊級', '羚羊級', '狼級', '狼級', '狼級',
+      '鹿級', '鹿級', '鹿級', '豹級', '豹級', '豹級(準童軍)'
+    ];
+
+    const STAGES = [
+      {
+        id: 0,
+        chapter: '第一篇｜毛克利進入狼群（剛入團）',
+        emoji: '🐺',
+        type: 'battle',
+        enemy: { name: '瘸老虎 邪漢（入團試探）', icon: '🐯', hp: 50, atk: 12 },
+        reward: { icon: '🐾', name: '剛入團：諾言與狼禮章', desc: '學會幼童軍諾言「我願盡力，愛國家，守規律」與大吼聲' },
+        intro: [
+          { av: '🐺', sp: '狼媽媽 拉克莎', txt: '「小狼要滿 8 歲並參加 4 次團集會，才能在狼群大會宣誓入團！」' },
+          { av: '🐯', sp: '瘸老虎 邪漢', txt: '「吼！這隻人類小狼有資格佩掛幼童軍領巾嗎？」' },
+          { av: '🐻', sp: '棕熊 伯魯', txt: '「我和巴希拉替你作保！展現小狼的盡力精神（DYB/DOB）逼退邪漢！」' }
+        ],
+        outro: [
+          { av: '🐆', sp: '黑豹 巴希拉', txt: '「恭喜宣誓入團！你正式成為西奧尼狼群的一員，朝『羚羊級』前進吧！」' }
+        ]
+      },
+      {
+        id: 1,
+        chapter: '第二篇｜毛克利的厄運（羚羊級進程）',
+        emoji: '🦌',
+        type: 'quiz',
+        questions: [
+          { tag: '幼童軍進程', q: '幼童軍的「晉級獸章」由低到高依序是哪四級？', opts: ['羚羊 → 狼 → 鹿 → 豹', '狼 → 鹿 → 豹 → 獅', '兔 → 狐 → 狼 → 熊'], ans: 0 },
+          { tag: '剛入團禮節', q: '幼童軍敬禮與握手時，要使用哪一隻手互相握手？', opts: ['右手', '左手（代表心連心）', '雙手合十'], ans: 1 },
+          { tag: '幼童軍吼聲', q: '大吼聲中，小隊長喊「DYB」，全體小狼回應「DOB」是什麼意思？', opts: ['快點吃飯', '盡我所能 / 盡我們所能', '大家一起睡覺'], ans: 1 }
+        ],
+        reward: { icon: '🦌', name: '羚羊級獸章', desc: '完成背誦諾言規律、行狼禮、大吼聲與叢林故事' },
+        intro: [
+          { av: '🐻', sp: '棕熊 伯魯', txt: '「羚羊級小狼要學會諾言、規律、敬禮、左手握手與大吼聲！」' },
+          { av: '🐒', sp: '班大洛 猴群', txt: '「嘻嘻！答出羚羊級進程考驗，我們才放你走！」' }
+        ],
+        outro: [
+          { av: '🦅', sp: '飛鳶 智兒', txt: '「答對了！你已經晉升【羚羊級】，我這就去通知伯魯和巴希拉！」' }
+        ]
+      },
+      {
+        id: 2,
+        chapter: '第三篇｜大蟒蛇的遠征（服務類技能章）',
+        emoji: '🐍',
+        type: 'battle',
+        enemy: { name: '班大洛 猴群（冷洞之戰）', icon: '🐒', hp: 65, atk: 14 },
+        reward: { icon: '🗣️', name: '表演與口技技能章', desc: '服務類/技巧類技能章：學會團隊合作與傳達訊息' },
+        intro: [
+          { av: '🐆', sp: '黑豹 巴希拉', txt: '「猴群把你關在冷洞！快用狼級進程學的『正確傳遞兩件口訊』請卡阿來幫忙！」' },
+          { av: '🐍', sp: '大蟒蛇 卡阿', txt: '「嘶～毛克利，配合我的『餓蛇舞』一起擊退這群不守規律的猴子吧！」' }
+        ],
+        outro: [
+          { av: '🐻', sp: '棕熊 伯魯', txt: '「成功脫困！記住幼童軍規律：服從長上、幫助他人、不說謊話、不怕困難！」' }
+        ]
+      },
+      {
+        id: 3,
+        chapter: '第四篇｜水邊停戰（狼級進程考驗）',
+        emoji: '🐘',
+        type: 'quiz',
+        questions: [
+          { tag: '狼級：結繩', q: '在狼級進程中，哪一種繩結最適合用來「紮小包裹」？', opts: ['平結', '稱人結', '雙套結'], ans: 0 },
+          { tag: '狼級：國旗', q: '狼級進程除了會摺疊國旗、升降旗外，還要會唱哪兩首歌？', opts: ['生日快樂歌', '國歌與國旗歌', '校歌與軍歌'], ans: 1 },
+          { tag: '狼級：勞作', q: '狼級進程的「勞作」項目中，小狼要會用材料製作哪一種玩具？', opts: ['遙控飛機', '簡易風箏', '電動機器人'], ans: 1 }
+        ],
+        reward: { icon: '🐺', name: '狼級獸章', desc: '完成國旗升降、平結紮包裹、簡易風箏與服務任務' },
+        intro: [
+          { av: '🐘', sp: '大象 哈帝', txt: '「大旱災露出和平石，『水邊停戰』靠的是每個人都遵守規律！」' },
+          { av: '🐘', sp: '大象 哈帝', txt: '「毛克利，通過【狼級進程】考驗，就能領取狼級獸章！」' }
+        ],
+        outro: [
+          { av: '🐘', sp: '大象 哈帝', txt: '「太棒了！你已經晉升為【狼級】小狼，前 4 枚技能章記得縫在右袖喔！」' }
+        ]
+      },
+      {
+        id: 4,
+        chapter: '第五篇｜紅花的威力（安全與急救）',
+        emoji: '🔥',
+        type: 'battle',
+        enemy: { name: '叛變派與邪漢', icon: '🐯', hp: 80, atk: 16 },
+        reward: { icon: '🔥', name: '用火安全與急救章', desc: '懂得火災應變、小刀傷急救與保護狼群' },
+        intro: [
+          { av: '🐆', sp: '黑豹 巴希拉', txt: '「阿克拉老了，邪漢正煽動年輕狼群！快用你從村莊學來的『紅花』！」' },
+          { av: '🐺', sp: '毛克利', txt: '「用火要非常小心安全！我只用紅花來震懾邪漢、保護大家！」' }
+        ],
+        outro: [
+          { av: '🐯', sp: '瘸老虎 邪漢', txt: '「好燙的紅花！我先逃走，總有一天我會回來的！」' }
+        ]
+      },
+      {
+        id: 5,
+        chapter: '第六篇｜恢復人的生活（服務類技能章）',
+        emoji: '🌾',
+        type: 'quiz',
+        questions: [
+          { tag: '服務類技能章 (8項)', q: '「環保、義工、種植、飼養、嚮導、交通安全、表演、勞作」屬於哪一類？', opts: ['健身類 (9項)', '服務類 (8項)', '技巧類 (9項)'], ans: 1 },
+          { tag: '種植技能章', q: '考「種植技能章」時，小狼要自己完成哪一件事？', opts: ['去市場買一盆現成的花', '在花盆播種、除草除蟲並移植', '只看植物圖鑑就好'], ans: 1 },
+          { tag: '飼養技能章', q: '在村莊放牧水牛、回家照顧寵物並記錄，最符合哪一個技能章？', opts: ['飼養技能章', '書法技能章', '體操技能章'], ans: 0 }
+        ],
+        reward: { icon: '🌱', name: '種植與飼養技能章', desc: '服務類技能章：親手播種、照料動植物並記錄觀察' },
+        intro: [
+          { av: '👩', sp: '美修娃', txt: '「歡迎回到人類村莊！在村子裡放牧水牛、照顧作物，就像考取幼童軍的服務類技能章！」' },
+          { av: '👩', sp: '美修娃', txt: '「來挑戰【服務類技能章】問答吧！」' }
+        ],
+        outro: [
+          { av: '👩', sp: '美修娃', txt: '「你真是勤勞又細心的好孩子！拿到服務類技能章囉！」' }
+        ]
+      },
+      {
+        id: 6,
+        chapter: '第七篇｜大老虎決戰（鹿級進程）',
+        emoji: '🐃',
+        type: 'battle',
+        enemy: { name: '大老虎 邪漢（峽谷決戰）', icon: '🐯', hp: 100, atk: 18 },
+        reward: { icon: '🫎', name: '鹿級獸章（含儲蓄與方位）', desc: '學會辨別八方位、儲蓄習慣與團隊戰術夾攻' },
+        intro: [
+          { av: '🐺', sp: '灰狼兄弟', txt: '「毛克利！邪漢躲在峽谷裡！我們用鹿級學的『八方位』南北夾攻他！」' },
+          { av: '🐺', sp: '毛克利', txt: '「全體水牛與狼群準備！今天要靠團隊合作徹底打敗邪漢！」' }
+        ],
+        outro: [
+          { av: '🐺', sp: '灰狼兄弟', txt: '「邪漢徹底被擊敗了！恭喜你晉升【鹿級】小狼！」' }
+        ]
+      },
+      {
+        id: 7,
+        chapter: '第八篇｜叢林的驅逐（健身類技能章）',
+        emoji: '⚖️',
+        type: 'quiz',
+        questions: [
+          { tag: '健身類技能章 (9項)', q: '「球類運動、游泳、體適能、自行車、旅行、舞蹈、體操」屬於哪一類？', opts: ['技巧類 (9項)', '服務類 (8項)', '健身類 (9項)'], ans: 2 },
+          { tag: '鹿級：常識', q: '在鹿級進程中，小狼除了遵守交通規則，還要能辨別幾個方位？', opts: ['四方位', '八方位', '十二方位'], ans: 1 },
+          { tag: '游泳技能章', q: '幼童軍「游泳技能章」要求能說出游泳前後常識，並能潛水幾秒？', opts: ['3 秒', '10 秒', '60 秒'], ans: 1 }
+        ],
+        reward: { icon: '🏊', name: '游泳與旅行技能章', desc: '健身類技能章：培養強健體魄、水上安全與旅行常識' },
+        intro: [
+          { av: '🧙', sp: '嫉妒的巫師', txt: '「大家別相信毛克利！除非他能答對【鹿級與健身類技能章】考驗！」' },
+          { av: '🐺', sp: '毛克利', txt: '「童軍平時鍛鍊體魄、熟習方位，絕對不怕你的考驗！」' }
+        ],
+        outro: [
+          { av: '🐺', sp: '毛克利', txt: '「雖然村人一時受謠言影響，但我帶著健康與正直回到森林！」' }
+        ]
+      },
+      {
+        id: 8,
+        chapter: '第九篇｜古城的秘寶（技巧類技能章）',
+        emoji: '💎',
+        type: 'quiz',
+        questions: [
+          { tag: '技巧類技能章 (9項)', q: '「繪畫、音樂、模型、書法、收集、歌詠、語文、資訊」屬於哪一類？', opts: ['技巧類 (9項)', '服務類 (8項)', '健身類 (9項)'], ans: 0 },
+          { tag: '榮譽帶佩戴規則', q: '小狼取得第 5 個以上技能章時，徽章應該縫在哪裡？', opts: ['貼在帽子上', '拆下右袖 4 個，依類別縫於榮譽帶上', '收在抽屜裡'], ans: 1 },
+          { tag: '品格與誠實', q: '面對閃亮但會讓人起貪念的「安卡斯」寶杖，毛克利怎麼做？', opts: ['物歸原主，不貪小便宜', '偷偷帶回家', '跟別人搶奪'], ans: 0 }
+        ],
+        reward: { icon: '🎨', name: '收集與模型技能章', desc: '技巧類技能章：培養觀察、手作與榮譽帶佩戴榮譽感' },
+        intro: [
+          { av: '🐍', sp: '大蟒蛇 卡阿', txt: '「古城地底藏著『安卡斯』，考驗你的不只是技巧，更是誠實的心！」' },
+          { av: '🐆', sp: '黑豹 巴希拉', txt: '「答對【技巧類技能章與榮譽帶】問題，就把安卡斯送回原處吧！」' }
+        ],
+        outro: [
+          { av: '🐍', sp: '白眼鏡蛇', txt: '「你的技巧章已經超過 5 枚，可以縫在帥氣的榮譽帶上囉！」' }
+        ]
+      },
+      {
+        id: 9,
+        chapter: '第十篇｜狄幹高原的紅狗（豹級進程）',
+        emoji: '🐝',
+        type: 'battle',
+        enemy: { name: '狄幹高原 紅狗大軍', icon: '🐕', hp: 120, atk: 20 },
+        reward: { icon: '🐆', name: '豹級獸章（結繩與領導）', desc: '掌握接繩結、稱人結、整理繩子與領導小隊遊戲' },
+        intro: [
+          { av: '🐺', sp: '灰狼兄弟', txt: '「紅狗大軍衝進森林了！豹級小狼，快用『接繩結與稱人結』幫大家架設救援繩索！」' },
+          { av: '🐍', sp: '大蟒蛇 卡阿', txt: '「把紅狗引向懸崖上的『黃蜂大本營』，用智慧與團隊合作擊退他們！」' }
+        ],
+        outro: [
+          { av: '🐺', sp: '灰狼兄弟', txt: '「大獲全勝！你正式晉升最高級的【豹級】小狼啦！」' }
+        ]
+      },
+      {
+        id: 10,
+        chapter: '第十一篇｜阿克拉的道別（豹級閱讀與環保）',
+        emoji: '🌙',
+        type: 'quiz',
+        questions: [
+          { tag: '豹級：閱讀進程', q: '在豹級進程的「閱讀」項目中，小狼要讀完哪本書並簡述三則故事？', opts: ['十萬個為什麼', '《叢林奇談》上下冊', '三國演義'], ans: 1 },
+          { tag: '豹級：結繩', q: '豹級進程中，除了平結之外，還要學會哪兩種重要繩結？', opts: ['接繩結與稱人結', '蝴蝶結與鞋帶結', '死結'], ans: 0 },
+          { tag: '豹級：服務', q: '豹級小狼在團集會中要能做到哪一項領導服務？', opts: ['自己躲在旁邊玩', '準備團集會會場並領導小隊遊戲', '只等大人發點心'], ans: 1 }
+        ],
+        reward: { icon: '♻️', name: '環保與義工技能章', desc: '豹級進程：閱讀《叢林奇談》全冊、結繩與社區服務' },
+        intro: [
+          { av: '🐺', sp: '老狼王 阿克拉', txt: '「我的小蛙兒……我在戰役中守住了狼群最後的榮耀，現在要交棒給你了。」' },
+          { av: '🐺', sp: '老狼王 阿克拉', txt: '「通過【豹級進程】最終考驗，你就具備升上童軍團的資格了！」' }
+        ],
+        outro: [
+          { av: '🐺', sp: '老狼王 阿克拉', txt: '「勇敢長大吧，毛克利……帶領你的小隊繼續向前！」' }
+        ]
+      },
+      {
+        id: 11,
+        chapter: '第十二篇｜春天的喜悅（全能技能章與升團）',
+        emoji: '🌈',
+        type: 'battle',
+        enemy: { name: '升團線前的最後考驗', icon: '🌪️', hp: 90, atk: 15 },
+        reward: { icon: '👑', name: '全能技能章（26項鑲金邊榮譽）', desc: '完成羚羊→狼→鹿→豹與三類 26 項技能章，準備跨過升團線！' },
+        intro: [
+          { av: '🌈', sp: '旁白', txt: '春天到了，月夜天空掛起白虹！在跨過升團線成為童軍之前，迎接最後的挑戰吧！' },
+          { av: '🐻', sp: '伯魯與巴希拉', txt: '「帶著 26 項技能章的目標與阿克拉的祝福，全力以赴吧！」' }
+        ],
+        outro: [
+          { av: '🐺', sp: '全體西奧尼狼群', txt: '「1、2、3、WOLF！恭喜完成《叢林奇談》與幼童軍進程全部冒險，準備跨過升團線囉！」' }
+        ]
+      }
+    ];
+
+    const CHAPTER_NPCS = [
+      { icon: '🐺', name: '狼王 阿克拉' },
+      { icon: '🐻', name: '棕熊 伯魯' },
+      { icon: '🐍', name: '大蟒蛇 卡阿' },
+      { icon: '🐘', name: '大象 哈帝' },
+      { icon: '🐆', name: '黑豹 巴希拉' },
+      { icon: '👩', name: '美修娃' },
+      { icon: '🐃', name: '灰狼與水牛' },
+      { icon: '⚖️', name: '村莊長老' },
+      { icon: '💎', name: '古城秘寶室' },
+      { icon: '🐝', name: '黃蜂峽谷' },
+      { icon: '🌙', name: '狼王 阿克拉' },
+      { icon: '🌈', name: '伯魯與巴希拉' }
+    ];
+
+    // 24 題題庫（問答關：本篇 3 題 + 題庫隨機 1 題）
+    const CUB_QUESTION_POOL = [
+      { tag: '幼童軍進程', q: '幼童軍的「晉級獸章」由低到高依序是哪四級？', opts: ['羚羊 → 狼 → 鹿 → 豹', '狼 → 鹿 → 豹 → 獅', '兔 → 狐 → 狼 → 熊'], ans: 0 },
+      { tag: '剛入團禮節', q: '幼童軍敬禮與握手時，要使用哪一隻手互相握手？', opts: ['右手', '左手（代表心連心）', '雙手合十'], ans: 1 },
+      { tag: '幼童軍吼聲', q: '大吼聲中，小隊長喊「DYB」，全體回應「DOB」是什麼意思？', opts: ['快點吃飯', '盡我所能 / 盡我們所能', '大家一起睡覺'], ans: 1 },
+      { tag: '幼童軍銘言', q: '幼童軍的「銘言」是哪一句話？', opts: ['一日童軍，一世童軍', '竭盡所能 (Do Your Best)', '人生以服務為目的'], ans: 1 },
+      { tag: '狼級：結繩', q: '在狼級進程中，哪一種繩結最適合用來「紮小包裹」？', opts: ['平結', '稱人結', '雙套結'], ans: 0 },
+      { tag: '狼級：結繩', q: '在鞋子上或日常用品上打結，通常會使用哪一種結？', opts: ['蝴蝶結', '接繩結', '漁人結'], ans: 0 },
+      { tag: '狼級：國旗', q: '狼級進程除了會摺疊國旗、升降旗外，還要會唱哪兩首歌？', opts: ['生日快樂歌', '國歌與國旗歌', '校歌與軍歌'], ans: 1 },
+      { tag: '狼級：勞作', q: '狼級進程的「勞作」項目中，小狼要會用材料製作哪一種玩具？', opts: ['遙控飛機', '簡易風箏', '電動機器人'], ans: 1 },
+      { tag: '狼級：服務', q: '狼級進程的服務項目中，小狼要能正確傳遞幾件事的口訊而沒差錯？', opts: ['兩件事情', '十件事情', '只能傳一句話'], ans: 0 },
+      { tag: '鹿級：常識', q: '在鹿級進程中，小狼除了遵守交通規則，還要能辨別幾個方位？', opts: ['四方位', '八方位', '十二方位'], ans: 1 },
+      { tag: '鹿級：閱讀', q: '鹿級進程鼓勵小狼善用什麼資源借書閱讀，並說出 1-2 本書大意？', opts: ['圖書館資源', '漫畫出租店', '只看手機影片'], ans: 0 },
+      { tag: '鹿級：國旗', q: '鹿級進程要求小狼能說出國旗的含義，還要學會畫什麼？', opts: ['畫出國徽', '畫出世界地圖', '畫出指南針'], ans: 0 },
+      { tag: '豹級：結繩', q: '豹級進程中，除了平結之外，還要學會哪兩種重要繩結？', opts: ['接繩結與稱人結', '蝴蝶結與鞋帶結', '死結'], ans: 0 },
+      { tag: '豹級：閱讀', q: '在豹級進程的「閱讀」項目中，小狼要讀完哪本書並簡述三則故事？', opts: ['十萬個為什麼', '《叢林奇談》上下冊', '三國演義'], ans: 1 },
+      { tag: '豹級：國旗', q: '豹級進程要求小狼能識別幾個以上國家的國旗？', opts: ['2 個', '5 個以上', '50 個'], ans: 1 },
+      { tag: '豹級：服務', q: '豹級小狼在團集會中要能做到哪一項領導服務？', opts: ['自己躲在旁邊玩', '準備團集會會場並領導小隊遊戲', '只等大人發點心'], ans: 1 },
+      { tag: '服務類技能章', q: '「環保、義工、種植、飼養、嚮導、交通安全、表演、勞作」屬於哪一類？', opts: ['健身類 (9項)', '服務類 (8項)', '技巧類 (9項)'], ans: 1 },
+      { tag: '健身類技能章', q: '「球類運動、游泳、體適能、自行車、旅行、舞蹈、體操」屬於哪一類？', opts: ['技巧類 (9項)', '服務類 (8項)', '健身類 (9項)'], ans: 2 },
+      { tag: '技巧類技能章', q: '「繪畫、音樂、模型、書法、收集、歌詠、語文、資訊」屬於哪一類？', opts: ['技巧類 (9項)', '服務類 (8項)', '健身類 (9項)'], ans: 0 },
+      { tag: '種植技能章', q: '考「種植技能章」時，小狼要自己完成哪一件事？', opts: ['去市場買一盆現成的花', '在花盆播種、除草除蟲並移植', '只看植物圖鑑'], ans: 1 },
+      { tag: '游泳技能章', q: '幼童軍「游泳技能章」要求能說出游泳前後常識，並能潛水幾秒？', opts: ['3 秒', '10 秒', '60 秒'], ans: 1 },
+      { tag: '歌詠技能章', q: '考取「歌詠技能章」時，需要能唱幼童軍歌及一般歌曲各幾首？', opts: ['各 1 首', '各 5 首', '各 20 首'], ans: 1 },
+      { tag: '自然觀察', q: '在「金氏遊戲」觀察測驗中，12 件物品至少要記住幾件？', opts: ['5 件', '9 件', '12 件'], ans: 1 },
+      { tag: '榮譽帶規則', q: '小狼取得第 5 個以上技能章時，徽章應該縫在哪裡？', opts: ['貼在帽子上', '拆下右袖 4 個，依類別縫於榮譽帶上', '收在抽屜裡'], ans: 1 }
+    ];
+
+    // =========================================================================
+    // 3. 工具函式
+    // =========================================================================
+    const $ = (id) => document.getElementById(id);
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    function replayAnim(el, cls) {
+      el.classList.remove(cls);
+      void el.offsetWidth;
+      el.classList.add(cls);
+    }
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // =========================================================================
+    // 4. 遊戲狀態與存檔
+    // =========================================================================
+    const SAVE_KEY = 'jungle_rpg_save_v2';
+    const MAP_N = 11;
+    const VIEW = 7;
+
+    const overlay = $('overlay');
+    const ovIcon = $('ov-icon');
+    const ovChapter = $('ov-chapter');
+    const ovTitle = $('ov-title');
+    const ovSub = $('ov-sub');
+    const ovBtn = $('ov-btn');
+    const ovStoryBtn = $('ov-story-btn');
+    const ovNewBtn = $('ov-new-btn');
+
+    const mapPanel = $('map-panel');
+    const mapGridEl = $('map-grid');
+    const sceneCard = $('scene-card');
+    const battlePanel = $('battle-panel');
+    const quizPanel = $('quiz-panel');
+    const rpgDialogue = $('rpg-dialogue');
+    const bagModal = $('bag-modal');
+    const storyModal = $('story-modal');
+
+    function freshState() {
+      return {
+        stageIdx: 0,
+        level: 1,
+        hp: 100,
+        maxHp: 100,
+        atk: 18,
+        def: 10,
+        honey: 3,
+        bag: [],
+        cleared: new Array(STAGES.length).fill(false)
+      };
+    }
+
+    let state = freshState();
+    let mode = 'title';
+
+    function saveProgress() {
+      try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
+    }
+
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return null;
+        const p = JSON.parse(raw);
+        if (!p || typeof p.stageIdx !== 'number' || !Array.isArray(p.cleared)) return null;
+        const s = { ...freshState(), ...p };
+        // 舊版存檔：蜂蜜放在榮譽帶裡，移除（改為動態顯示）
+        s.bag = (Array.isArray(s.bag) ? s.bag : []).filter(b => b && b.icon !== '🍯');
+        s.stageIdx = Math.max(0, Math.min(STAGES.length - 1, Math.floor(s.stageIdx)));
+        // 舊版存檔：過關後 stageIdx 沒前進，會重打同一篇 → 自動推進
+        while (s.cleared[s.stageIdx] && s.stageIdx < STAGES.length - 1) s.stageIdx++;
+        s.hp = Math.max(1, Math.min(s.maxHp, s.hp));
+        return s;
+      } catch (e) {}
+      return null;
+    }
+
+    function resetState() {
+      state = freshState();
+      try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    }
+
+    const allCleared = () => state.cleared.every(Boolean);
+
+    function updateHud() {
+      $('hud-lv').textContent = `Lv.${state.level}`;
+      $('hud-ch-num').textContent = `(${state.stageIdx + 1}/${STAGES.length})`;
+      const clearedCount = state.cleared.filter(Boolean).length;
+      $('hud-rank').textContent = CUB_RANKS[Math.min(clearedCount, CUB_RANKS.length - 1)];
+      $('hud-hp-txt').textContent = `HP ${state.hp}/${state.maxHp}`;
+      const pct = Math.max(0, Math.round((state.hp / state.maxHp) * 100));
+      const bar = $('hud-hp-bar');
+      bar.style.width = `${pct}%`;
+      bar.className = `h-full transition-all duration-300 ${pct <= 30 ? 'bg-red-600 animate-pulse' : 'bg-rose-500'}`;
+      $('bag-count').textContent = state.bag.length;
+      $('stat-atk').textContent = state.atk;
+      $('stat-def').textContent = state.def;
+      $('act-heal').textContent = `🍯 蜂蜜補血 (${state.honey})`;
+    }
+
+    function hideAllPanels() {
+      [mapPanel, battlePanel, quizPanel].forEach(p => { p.classList.add('hidden'); p.classList.remove('flex'); });
+      sceneCard.classList.add('hidden');
+      rpgDialogue.classList.add('hidden');
+    }
+
+    function showPanel(p) {
+      p.classList.remove('hidden');
+      p.classList.add('flex');
+      if (!reducedMotion) replayAnim(p, 'pop-in');
+    }
+
+    function showOverlay({ icon, chapter, title, sub, btnText, onStart, showStory = false, showNew = false, onNew = null }) {
+      hideAllPanels();
+      stopAutoWalk();
+      ovIcon.textContent = icon;
+      ovChapter.textContent = chapter || '';
+      ovChapter.classList.toggle('hidden', !chapter);
+      ovTitle.textContent = title;
+      ovSub.textContent = sub;
+      ovBtn.textContent = btnText;
+      ovBtn.onclick = () => { Sfx.startBgm(); onStart(); };
+      ovStoryBtn.classList.toggle('hidden', !showStory);
+      ovNewBtn.classList.toggle('hidden', !showNew);
+      ovNewBtn.onclick = onNew ? () => { Sfx.startBgm(); onNew(); } : null;
+      overlay.classList.remove('hidden');
+      setTimeout(() => ovBtn.focus({ preventScroll: true }), 0);
+    }
+
+    // =========================================================================
+    // 5. 劇情對話（打字機效果，點一下顯示全文、再點下一句）
+    // =========================================================================
+    let dlgQueue = [];
+    let dlgIdx = 0;
+    let dlgCallback = null;
+    let dlgFinalLabel = '繼續 ▶';
+    let typeTimer = null;
+    let typing = false;
+
+    function startDialogue(lines, onFinish, finalLabel = '繼續 ▶', sceneIdx = state.stageIdx) {
+      mode = 'dialogue';
+      stopAutoWalk();
+      overlay.classList.add('hidden');
+      hideAllPanels();
+      const st = STAGES[sceneIdx];
+      $('sc-chapter').textContent = st.chapter;
+      $('sc-emoji').textContent = st.emoji;
+      sceneCard.classList.remove('hidden');
+
+      dlgQueue = lines;
+      dlgIdx = 0;
+      dlgCallback = onFinish;
+      dlgFinalLabel = finalLabel;
+      rpgDialogue.classList.remove('hidden');
+      if (!reducedMotion) replayAnim(rpgDialogue, 'pop-in');
+      renderDialogueLine();
+    }
+
+    function finishTyping() {
+      if (typeTimer) clearInterval(typeTimer);
+      typeTimer = null;
+      typing = false;
+      const textEl = $('dlg-text');
+      textEl.textContent = dlgQueue[dlgIdx].txt;
+      textEl.classList.remove('caret');
+    }
+
+    function renderDialogueLine() {
+      const line = dlgQueue[dlgIdx];
+      $('dlg-avatar').textContent = line.av;
+      $('dlg-speaker').textContent = line.sp;
+      $('dlg-page').textContent = `${dlgIdx + 1} / ${dlgQueue.length}`;
+      $('dlg-next').textContent = dlgIdx < dlgQueue.length - 1 ? '下一句 ▶' : dlgFinalLabel;
+      Sfx.blip();
+
+      const textEl = $('dlg-text');
+      if (typeTimer) clearInterval(typeTimer);
+      if (reducedMotion) { typing = true; finishTyping(); return; }
+      const chars = Array.from(line.txt);
+      let i = 0;
+      typing = true;
+      textEl.textContent = '';
+      textEl.classList.add('caret');
+      typeTimer = setInterval(() => {
+        i++;
+        textEl.textContent = chars.slice(0, i).join('');
+        if (i >= chars.length) finishTyping();
+      }, 28);
+    }
+
+    function advanceDialogue() {
+      if (mode !== 'dialogue') return;
+      if (typing) { finishTyping(); return; }
+      if (dlgIdx < dlgQueue.length - 1) {
+        dlgIdx++;
+        renderDialogueLine();
+      } else {
+        rpgDialogue.classList.add('hidden');
+        const cb = dlgCallback;
+        dlgCallback = null;
+        if (cb) cb();
+      }
+    }
+
+    rpgDialogue.addEventListener('click', advanceDialogue);
+
+    // =========================================================================
+    // 6. 隨機迷宮地圖
+    // =========================================================================
+    const CUTE_WOLF_TILE = `<svg viewBox="0 0 40 40" class="w-9 h-9 cute-hop" aria-hidden="true"><polygon points="7,15 11,4 18,13" fill="#6b7280"/><polygon points="33,15 29,4 22,13" fill="#6b7280"/><circle cx="20" cy="22" r="12" fill="#9ca3af"/><ellipse cx="20" cy="26" rx="8" ry="6" fill="#f9fafb"/><circle cx="15" cy="20" r="2" fill="#111827"/><circle cx="25" cy="20" r="2" fill="#111827"/><polygon points="18,24 22,24 20,27" fill="#111827"/><polygon points="12,32 28,32 20,38" fill="#f59e0b"/></svg>`;
+    const LOOT_ICON = { honey: '🍯', chest: '🎁', clover: '🍀' };
+
+    function generateRandomMaze(idx) {
+      const N = MAP_N;
+      const grid = Array.from({ length: N }, () => Array(N).fill(1));
+      const start = { x: 1, y: 9 };
+
+      // 迭代式 DFS（不會遞迴過深）
+      const stack = [[start.x, start.y]];
+      grid[start.y][start.x] = 0;
+      while (stack.length) {
+        const [cx, cy] = stack[stack.length - 1];
+        const options = shuffle([[0, -2], [0, 2], [-2, 0], [2, 0]]).filter(([dx, dy]) => {
+          const nx = cx + dx, ny = cy + dy;
+          return nx > 0 && nx < N - 1 && ny > 0 && ny < N - 1 && grid[ny][nx] === 1;
+        });
+        if (!options.length) { stack.pop(); continue; }
+        const [dx, dy] = options[0];
+        grid[cy + dy / 2][cx + dx / 2] = 0;
+        grid[cy + dy][cx + dx] = 0;
+        stack.push([cx + dx, cy + dy]);
+      }
+
+      // 打通 1～2 道牆形成小迴圈（保證打的是真正的牆，不是柱子）
+      const breakable = [];
+      for (let y = 1; y < N - 1; y++) {
+        for (let x = 1; x < N - 1; x++) {
+          if (grid[y][x] !== 1) continue;
+          const horiz = x % 2 === 0 && y % 2 === 1;
+          const vert = x % 2 === 1 && y % 2 === 0;
+          if (horiz || vert) breakable.push([x, y]);
+        }
+      }
+      shuffle(breakable).slice(0, 1 + (idx >= 6 ? 0 : 1)).forEach(([x, y]) => { grid[y][x] = 0; });
+
+      // 裝飾地形: 2=小溪水邊, 3=議會石, 4=小花草叢
+      const accent = (idx === 3 || idx === 9) ? 2 : (idx === 0 || idx === 8 || idx === 10) ? 3 : 4;
+      for (let y = 1; y < N - 1; y++) {
+        for (let x = 1; x < N - 1; x++) {
+          if (grid[y][x] === 0 && !(x === start.x && y === start.y) && Math.random() < 0.16) grid[y][x] = accent;
+        }
+      }
+
+      // BFS 找離起點最遠的可走格放 NPC
+      const dist = Array.from({ length: N }, () => Array(N).fill(-1));
+      const q = [[start.x, start.y]];
+      dist[start.y][start.x] = 0;
+      const walkable = [];
+      let farthest = { x: start.x, y: start.y, d: 0 };
+      for (let head = 0; head < q.length; head++) {
+        const [cx, cy] = q[head];
+        const d = dist[cy][cx];
+        if (d > 0) walkable.push({ x: cx, y: cy, d });
+        if (d > farthest.d) farthest = { x: cx, y: cy, d };
+        for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+          const nx = cx + dx, ny = cy + dy;
+          if (nx >= 0 && nx < N && ny >= 0 && ny < N && grid[ny][nx] !== 1 && dist[ny][nx] === -1) {
+            dist[ny][nx] = d + 1;
+            q.push([nx, ny]);
+          }
+        }
+      }
+
+      const npcPos = { x: farthest.x, y: farthest.y };
+      const lootCandidates = shuffle(walkable.filter(p => !(p.x === npcPos.x && p.y === npcPos.y) && p.d >= 4));
+      const loot = ['honey', 'chest', 'clover']
+        .map((kind, i) => lootCandidates[i] && { x: lootCandidates[i].x, y: lootCandidates[i].y, kind, taken: false })
+        .filter(Boolean);
+
+      return { grid, start, npc: { ...CHAPTER_NPCS[idx], x: npcPos.x, y: npcPos.y }, loot };
+    }
+
+    let activeMaze = [];
+    let activeNpc = null;
+    let mapPlayer = { x: 1, y: 9 };
+    let visitedGrid = [];
+    let mapLoot = [];
+    let walkTimer = null;
+    let hintTimer = null;
+    let swipeStart = null;
+    let swipeMoved = false;
+
+    function stopAutoWalk() {
+      if (walkTimer) { clearInterval(walkTimer); walkTimer = null; }
+    }
+
+    const inBounds = (x, y) => x >= 0 && x < MAP_N && y >= 0 && y < MAP_N;
+
+    function revealAround(px, py) {
+      for (let dy = -2; dy <= 2; dy++) {
+        for (let dx = -2; dx <= 2; dx++) {
+          const nx = px + dx, ny = py + dy;
+          if (inBounds(nx, ny) && Math.abs(dx) + Math.abs(dy) <= 2) visitedGrid[ny][nx] = true;
+        }
+      }
+    }
+
+    function enterForestMap(idx) {
+      state.stageIdx = idx;
+      saveProgress();
+      updateHud();
+      mode = 'map';
+      overlay.classList.add('hidden');
+      hideAllPanels();
+
+      const gen = generateRandomMaze(idx);
+      activeMaze = gen.grid;
+      activeNpc = gen.npc;
+      mapPlayer = { x: gen.start.x, y: gen.start.y };
+      visitedGrid = Array.from({ length: MAP_N }, () => Array(MAP_N).fill(false));
+      revealAround(mapPlayer.x, mapPlayer.y);
+      mapLoot = gen.loot;
+
+      showPanel(mapPanel);
+      flashHint(`🌲 第 ${idx + 1} 篇：在迷宮中找到 ❗ ${activeNpc.name}`, 1800);
+      renderForestMap();
+    }
+
+    function getCompassDir(px, py, tx, ty) {
+      const dx = tx - px, dy = ty - py;
+      const v = dy < 0 ? '北' : dy > 0 ? '南' : '';
+      const h = dx > 0 ? '東' : dx < 0 ? '西' : '';
+      const arrows = { '北': '⬆️', '南': '⬇️', '東': '➡️', '西': '⬅️', '東北': '↗️', '西北': '↖️', '東南': '↘️', '西南': '↙️' };
+      const dir = v + h;
+      return dir ? `在${dir}方 ${arrows[dir]}` : '就在眼前';
+    }
+
+    function compassHint() {
+      return `❗ ${activeNpc.name} ${getCompassDir(mapPlayer.x, mapPlayer.y, activeNpc.x, activeNpc.y)}`;
+    }
+
+    // 暫時顯示訊息，時間到自動恢復成指南針提示（修正原版撿寶後提示永遠卡住的問題）
+    function flashHint(msg, ms = 1600) {
+      const el = $('map-quest-hint');
+      el.textContent = msg;
+      if (hintTimer) clearTimeout(hintTimer);
+      hintTimer = setTimeout(() => {
+        hintTimer = null;
+        if (mode === 'map') el.textContent = compassHint();
+      }, ms);
+    }
+
+    function renderForestMap() {
+      const npc = activeNpc;
+      const camX = Math.max(0, Math.min(MAP_N - VIEW, mapPlayer.x - 3));
+      const camY = Math.max(0, Math.min(MAP_N - VIEW, mapPlayer.y - 3));
+
+      if (!hintTimer) $('map-quest-hint').textContent = compassHint();
+      const taken = mapLoot.filter(l => l.taken).length;
+      $('map-loot-left').textContent = `寶物 ${taken}/${mapLoot.length}`;
+
+      let html = '';
+      for (let vy = 0; vy < VIEW; vy++) {
+        for (let vx = 0; vx < VIEW; vx++) {
+          const x = camX + vx;
+          const y = camY + vy;
+          const seen = visitedGrid[y][x];
+          const tile = activeMaze[y][x];
+          const isPlayer = mapPlayer.x === x && mapPlayer.y === y;
+          const isNpc = npc.x === x && npc.y === y;
+          const loot = mapLoot.find(l => !l.taken && l.x === x && l.y === y);
+
+          let bg = 'bg-[#d8f3dc]';
+          let content = '';
+
+          if (!seen && !isNpc) {
+            bg = 'bg-[#132a1e]';
+            content = '<span class="opacity-40 text-base">☁️</span>';
+          } else {
+            if (tile === 1) { bg = 'bg-[#2d6a4f]'; content = '<span class="text-2xl">🌳</span>'; }
+            else if (tile === 2) { bg = 'bg-sky-200'; content = '<span class="text-xl">💧</span>'; }
+            else if (tile === 3) { bg = 'bg-stone-200'; content = '<span class="text-xl">🪨</span>'; }
+            else if (tile === 4) { content = '<span class="text-lg">🌼</span>'; }
+
+            if (loot) content = `<span class="text-2xl">${LOOT_ICON[loot.kind]}</span>`;
+            if (isNpc) {
+              bg = 'bg-amber-300 ring-2 ring-white animate-pulse';
+              content = `<span class="relative text-2xl">${npc.icon}<span class="absolute -top-2 -right-2 text-xs">❗</span></span>`;
+            }
+            if (isPlayer) {
+              bg = 'bg-amber-100 ring-2 ring-amber-500 shadow-inner';
+              content = CUTE_WOLF_TILE;
+            }
+          }
+          html += `<button data-mx="${x}" data-my="${y}" type="button" tabindex="-1" class="${bg} rounded-xl flex items-center justify-center aspect-square leading-none">${content}</button>`;
+        }
+      }
+      mapGridEl.innerHTML = html;
+    }
+
+    // 只會沿著「已探索」的格子自動尋路，避免點迷霧直接透露正解路線
+    function walkToTile(tx, ty) {
+      stopAutoWalk();
+      if (mode !== 'map' || !inBounds(tx, ty) || activeMaze[ty][tx] === 1) return;
+      if (tx === mapPlayer.x && ty === mapPlayer.y) return;
+      if (!visitedGrid[ty][tx]) { flashHint('☁️ 那裡還在迷霧中，先往附近探索吧！', 1200); Sfx.bump(); return; }
+
+      const prev = new Map();
+      const startKey = `${mapPlayer.x},${mapPlayer.y}`;
+      const q = [[mapPlayer.x, mapPlayer.y]];
+      prev.set(startKey, null);
+      let found = false;
+      for (let head = 0; head < q.length; head++) {
+        const [cx, cy] = q[head];
+        if (cx === tx && cy === ty) { found = true; break; }
+        for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+          const nx = cx + dx, ny = cy + dy;
+          const key = `${nx},${ny}`;
+          if (inBounds(nx, ny) && activeMaze[ny][nx] !== 1 && visitedGrid[ny][nx] && !prev.has(key)) {
+            prev.set(key, [cx, cy, dx, dy]);
+            q.push([nx, ny]);
+          }
+        }
+      }
+      if (!found) { flashHint('🤔 目前已知的路走不到那裡', 1200); Sfx.bump(); return; }
+
+      const path = [];
+      let key = `${tx},${ty}`;
+      while (prev.get(key)) {
+        const [px, py, dx, dy] = prev.get(key);
+        path.unshift([dx, dy]);
+        key = `${px},${py}`;
+      }
+
+      let step = 0;
+      walkTimer = setInterval(() => {
+        if (mode !== 'map' || step >= path.length) { stopAutoWalk(); return; }
+        const [dx, dy] = path[step++];
+        moveMapPlayer(dx, dy);
+      }, 115);
+    }
+
+    function moveMapPlayer(dx, dy) {
+      if (mode !== 'map') return false;
+      const nx = mapPlayer.x + dx;
+      const ny = mapPlayer.y + dy;
+      if (!inBounds(nx, ny) || activeMaze[ny][nx] === 1) {
+        Sfx.bump();
+        if (!reducedMotion) replayAnim(mapGridEl, 'shake');
+        return false;
+      }
+      mapPlayer.x = nx;
+      mapPlayer.y = ny;
+      revealAround(nx, ny);
+      Sfx.blip();
+
+      const loot = mapLoot.find(l => !l.taken && l.x === nx && l.y === ny);
+      if (loot) {
+        loot.taken = true;
+        Sfx.coin();
+        if (loot.kind === 'honey') {
+          const full = state.honey >= 5;
+          state.honey = Math.min(5, state.honey + 1);
+          state.hp = Math.min(state.maxHp, state.hp + 20);
+          flashHint(full ? '🍯 蜂蜜罐已滿（上限 5）！HP +20' : '🍯 撿到森林蜂蜜！HP +20、蜂蜜 +1');
+        } else if (loot.kind === 'clover') {
+          state.hp = Math.min(state.maxHp, state.hp + 15);
+          flashHint('🍀 發現幸運草！體力恢復 15 HP');
+        } else {
+          state.atk += 2;
+          state.def += 2;
+          flashHint('🎁 打開童軍禮物盒！勇氣 +2、智慧 +2');
+        }
+        updateHud();
+        saveProgress();
+      }
+
+      if (activeNpc.x === nx && activeNpc.y === ny) {
+        stopAutoWalk();
+        if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
+        Sfx.coin();
+        const st = STAGES[state.stageIdx];
+        startDialogue(st.intro, () => startEncounter(), st.type === 'battle' ? '進入戰鬥 ⚔️' : '開始考驗 📝');
+        return true;
+      }
+      renderForestMap();
+      return true;
+    }
+
+    // 地圖輸入：點擊（事件委派）、連續滑動、方向鍵、D-pad
+    mapGridEl.addEventListener('click', (e) => {
+      if (swipeMoved) return;
+      const btn = e.target.closest('[data-mx]');
+      if (!btn) return;
+      walkToTile(parseInt(btn.dataset.mx, 10), parseInt(btn.dataset.my, 10));
+    });
+    mapGridEl.addEventListener('pointerdown', (e) => {
+      swipeStart = { x: e.clientX, y: e.clientY };
+      swipeMoved = false;
+    });
+    mapGridEl.addEventListener('pointermove', (e) => {
+      if (!swipeStart || mode !== 'map') return;
+      const dx = e.clientX - swipeStart.x;
+      const dy = e.clientY - swipeStart.y;
+      if (Math.hypot(dx, dy) >= 28) {
+        swipeMoved = true;
+        stopAutoWalk();
+        if (Math.abs(dx) > Math.abs(dy)) moveMapPlayer(dx > 0 ? 1 : -1, 0);
+        else moveMapPlayer(0, dy > 0 ? 1 : -1);
+        // 重設起點：手指不放開可以連續走好幾格
+        swipeStart = { x: e.clientX, y: e.clientY };
+      }
+    });
+    const endSwipe = () => { swipeStart = null; setTimeout(() => { swipeMoved = false; }, 50); };
+    mapGridEl.addEventListener('pointerup', endSwipe);
+    mapGridEl.addEventListener('pointercancel', endSwipe);
+    mapGridEl.addEventListener('pointerleave', endSwipe);
+
+    $('dpad').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-dir]');
+      if (!btn) return;
+      stopAutoWalk();
+      const [dx, dy] = btn.dataset.dir.split(',').map(Number);
+      moveMapPlayer(dx, dy);
+    });
+
+    // =========================================================================
+    // 7. 回合制戰鬥（暴擊、集氣技能、敵人蓄力重擊）
+    // =========================================================================
+    const SKILL_CHARGE = 3;
+    let enemyHp = 50;
+    let enemyMaxHp = 50;
+    let defending = false;
+    let battleLock = false;
+    let skillCharge = 0;
+    let enemyCharged = false;
+    let battleTurns = 0;
+
+    function startEncounter() {
+      const st = STAGES[state.stageIdx];
+      hideAllPanels();
+      if (st.type === 'battle') {
+        mode = 'battle';
+        enemyHp = enemyMaxHp = st.enemy.hp;
+        defending = false;
+        battleLock = false;
+        skillCharge = 1;
+        enemyCharged = false;
+        battleTurns = 0;
+        $('enemy-icon').textContent = st.enemy.icon;
+        $('enemy-name').textContent = st.enemy.name;
+        $('battle-log').textContent = `遭遇「${st.enemy.name}」！請選擇你的行動！`;
+        updateBattleUI();
+        showPanel(battlePanel);
+      } else {
+        startQuiz(st);
+      }
+    }
+
+    function updateBattleUI() {
+      $('enemy-hp-txt').textContent = `敵方體力 ${Math.max(0, enemyHp)} / ${enemyMaxHp}`;
+      $('enemy-hp-bar').style.width = `${Math.max(0, Math.round((enemyHp / enemyMaxHp) * 100))}%`;
+      const intent = $('enemy-intent');
+      intent.textContent = enemyCharged ? '⚡ 蓄力中！下回合重擊' : '🙂 普通狀態';
+      intent.className = enemyCharged ? 'text-amber-600 animate-pulse' : 'text-gray-500';
+      const ready = skillCharge >= SKILL_CHARGE;
+      const skillBtn = $('act-skill');
+      skillBtn.textContent = ready ? '🐾 小隊支援 ✨' : `🐾 小隊支援 (${skillCharge}/${SKILL_CHARGE})`;
+      ['act-atk', 'act-def', 'act-heal'].forEach(id => { $(id).disabled = battleLock; });
+      skillBtn.disabled = battleLock || !ready;
+      $('act-heal').disabled = battleLock || state.honey <= 0 || state.hp >= state.maxHp;
+      updateHud();
+    }
+
+    function floatText(text, color) {
+      if (reducedMotion) return;
+      const layer = $('enemy-float-layer');
+      const el = document.createElement('div');
+      el.className = 'dmg-float';
+      el.style.color = color;
+      el.style.left = `${40 + Math.random() * 20}%`;
+      el.textContent = text;
+      layer.appendChild(el);
+      setTimeout(() => el.remove(), 950);
+    }
+
+    function playerBattleTurn(action) {
+      if (mode !== 'battle' || battleLock) return;
+      const st = STAGES[state.stageIdx];
+      const logEl = $('battle-log');
+
+      if (action === 'skill' && skillCharge < SKILL_CHARGE) return;
+      if (action === 'heal' && state.honey <= 0) {
+        Sfx.bump();
+        logEl.textContent = '🍯 森林蜂蜜已經用完了！請選其他行動！';
+        return;
+      }
+
+      battleLock = true;
+      defending = false;
+      battleTurns++;
+      const enemyCard = $('enemy-card');
+
+      if (action === 'atk') {
+        const crit = Math.random() < 0.15;
+        let dmg = state.atk + Math.floor(Math.random() * 8);
+        if (crit) dmg = Math.round(dmg * 1.6);
+        enemyHp = Math.max(0, enemyHp - dmg);
+        skillCharge = Math.min(SKILL_CHARGE, skillCharge + 1);
+        crit ? Sfx.crit() : Sfx.coin();
+        logEl.textContent = crit ? `💥 會心一擊！毛克利造成 ${dmg} 點傷害！` : `🐺 毛克利勇氣出擊，造成 ${dmg} 點傷害！`;
+        floatText(crit ? `-${dmg}!!` : `-${dmg}`, crit ? '#d97706' : '#e11d48');
+        if (!reducedMotion) replayAnim(enemyCard, 'shake');
+      } else if (action === 'skill') {
+        const dmg = Math.round(state.atk * 1.8) + state.level * 2 + Math.floor(Math.random() * 6);
+        enemyHp = Math.max(0, enemyHp - dmg);
+        skillCharge = 0;
+        if (enemyCharged) { enemyCharged = false; }
+        Sfx.win();
+        logEl.textContent = `🐾 狼群與夥伴聯手支援，造成 ${dmg} 點強力傷害，打斷了敵人的蓄力！`;
+        floatText(`-${dmg}`, '#d97706');
+        if (!reducedMotion) replayAnim(enemyCard, 'shake');
+      } else if (action === 'def') {
+        defending = true;
+        state.hp = Math.min(state.maxHp, state.hp + 10);
+        skillCharge = Math.min(SKILL_CHARGE, skillCharge + 1);
+        Sfx.blip();
+        logEl.textContent = '🛡️ 遵守叢林規律穩住陣腳，減傷並恢復 10 HP！';
+      } else if (action === 'heal') {
+        state.honey--;
+        const before = state.hp;
+        state.hp = Math.min(state.maxHp, state.hp + 40);
+        Sfx.coin();
+        logEl.textContent = `🍯 喝下森林蜂蜜，體力恢復 ${state.hp - before} HP！`;
+      }
+
+      updateBattleUI();
+
+      if (enemyHp <= 0) {
+        $('enemy-icon').textContent = '💫';
+        setTimeout(() => completeChapter(), 800);
+        return;
+      }
+
+      setTimeout(() => enemyTurn(st), 700);
+    }
+
+    function enemyTurn(st) {
+      if (mode !== 'battle') return;
+      const logEl = $('battle-log');
+
+      // 尚未蓄力時，有機率改為蓄力（下回合重擊）
+      if (!enemyCharged && battleTurns >= 2 && Math.random() < 0.28) {
+        enemyCharged = true;
+        Sfx.bump();
+        logEl.textContent = `⚡ ${st.enemy.name} 正在蓄力！下回合會重擊，快防禦或用小隊支援打斷！`;
+        battleLock = false;
+        updateBattleUI();
+        return;
+      }
+
+      const heavy = enemyCharged;
+      enemyCharged = false;
+      const rawDmg = st.enemy.atk + Math.floor(Math.random() * 5);
+      let dmg = Math.max(4, rawDmg - Math.floor(state.def / 3));
+      if (heavy) dmg = Math.round(dmg * 1.8);
+      if (defending) dmg = Math.max(2, Math.floor(dmg * (heavy ? 0.25 : 0.4)));
+      state.hp = Math.max(0, state.hp - dmg);
+      Sfx.hit();
+      logEl.textContent = heavy
+        ? `💢 ${st.enemy.name} 重擊！${defending ? '幸好有防禦，' : ''}毛克利受到 ${dmg} 點傷害！`
+        : `💥 ${st.enemy.name} 反擊！毛克利受到 ${dmg} 點傷害！`;
+      if (!reducedMotion) replayAnim($('stage-area'), 'flash-red');
+
+      if (state.hp <= 0) {
+        updateBattleUI();
+        setTimeout(() => {
+          mode = 'gameover';
+          showOverlay({
+            icon: '😵', chapter: st.chapter, title: '體力耗盡了！',
+            sub: '阿克拉扶起你：小狼不怕困難，補滿體力再挑戰一次！',
+            btnText: '補滿體力接關 🔄',
+            onStart: () => {
+              state.hp = state.maxHp;
+              state.honey = Math.max(2, state.honey);
+              updateHud();
+              startEncounter();
+            }
+          });
+        }, 700);
+        return;
+      }
+      battleLock = false;
+      updateBattleUI();
+    }
+
+    // =========================================================================
+    // 8. 進程問答（選項洗牌；答錯的題目移到最後重考）
+    // =========================================================================
+    let quizQueue = [];
+    let quizTotal = 4;
+    let quizScore = 0;
+    let quizMistakes = 0;
+    let quizLock = false;
+    let currentQ = null;
+
+    function startQuiz(st) {
+      mode = 'quiz';
+      quizScore = 0;
+      quizMistakes = 0;
+      const extras = shuffle(CUB_QUESTION_POOL.filter(q => !st.questions.some(sq => sq.q === q.q)));
+      quizQueue = shuffle([...st.questions, extras[0]]).map(q => {
+        // 洗牌選項並重新對應正解
+        const order = shuffle(q.opts.map((_, i) => i));
+        return { ...q, opts: order.map(i => q.opts[i]), ans: order.indexOf(q.ans) };
+      });
+      quizTotal = quizQueue.length;
+      showPanel(quizPanel);
+      renderQuizQuestion();
+    }
+
+    function renderQuizQuestion() {
+      currentQ = quizQueue[0];
+      quizLock = false;
+      $('quiz-progress').textContent = `答對 ${quizScore} / ${quizTotal}`;
+      $('quiz-bar').style.width = `${Math.round((quizScore / quizTotal) * 100)}%`;
+      $('quiz-tag').textContent = currentQ.tag + (currentQ.retry ? '・再挑戰' : '');
+      $('quiz-q').textContent = currentQ.q;
+      $('quiz-feedback').textContent = '';
+
+      const optsBox = $('quiz-opts');
+      optsBox.innerHTML = currentQ.opts.map((opt, i) => `
+        <button data-qopt="${i}" type="button" class="w-full text-left p-3.5 rounded-xl border-2 border-emerald-800/20 bg-emerald-50/70 hover:bg-amber-100 active:scale-[0.99] text-base font-bold text-gray-900 transition">
+          ${'ABC'[i]}. ${escapeHtml(opt)}
+        </button>
+      `).join('');
+      if (!reducedMotion) replayAnim(optsBox, 'pop-in');
+    }
+
+    function answerQuiz(pick) {
+      if (quizLock || mode !== 'quiz' || !currentQ || pick >= currentQ.opts.length) return;
+      quizLock = true;
+      const q = currentQ;
+      const buttons = $('quiz-opts').querySelectorAll('[data-qopt]');
+      const fb = $('quiz-feedback');
+      buttons.forEach(b => { b.disabled = true; });
+      buttons[q.ans].classList.add('bg-emerald-200', 'border-emerald-600');
+
+      quizQueue.shift();
+      if (pick === q.ans) {
+        quizScore++;
+        Sfx.coin();
+        fb.className = 'text-sm font-bold text-emerald-700 min-h-[22px]';
+        fb.textContent = '✅ 答對了！真厲害！';
+      } else {
+        quizMistakes++;
+        state.hp = Math.max(10, state.hp - 15);
+        Sfx.hit();
+        buttons[pick].classList.add('bg-rose-200', 'border-rose-500');
+        fb.className = 'text-sm font-bold text-rose-700 min-h-[22px]';
+        fb.textContent = `❌ 正確答案是：${q.opts[q.ans]}（這題稍後會再考一次）`;
+        // 答錯：選項重新洗牌後排到最後
+        const order = shuffle(q.opts.map((_, i) => i));
+        quizQueue.push({ ...q, opts: order.map(i => q.opts[i]), ans: order.indexOf(q.ans), retry: true });
+        updateHud();
+      }
+      $('quiz-progress').textContent = `答對 ${quizScore} / ${quizTotal}`;
+      $('quiz-bar').style.width = `${Math.round((quizScore / quizTotal) * 100)}%`;
+
+      setTimeout(() => {
+        if (mode !== 'quiz') return;
+        if (quizScore >= quizTotal) completeChapter();
+        else renderQuizQuestion();
+      }, pick === q.ans ? 900 : 1800);
+    }
+
+    $('quiz-opts').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-qopt]');
+      if (btn) answerQuiz(parseInt(btn.dataset.qopt, 10));
+    });
+
+    // =========================================================================
+    // 9. 過關與結算
+    // =========================================================================
+    function completeChapter() {
+      if (mode === 'chapter-clear') return;
+      mode = 'chapter-clear';
+      Sfx.win();
+      const st = STAGES[state.stageIdx];
+      const wasQuiz = st.type === 'quiz';
+      const perfect = wasQuiz && quizMistakes === 0;
+
+      state.cleared[state.stageIdx] = true;
+      state.level = Math.min(STAGES.length + 1, state.level + 1);
+      state.maxHp += 10;
+      state.hp = state.maxHp;
+      state.atk += 3;
+      state.def += 2;
+      state.honey = Math.min(5, state.honey + (perfect ? 2 : 1));
+      if (!state.bag.some(b => b.name === st.reward.name)) state.bag.push(st.reward);
+
+      const isLast = state.stageIdx >= STAGES.length - 1;
+      // 修正：存檔時直接指向下一篇，重新整理後不會重打已過關的篇章
+      if (!isLast) state.stageIdx++;
+      saveProgress();
+      updateHud();
+
+      const outroLines = [
+        ...st.outro,
+        { av: st.reward.icon, sp: '升級獎勵', txt: `升到 Lv.${state.level}！HP 上限 +10、勇氣 +3、智慧 +2，獲得【${st.reward.name}】！${perfect ? '全對獎勵：蜂蜜 +2！' : ''}` }
+      ];
+
+      // 對話時場景卡仍顯示剛打完的篇章
+      startDialogue(outroLines, () => {
+        if (isLast) showVictory();
+        else startChapter(state.stageIdx);
+      }, isLast ? '完成冒險 👑' : '前往下一篇 ▶', st.id);
+    }
+
+    function showVictory() {
+      mode = 'victory';
+      showOverlay({
+        icon: '👑', chapter: `《叢林奇談》${STAGES.length} 篇全破`,
+        title: `Lv.${state.level} 傳奇小狼・毛克利`,
+        sub: `你收集了 ${state.bag.length} 枚徽章，完成全部冒險！可以打開故事書回味喔！`,
+        btnText: '從頭重溫冒險 🔄',
+        showStory: true,
+        onStart: () => { resetState(); updateHud(); startChapter(0); }
+      });
+    }
+
+    function startChapter(idx) { enterForestMap(idx); }
+
+    // =========================================================================
+    // 10. 榮譽帶與故事書
+    // =========================================================================
+    function openBagModal() {
+      Sfx.blip();
+      stopAutoWalk();
+      const list = $('bag-list');
+      const badges = state.bag.length
+        ? state.bag.map(item => `
+          <div class="p-3.5 rounded-xl bg-white/10 border border-white/15 flex items-center gap-3">
+            <span class="text-3xl shrink-0">${escapeHtml(item.icon)}</span>
+            <div>
+              <div class="font-black text-sm text-amber-300">${escapeHtml(item.name)}</div>
+              <div class="text-xs text-emerald-100/90 mt-0.5">${escapeHtml(item.desc)}</div>
+            </div>
+          </div>`).join('')
+        : '<div class="p-4 text-center text-sm text-emerald-100/80">還沒有徽章，完成第一篇就能拿到第一枚！</div>';
+      const locked = STAGES.length - state.bag.length;
+      list.innerHTML = `
+        <div class="p-3.5 rounded-xl bg-amber-500/15 border border-amber-400/30 text-xs text-amber-200 flex justify-between">
+          <span>🍯 森林蜂蜜：<strong>${state.honey} / 5 罐</strong>（戰鬥中補 40 HP）</span>
+          <span>⚔️ ${state.atk}　🛡️ ${state.def}</span>
+        </div>
+        ${badges}
+        ${locked > 0 ? `<div class="text-center text-xs text-emerald-100/60 pt-1">還有 ${locked} 枚徽章等你解鎖 🔒</div>` : ''}
+      `;
+      bagModal.classList.remove('hidden');
+      bagModal.classList.add('flex');
+    }
+
+    function closeModals() {
+      [bagModal, storyModal].forEach(m => { m.classList.add('hidden'); m.classList.remove('flex'); });
+    }
+
+    function openFullStory() {
+      Sfx.blip();
+      const box = $('story-content');
+      box.innerHTML = STAGES.map((st, i) => {
+        const unlocked = state.cleared[i];
+        const lines = unlocked
+          ? [...st.intro, ...st.outro]
+              .map(l => `<p class="text-base text-gray-800 leading-relaxed"><span class="font-bold text-emerald-900">${l.av} ${escapeHtml(l.sp)}：</span>${escapeHtml(l.txt)}</p>`)
+              .join('')
+          : '<p class="text-sm text-gray-500">🔒 完成這一篇冒險後解鎖</p>';
+        return `
+          <article class="p-4 rounded-2xl bg-white border-2 border-emerald-900/15 shadow-sm space-y-2 ${unlocked ? '' : 'opacity-60'}">
+            <div class="flex items-center gap-2 border-b border-amber-200 pb-2">
+              <span class="text-2xl">${unlocked ? st.emoji : '🔒'}</span>
+              <h3 class="font-black text-base text-emerald-950">${escapeHtml(st.chapter)}</h3>
+            </div>
+            <div class="space-y-1.5">${lines}</div>
+          </article>`;
+      }).join('');
+      storyModal.classList.remove('hidden');
+      storyModal.classList.add('flex');
+    }
+
+    // =========================================================================
+    // 11. 事件綁定與初始化
+    // =========================================================================
+    $('act-atk').addEventListener('click', () => playerBattleTurn('atk'));
+    $('act-skill').addEventListener('click', () => playerBattleTurn('skill'));
+    $('act-def').addEventListener('click', () => playerBattleTurn('def'));
+    $('act-heal').addEventListener('click', () => playerBattleTurn('heal'));
+
+    $('btn-bag').addEventListener('click', openBagModal);
+    $('btn-close-bag').addEventListener('click', closeModals);
+    ovStoryBtn.addEventListener('click', openFullStory);
+    $('btn-close-story').addEventListener('click', closeModals);
+
+    window.addEventListener('keydown', (e) => {
+      const modalOpen = !bagModal.classList.contains('hidden') || !storyModal.classList.contains('hidden');
+      if (e.key === 'Escape' && modalOpen) { closeModals(); return; }
+      if (modalOpen || e.repeat && mode !== 'map') return;
+
+      if (mode === 'map') {
+        const k = e.key.toLowerCase();
+        const dirs = { arrowup: [0, -1], w: [0, -1], arrowdown: [0, 1], s: [0, 1], arrowleft: [-1, 0], a: [-1, 0], arrowright: [1, 0], d: [1, 0] };
+        if (dirs[k]) { e.preventDefault(); stopAutoWalk(); moveMapPlayer(...dirs[k]); }
+      } else if (mode === 'dialogue') {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); advanceDialogue(); }
+      } else if (mode === 'battle') {
+        const acts = { '1': 'atk', '2': 'skill', '3': 'def', '4': 'heal' };
+        if (acts[e.key]) playerBattleTurn(acts[e.key]);
+      } else if (mode === 'quiz') {
+        const idx = { '1': 0, '2': 1, '3': 2, a: 0, b: 1, c: 2 }[e.key.toLowerCase()];
+        if (idx !== undefined) answerQuiz(idx);
+      }
+    });
+
+    const soundBtn = $('btn-sound');
+    soundBtn.textContent = Sfx.enabled ? '🔊' : '🔇';
+    soundBtn.addEventListener('click', () => {
+      soundBtn.textContent = Sfx.toggle() ? '🔊' : '🔇';
+    });
+
+    window.addEventListener('load', () => {
+      const saved = loadProgress();
+      if (saved && (saved.stageIdx > 0 || saved.cleared.some(Boolean))) {
+        state = saved;
+        updateHud();
+        if (allCleared()) {
+          showVictory();
+          ovNewBtn.classList.add('hidden');
+          return;
+        }
+        showOverlay({
+          icon: '🐺', chapter: `已記錄進度：第 ${state.stageIdx + 1} 篇`,
+          title: '叢林奇談 RPG',
+          sub: `上次冒險到「${STAGES[state.stageIdx].chapter}」，要直接接關嗎？`,
+          btnText: `繼續接關 (第 ${state.stageIdx + 1} 篇) ▶️`,
+          onStart: () => startChapter(state.stageIdx),
+          showStory: true,
+          showNew: true,
+          onNew: () => {
+            if (!confirm('確定要清除進度，從第 1 篇重新開始嗎？')) return;
+            resetState(); updateHud(); startChapter(0);
+          }
+        });
+      } else {
+        updateHud();
+        showOverlay({
+          icon: '🐺', chapter: '文字冒險 RPG',
+          title: '叢林奇談：毛克利的冒險',
+          sub: '探索迷宮、聽故事、回合制戰鬥、幼童軍進程問答，收集 12 枚徽章！',
+          btnText: '開始冒險 🚀',
+          onStart: () => startChapter(0)
+        });
+      }
+    });
+  </script>
+</body>
+</html>
