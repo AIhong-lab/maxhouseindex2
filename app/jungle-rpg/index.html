@@ -180,7 +180,6 @@
           </div>
           <div id="quiz-feedback" class="text-sm font-bold min-h-[22px]" aria-live="polite"></div>
         </div>
-        <button id="quiz-retreat" type="button" class="hidden self-center px-4 py-2 rounded-xl bg-white/80 hover:bg-white border border-emerald-800/30 text-emerald-900 font-bold text-sm">↩️ 先退回去探索</button>
       </div>
 
       <!-- RPG Dialogue Box -->
@@ -1196,7 +1195,6 @@
         barPct: 0,
         intro: { icon: fl.icon, text: fl.text + ' 答對有獎勵！' },
         timeLimit: cur.diff.timeLimit,
-        retreat: false,
         onAnswer: (correct) => {
           let msg, dead = false;
           if (correct) {
@@ -1265,7 +1263,7 @@
 
     function stopQuizTimer() { if (quizTimer) { clearInterval(quizTimer); quizTimer = null; } }
 
-    function askQuestion(q, { progress, barPct, intro, timeLimit, retreat, onAnswer }) {
+    function askQuestion(q, { progress, barPct, intro, timeLimit, onAnswer }) {
       currentQ = shuffleOpts(q);
       quizLock = false;
       quizHandler = onAnswer;
@@ -1278,7 +1276,6 @@
       introBox.classList.toggle('hidden', !intro);
       introBox.classList.toggle('flex', !!intro);
       if (intro) { $('quiz-intro-icon').textContent = intro.icon; $('quiz-intro-text').textContent = intro.text; }
-      $('quiz-retreat').classList.toggle('hidden', !retreat);
 
       const optsBox = $('quiz-opts');
       optsBox.innerHTML = currentQ.opts.map((opt, i) => `
@@ -1347,11 +1344,6 @@
       const btn = e.target.closest('[data-qopt]');
       if (btn) answerQuiz(parseInt(btn.dataset.qopt, 10));
     });
-    $('quiz-retreat').addEventListener('click', () => {
-      if (mode !== 'obstacle' || quizLock) return;
-      stopQuizTimer();
-      backToMap('↩️ 先退回去，想好再來挑戰！');
-    });
 
     // ---- 阻礙 ----
     let activeObstacle = null;
@@ -1371,7 +1363,6 @@
         barPct: ((M.obstacles.length - left) / M.obstacles.length) * 100,
         intro: { icon: ob.icon, text: `【${ob.name}】${ob.intro}` },
         timeLimit: cur.diff.timeLimit,
-        retreat: true,
         onAnswer: (correct) => {
           if (correct) {
             ob.cleared = true;
@@ -1411,7 +1402,6 @@
         barPct: (quizScore / quizTotal) * 100,
         intro: null,
         timeLimit: cur.diff.timeLimit,
-        retreat: false,
         onAnswer: (correct) => {
           const q = quizQueue.shift();
           let dead = false;
