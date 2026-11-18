@@ -10,12 +10,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800;900&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
   <style>
+    html, body { height: 100%; }
     body {
       font-family: 'Inter', 'Noto Sans TC', sans-serif;
       background: #0f2017;
       margin: 0;
-      min-height: 100vh;
-      min-height: 100dvh;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -26,8 +25,7 @@
     .game-shell {
       width: 100%;
       max-width: 440px;
-      height: 100vh;
-      height: 100dvh;
+      height: 100%;
       max-height: 840px;
       background: #fdfbf5;
       display: flex;
@@ -37,7 +35,7 @@
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
     }
     @media (min-width: 480px) {
-      .game-shell { height: 92vh; height: 92dvh; border-radius: 28px; border: 4px solid #fbbf24; }
+      .game-shell { height: 94%; border-radius: 28px; border: 4px solid #fbbf24; }
     }
     @keyframes hop { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-2px) scale(1.06); } }
     .cute-hop { animation: hop 1.4s ease-in-out infinite; }
@@ -1516,7 +1514,14 @@
           showStory: true,
           showNew: true,
           onNew: () => {
-            if (!confirm('確定要清除進度，從第 1 篇重新開始嗎？')) return;
+            // 頁內二次確認（部分內嵌環境不支援 confirm 對話框）
+            if (!ovNewBtn.dataset.armed) {
+              ovNewBtn.dataset.armed = '1';
+              ovNewBtn.textContent = '⚠️ 再按一次確認清除進度';
+              setTimeout(() => { delete ovNewBtn.dataset.armed; ovNewBtn.textContent = '從第 1 篇重新開始 🔄'; }, 3000);
+              return;
+            }
+            delete ovNewBtn.dataset.armed;
             resetState(); updateHud(); startChapter(0);
           }
         });
