@@ -96,8 +96,9 @@
       </div>
 
       <div class="flex items-center gap-1.5">
+        <button id="btn-home" type="button" aria-label="回到標題" class="h-9 px-2 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center text-sm font-bold">🏠</button>
         <button id="btn-bag" type="button" class="px-2.5 py-1.5 rounded-lg bg-amber-500/25 hover:bg-amber-500/40 border border-amber-300/60 text-amber-200 text-xs font-bold">
-          🎖️ 榮譽帶 (<span id="bag-count">0</span>)
+          🎖️ <span id="bag-count">0</span>
         </button>
         <button id="btn-sound" type="button" aria-label="切換音效" class="w-9 h-9 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center text-base">🔊</button>
       </div>
@@ -164,13 +165,22 @@
             <span id="quiz-tag" class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-xs font-black">幼童軍進程考驗</span>
             <span id="quiz-progress" class="font-black text-sm text-emerald-900 shrink-0">答對 0 / 4</span>
           </div>
+          <div id="quiz-intro" class="hidden rounded-xl bg-amber-50 border border-amber-300 p-3 flex items-center gap-3">
+            <span id="quiz-intro-icon" class="text-4xl shrink-0">🪵</span>
+            <span id="quiz-intro-text" class="text-sm font-bold text-amber-950 leading-snug"></span>
+          </div>
           <div class="w-full h-2 bg-emerald-100 rounded-full overflow-hidden">
             <div id="quiz-bar" class="h-full bg-emerald-600 transition-all duration-300" style="width:0%"></div>
           </div>
           <h3 id="quiz-q" class="text-lg font-black text-gray-900 leading-snug"></h3>
           <div id="quiz-opts" class="space-y-2.5"></div>
+          <div id="quiz-timer-wrap" class="hidden items-center gap-2">
+            <span class="text-xs font-black text-rose-700">⏱️ <span id="quiz-timer-txt">20</span> 秒</span>
+            <div class="flex-1 h-2 bg-rose-100 rounded-full overflow-hidden"><div id="quiz-timer-bar" class="h-full bg-rose-500" style="width:100%"></div></div>
+          </div>
           <div id="quiz-feedback" class="text-sm font-bold min-h-[22px]" aria-live="polite"></div>
         </div>
+        <button id="quiz-retreat" type="button" class="hidden self-center px-4 py-2 rounded-xl bg-white/80 hover:bg-white border border-emerald-800/30 text-emerald-900 font-bold text-sm">↩️ 先退回去探索</button>
       </div>
 
       <!-- RPG Dialogue Box -->
@@ -197,11 +207,7 @@
         <div id="ov-chapter" class="text-sm font-bold px-3.5 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-300/30 mb-2 hidden"></div>
         <h1 id="ov-title" class="text-3xl font-black text-amber-300 mb-3">叢林奇談 RPG</h1>
         <p id="ov-sub" class="text-base text-emerald-100 mb-6 max-w-[300px] leading-relaxed"></p>
-        <div class="flex flex-col gap-3 w-full max-w-[260px]">
-          <button id="ov-btn" type="button" class="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-emerald-950 font-black text-lg shadow-xl transition">開始冒險 🚀</button>
-          <button id="ov-story-btn" type="button" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-base shadow-lg hidden">📖 閱讀《叢林奇談》故事書</button>
-          <button id="ov-new-btn" type="button" class="w-full py-3 rounded-xl bg-white/15 hover:bg-white/25 text-emerald-100 font-bold text-sm border border-white/25 hidden">從第 1 篇重新開始 🔄</button>
-        </div>
+        <div id="ov-buttons" class="flex flex-col gap-3 w-full max-w-[280px]"></div>
       </div>
 
       <!-- Bag / Inventory Modal -->
@@ -244,7 +250,6 @@
         }
         if (ctx && ctx.state === 'suspended' && !document.hidden) ctx.resume().catch(() => {});
       }
-
       function tone(freq, dur, type = 'triangle', vol = 0.08) {
         if (!enabled || !ctx || ctx.state !== 'running') return;
         const t = ctx.currentTime;
@@ -260,25 +265,18 @@
         o.start(t);
         o.stop(t + dur + 0.02);
       }
-
       function startBgm() {
         init();
         if (bgmTimer) return;
-        bgmTimer = setInterval(() => {
-          tone(notes[step % notes.length], 0.35, 'sine', 0.022);
-          step++;
-        }, 480);
+        bgmTimer = setInterval(() => { tone(notes[step % notes.length], 0.35, 'sine', 0.022); step++; }, 480);
       }
-
       document.addEventListener('visibilitychange', () => {
         if (!ctx) return;
         if (document.hidden) ctx.suspend().catch(() => {});
         else ctx.resume().catch(() => {});
       });
-
       return {
-        init,
-        startBgm,
+        init, startBgm,
         get enabled() { return enabled; },
         toggle() {
           enabled = !enabled;
@@ -290,16 +288,14 @@
         coin() { init(); tone(659.25, 0.1, 'triangle', 0.09); setTimeout(() => tone(880, 0.14, 'triangle', 0.09), 60); },
         hit() { init(); tone(150, 0.2, 'sawtooth', 0.09); },
         bump() { init(); tone(110, 0.08, 'square', 0.04); },
+        tick() { init(); tone(1200, 0.03, 'square', 0.03); },
         crit() { init(); tone(988, 0.08, 'square', 0.07); setTimeout(() => tone(1318.5, 0.16, 'square', 0.07), 70); },
-        win() {
-          init();
-          [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => setTimeout(() => tone(f, 0.2, 'triangle', 0.1), i * 90));
-        }
+        win() { init(); [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => setTimeout(() => tone(f, 0.2, 'triangle', 0.1), i * 90)); }
       };
     })();
 
     // =========================================================================
-    // 2. 12 篇劇本資料
+    // 2. 故事模式：12 篇劇本
     // =========================================================================
     const CUB_RANKS = [
       '剛入團', '羚羊級', '羚羊級', '狼級', '狼級', '狼級',
@@ -308,10 +304,7 @@
 
     const STAGES = [
       {
-        id: 0,
-        chapter: '第一篇｜毛克利進入狼群（剛入團）',
-        emoji: '🐺',
-        type: 'battle',
+        id: 0, chapter: '第一篇｜毛克利進入狼群（剛入團）', emoji: '🐺', type: 'battle',
         enemy: { name: '瘸老虎 邪漢（入團試探）', icon: '🐯', hp: 50, atk: 12 },
         reward: { icon: '🐾', name: '剛入團：諾言與狼禮章', desc: '學會幼童軍諾言「我願盡力，愛國家，守規律」與大吼聲' },
         intro: [
@@ -319,15 +312,10 @@
           { av: '🐯', sp: '瘸老虎 邪漢', txt: '「吼！這隻人類小狼有資格佩掛幼童軍領巾嗎？」' },
           { av: '🐻', sp: '棕熊 伯魯', txt: '「我和巴希拉替你作保！展現小狼的盡力精神（DYB/DOB）逼退邪漢！」' }
         ],
-        outro: [
-          { av: '🐆', sp: '黑豹 巴希拉', txt: '「恭喜宣誓入團！你正式成為西奧尼狼群的一員，朝『羚羊級』前進吧！」' }
-        ]
+        outro: [{ av: '🐆', sp: '黑豹 巴希拉', txt: '「恭喜宣誓入團！你正式成為西奧尼狼群的一員，朝『羚羊級』前進吧！」' }]
       },
       {
-        id: 1,
-        chapter: '第二篇｜毛克利的厄運（羚羊級進程）',
-        emoji: '🦌',
-        type: 'quiz',
+        id: 1, chapter: '第二篇｜毛克利的厄運（羚羊級進程）', emoji: '🦌', type: 'quiz',
         questions: [
           { tag: '幼童軍進程', q: '幼童軍的「晉級獸章」由低到高依序是哪四級？', opts: ['羚羊 → 狼 → 鹿 → 豹', '狼 → 鹿 → 豹 → 獅', '兔 → 狐 → 狼 → 熊'], ans: 0 },
           { tag: '剛入團禮節', q: '幼童軍敬禮與握手時，要使用哪一隻手互相握手？', opts: ['右手', '左手（代表心連心）', '雙手合十'], ans: 1 },
@@ -338,30 +326,20 @@
           { av: '🐻', sp: '棕熊 伯魯', txt: '「羚羊級小狼要學會諾言、規律、敬禮、左手握手與大吼聲！」' },
           { av: '🐒', sp: '班大洛 猴群', txt: '「嘻嘻！答出羚羊級進程考驗，我們才放你走！」' }
         ],
-        outro: [
-          { av: '🦅', sp: '飛鳶 智兒', txt: '「答對了！你已經晉升【羚羊級】，我這就去通知伯魯和巴希拉！」' }
-        ]
+        outro: [{ av: '🦅', sp: '飛鳶 智兒', txt: '「答對了！你已經晉升【羚羊級】，我這就去通知伯魯和巴希拉！」' }]
       },
       {
-        id: 2,
-        chapter: '第三篇｜大蟒蛇的遠征（服務類技能章）',
-        emoji: '🐍',
-        type: 'battle',
+        id: 2, chapter: '第三篇｜大蟒蛇的遠征（服務類技能章）', emoji: '🐍', type: 'battle',
         enemy: { name: '班大洛 猴群（冷洞之戰）', icon: '🐒', hp: 65, atk: 14 },
         reward: { icon: '🗣️', name: '表演與口技技能章', desc: '服務類/技巧類技能章：學會團隊合作與傳達訊息' },
         intro: [
           { av: '🐆', sp: '黑豹 巴希拉', txt: '「猴群把你關在冷洞！快用狼級進程學的『正確傳遞兩件口訊』請卡阿來幫忙！」' },
           { av: '🐍', sp: '大蟒蛇 卡阿', txt: '「嘶～毛克利，配合我的『餓蛇舞』一起擊退這群不守規律的猴子吧！」' }
         ],
-        outro: [
-          { av: '🐻', sp: '棕熊 伯魯', txt: '「成功脫困！記住幼童軍規律：服從長上、幫助他人、不說謊話、不怕困難！」' }
-        ]
+        outro: [{ av: '🐻', sp: '棕熊 伯魯', txt: '「成功脫困！記住幼童軍規律：服從長上、幫助他人、不說謊話、不怕困難！」' }]
       },
       {
-        id: 3,
-        chapter: '第四篇｜水邊停戰（狼級進程考驗）',
-        emoji: '🐘',
-        type: 'quiz',
+        id: 3, chapter: '第四篇｜水邊停戰（狼級進程考驗）', emoji: '🐘', type: 'quiz',
         questions: [
           { tag: '狼級：結繩', q: '在狼級進程中，哪一種繩結最適合用來「紮小包裹」？', opts: ['平結', '稱人結', '雙套結'], ans: 0 },
           { tag: '狼級：國旗', q: '狼級進程除了會摺疊國旗、升降旗外，還要會唱哪兩首歌？', opts: ['生日快樂歌', '國歌與國旗歌', '校歌與軍歌'], ans: 1 },
@@ -372,30 +350,20 @@
           { av: '🐘', sp: '大象 哈帝', txt: '「大旱災露出和平石，『水邊停戰』靠的是每個人都遵守規律！」' },
           { av: '🐘', sp: '大象 哈帝', txt: '「毛克利，通過【狼級進程】考驗，就能領取狼級獸章！」' }
         ],
-        outro: [
-          { av: '🐘', sp: '大象 哈帝', txt: '「太棒了！你已經晉升為【狼級】小狼，前 4 枚技能章記得縫在右袖喔！」' }
-        ]
+        outro: [{ av: '🐘', sp: '大象 哈帝', txt: '「太棒了！你已經晉升為【狼級】小狼，前 4 枚技能章記得縫在右袖喔！」' }]
       },
       {
-        id: 4,
-        chapter: '第五篇｜紅花的威力（安全與急救）',
-        emoji: '🔥',
-        type: 'battle',
+        id: 4, chapter: '第五篇｜紅花的威力（安全與急救）', emoji: '🔥', type: 'battle',
         enemy: { name: '叛變派與邪漢', icon: '🐯', hp: 80, atk: 16 },
         reward: { icon: '🔥', name: '用火安全與急救章', desc: '懂得火災應變、小刀傷急救與保護狼群' },
         intro: [
           { av: '🐆', sp: '黑豹 巴希拉', txt: '「阿克拉老了，邪漢正煽動年輕狼群！快用你從村莊學來的『紅花』！」' },
           { av: '🐺', sp: '毛克利', txt: '「用火要非常小心安全！我只用紅花來震懾邪漢、保護大家！」' }
         ],
-        outro: [
-          { av: '🐯', sp: '瘸老虎 邪漢', txt: '「好燙的紅花！我先逃走，總有一天我會回來的！」' }
-        ]
+        outro: [{ av: '🐯', sp: '瘸老虎 邪漢', txt: '「好燙的紅花！我先逃走，總有一天我會回來的！」' }]
       },
       {
-        id: 5,
-        chapter: '第六篇｜恢復人的生活（服務類技能章）',
-        emoji: '🌾',
-        type: 'quiz',
+        id: 5, chapter: '第六篇｜恢復人的生活（服務類技能章）', emoji: '🌾', type: 'quiz',
         questions: [
           { tag: '服務類技能章 (8項)', q: '「環保、義工、種植、飼養、嚮導、交通安全、表演、勞作」屬於哪一類？', opts: ['健身類 (9項)', '服務類 (8項)', '技巧類 (9項)'], ans: 1 },
           { tag: '種植技能章', q: '考「種植技能章」時，小狼要自己完成哪一件事？', opts: ['去市場買一盆現成的花', '在花盆播種、除草除蟲並移植', '只看植物圖鑑就好'], ans: 1 },
@@ -406,30 +374,20 @@
           { av: '👩', sp: '美修娃', txt: '「歡迎回到人類村莊！在村子裡放牧水牛、照顧作物，就像考取幼童軍的服務類技能章！」' },
           { av: '👩', sp: '美修娃', txt: '「來挑戰【服務類技能章】問答吧！」' }
         ],
-        outro: [
-          { av: '👩', sp: '美修娃', txt: '「你真是勤勞又細心的好孩子！拿到服務類技能章囉！」' }
-        ]
+        outro: [{ av: '👩', sp: '美修娃', txt: '「你真是勤勞又細心的好孩子！拿到服務類技能章囉！」' }]
       },
       {
-        id: 6,
-        chapter: '第七篇｜大老虎決戰（鹿級進程）',
-        emoji: '🐃',
-        type: 'battle',
+        id: 6, chapter: '第七篇｜大老虎決戰（鹿級進程）', emoji: '🐃', type: 'battle',
         enemy: { name: '大老虎 邪漢（峽谷決戰）', icon: '🐯', hp: 100, atk: 18 },
         reward: { icon: '🫎', name: '鹿級獸章（含儲蓄與方位）', desc: '學會辨別八方位、儲蓄習慣與團隊戰術夾攻' },
         intro: [
           { av: '🐺', sp: '灰狼兄弟', txt: '「毛克利！邪漢躲在峽谷裡！我們用鹿級學的『八方位』南北夾攻他！」' },
           { av: '🐺', sp: '毛克利', txt: '「全體水牛與狼群準備！今天要靠團隊合作徹底打敗邪漢！」' }
         ],
-        outro: [
-          { av: '🐺', sp: '灰狼兄弟', txt: '「邪漢徹底被擊敗了！恭喜你晉升【鹿級】小狼！」' }
-        ]
+        outro: [{ av: '🐺', sp: '灰狼兄弟', txt: '「邪漢徹底被擊敗了！恭喜你晉升【鹿級】小狼！」' }]
       },
       {
-        id: 7,
-        chapter: '第八篇｜叢林的驅逐（健身類技能章）',
-        emoji: '⚖️',
-        type: 'quiz',
+        id: 7, chapter: '第八篇｜叢林的驅逐（健身類技能章）', emoji: '⚖️', type: 'quiz',
         questions: [
           { tag: '健身類技能章 (9項)', q: '「球類運動、游泳、體適能、自行車、旅行、舞蹈、體操」屬於哪一類？', opts: ['技巧類 (9項)', '服務類 (8項)', '健身類 (9項)'], ans: 2 },
           { tag: '鹿級：常識', q: '在鹿級進程中，小狼除了遵守交通規則，還要能辨別幾個方位？', opts: ['四方位', '八方位', '十二方位'], ans: 1 },
@@ -440,15 +398,10 @@
           { av: '🧙', sp: '嫉妒的巫師', txt: '「大家別相信毛克利！除非他能答對【鹿級與健身類技能章】考驗！」' },
           { av: '🐺', sp: '毛克利', txt: '「童軍平時鍛鍊體魄、熟習方位，絕對不怕你的考驗！」' }
         ],
-        outro: [
-          { av: '🐺', sp: '毛克利', txt: '「雖然村人一時受謠言影響，但我帶著健康與正直回到森林！」' }
-        ]
+        outro: [{ av: '🐺', sp: '毛克利', txt: '「雖然村人一時受謠言影響，但我帶著健康與正直回到森林！」' }]
       },
       {
-        id: 8,
-        chapter: '第九篇｜古城的秘寶（技巧類技能章）',
-        emoji: '💎',
-        type: 'quiz',
+        id: 8, chapter: '第九篇｜古城的秘寶（技巧類技能章）', emoji: '💎', type: 'quiz',
         questions: [
           { tag: '技巧類技能章 (9項)', q: '「繪畫、音樂、模型、書法、收集、歌詠、語文、資訊」屬於哪一類？', opts: ['技巧類 (9項)', '服務類 (8項)', '健身類 (9項)'], ans: 0 },
           { tag: '榮譽帶佩戴規則', q: '小狼取得第 5 個以上技能章時，徽章應該縫在哪裡？', opts: ['貼在帽子上', '拆下右袖 4 個，依類別縫於榮譽帶上', '收在抽屜裡'], ans: 1 },
@@ -459,30 +412,20 @@
           { av: '🐍', sp: '大蟒蛇 卡阿', txt: '「古城地底藏著『安卡斯』，考驗你的不只是技巧，更是誠實的心！」' },
           { av: '🐆', sp: '黑豹 巴希拉', txt: '「答對【技巧類技能章與榮譽帶】問題，就把安卡斯送回原處吧！」' }
         ],
-        outro: [
-          { av: '🐍', sp: '白眼鏡蛇', txt: '「你的技巧章已經超過 5 枚，可以縫在帥氣的榮譽帶上囉！」' }
-        ]
+        outro: [{ av: '🐍', sp: '白眼鏡蛇', txt: '「你的技巧章已經超過 5 枚，可以縫在帥氣的榮譽帶上囉！」' }]
       },
       {
-        id: 9,
-        chapter: '第十篇｜狄幹高原的紅狗（豹級進程）',
-        emoji: '🐝',
-        type: 'battle',
+        id: 9, chapter: '第十篇｜狄幹高原的紅狗（豹級進程）', emoji: '🐝', type: 'battle',
         enemy: { name: '狄幹高原 紅狗大軍', icon: '🐕', hp: 120, atk: 20 },
         reward: { icon: '🐆', name: '豹級獸章（結繩與領導）', desc: '掌握接繩結、稱人結、整理繩子與領導小隊遊戲' },
         intro: [
           { av: '🐺', sp: '灰狼兄弟', txt: '「紅狗大軍衝進森林了！豹級小狼，快用『接繩結與稱人結』幫大家架設救援繩索！」' },
           { av: '🐍', sp: '大蟒蛇 卡阿', txt: '「把紅狗引向懸崖上的『黃蜂大本營』，用智慧與團隊合作擊退他們！」' }
         ],
-        outro: [
-          { av: '🐺', sp: '灰狼兄弟', txt: '「大獲全勝！你正式晉升最高級的【豹級】小狼啦！」' }
-        ]
+        outro: [{ av: '🐺', sp: '灰狼兄弟', txt: '「大獲全勝！你正式晉升最高級的【豹級】小狼啦！」' }]
       },
       {
-        id: 10,
-        chapter: '第十一篇｜阿克拉的道別（豹級閱讀與環保）',
-        emoji: '🌙',
-        type: 'quiz',
+        id: 10, chapter: '第十一篇｜阿克拉的道別（豹級閱讀與環保）', emoji: '🌙', type: 'quiz',
         questions: [
           { tag: '豹級：閱讀進程', q: '在豹級進程的「閱讀」項目中，小狼要讀完哪本書並簡述三則故事？', opts: ['十萬個為什麼', '《叢林奇談》上下冊', '三國演義'], ans: 1 },
           { tag: '豹級：結繩', q: '豹級進程中，除了平結之外，還要學會哪兩種重要繩結？', opts: ['接繩結與稱人結', '蝴蝶結與鞋帶結', '死結'], ans: 0 },
@@ -493,72 +436,177 @@
           { av: '🐺', sp: '老狼王 阿克拉', txt: '「我的小蛙兒……我在戰役中守住了狼群最後的榮耀，現在要交棒給你了。」' },
           { av: '🐺', sp: '老狼王 阿克拉', txt: '「通過【豹級進程】最終考驗，你就具備升上童軍團的資格了！」' }
         ],
-        outro: [
-          { av: '🐺', sp: '老狼王 阿克拉', txt: '「勇敢長大吧，毛克利……帶領你的小隊繼續向前！」' }
-        ]
+        outro: [{ av: '🐺', sp: '老狼王 阿克拉', txt: '「勇敢長大吧，毛克利……帶領你的小隊繼續向前！」' }]
       },
       {
-        id: 11,
-        chapter: '第十二篇｜春天的喜悅（全能技能章與升團）',
-        emoji: '🌈',
-        type: 'battle',
-        enemy: { name: '升團線前的最後考驗', icon: '🌪️', hp: 90, atk: 15 },
+        id: 11, chapter: '第十二篇｜春天的喜悅（全能技能章與升團）', emoji: '🌈', type: 'battle',
+        enemy: { name: '升團線前的最後考驗', icon: '🌪️', hp: 110, atk: 19 },
         reward: { icon: '👑', name: '全能技能章（26項鑲金邊榮譽）', desc: '完成羚羊→狼→鹿→豹與三類 26 項技能章，準備跨過升團線！' },
         intro: [
           { av: '🌈', sp: '旁白', txt: '春天到了，月夜天空掛起白虹！在跨過升團線成為童軍之前，迎接最後的挑戰吧！' },
           { av: '🐻', sp: '伯魯與巴希拉', txt: '「帶著 26 項技能章的目標與阿克拉的祝福，全力以赴吧！」' }
         ],
-        outro: [
-          { av: '🐺', sp: '全體西奧尼狼群', txt: '「1、2、3、WOLF！恭喜完成《叢林奇談》與幼童軍進程全部冒險，準備跨過升團線囉！」' }
-        ]
+        outro: [{ av: '🐺', sp: '全體西奧尼狼群', txt: '「1、2、3、WOLF！恭喜完成《叢林奇談》與幼童軍進程全部冒險，準備跨過升團線囉！」' }]
       }
     ];
 
     const CHAPTER_NPCS = [
-      { icon: '🐺', name: '狼王 阿克拉' },
-      { icon: '🐻', name: '棕熊 伯魯' },
-      { icon: '🐍', name: '大蟒蛇 卡阿' },
-      { icon: '🐘', name: '大象 哈帝' },
-      { icon: '🐆', name: '黑豹 巴希拉' },
-      { icon: '👩', name: '美修娃' },
-      { icon: '🐃', name: '灰狼與水牛' },
-      { icon: '⚖️', name: '村莊長老' },
-      { icon: '💎', name: '古城秘寶室' },
-      { icon: '🐝', name: '黃蜂峽谷' },
-      { icon: '🌙', name: '狼王 阿克拉' },
-      { icon: '🌈', name: '伯魯與巴希拉' }
-    ];
-
-    // 24 題題庫（問答關：本篇 3 題 + 題庫隨機 1 題）
-    const CUB_QUESTION_POOL = [
-      { tag: '幼童軍進程', q: '幼童軍的「晉級獸章」由低到高依序是哪四級？', opts: ['羚羊 → 狼 → 鹿 → 豹', '狼 → 鹿 → 豹 → 獅', '兔 → 狐 → 狼 → 熊'], ans: 0 },
-      { tag: '剛入團禮節', q: '幼童軍敬禮與握手時，要使用哪一隻手互相握手？', opts: ['右手', '左手（代表心連心）', '雙手合十'], ans: 1 },
-      { tag: '幼童軍吼聲', q: '大吼聲中，小隊長喊「DYB」，全體回應「DOB」是什麼意思？', opts: ['快點吃飯', '盡我所能 / 盡我們所能', '大家一起睡覺'], ans: 1 },
-      { tag: '幼童軍銘言', q: '幼童軍的「銘言」是哪一句話？', opts: ['一日童軍，一世童軍', '竭盡所能 (Do Your Best)', '人生以服務為目的'], ans: 1 },
-      { tag: '狼級：結繩', q: '在狼級進程中，哪一種繩結最適合用來「紮小包裹」？', opts: ['平結', '稱人結', '雙套結'], ans: 0 },
-      { tag: '狼級：結繩', q: '在鞋子上或日常用品上打結，通常會使用哪一種結？', opts: ['蝴蝶結', '接繩結', '漁人結'], ans: 0 },
-      { tag: '狼級：國旗', q: '狼級進程除了會摺疊國旗、升降旗外，還要會唱哪兩首歌？', opts: ['生日快樂歌', '國歌與國旗歌', '校歌與軍歌'], ans: 1 },
-      { tag: '狼級：勞作', q: '狼級進程的「勞作」項目中，小狼要會用材料製作哪一種玩具？', opts: ['遙控飛機', '簡易風箏', '電動機器人'], ans: 1 },
-      { tag: '狼級：服務', q: '狼級進程的服務項目中，小狼要能正確傳遞幾件事的口訊而沒差錯？', opts: ['兩件事情', '十件事情', '只能傳一句話'], ans: 0 },
-      { tag: '鹿級：常識', q: '在鹿級進程中，小狼除了遵守交通規則，還要能辨別幾個方位？', opts: ['四方位', '八方位', '十二方位'], ans: 1 },
-      { tag: '鹿級：閱讀', q: '鹿級進程鼓勵小狼善用什麼資源借書閱讀，並說出 1-2 本書大意？', opts: ['圖書館資源', '漫畫出租店', '只看手機影片'], ans: 0 },
-      { tag: '鹿級：國旗', q: '鹿級進程要求小狼能說出國旗的含義，還要學會畫什麼？', opts: ['畫出國徽', '畫出世界地圖', '畫出指南針'], ans: 0 },
-      { tag: '豹級：結繩', q: '豹級進程中，除了平結之外，還要學會哪兩種重要繩結？', opts: ['接繩結與稱人結', '蝴蝶結與鞋帶結', '死結'], ans: 0 },
-      { tag: '豹級：閱讀', q: '在豹級進程的「閱讀」項目中，小狼要讀完哪本書並簡述三則故事？', opts: ['十萬個為什麼', '《叢林奇談》上下冊', '三國演義'], ans: 1 },
-      { tag: '豹級：國旗', q: '豹級進程要求小狼能識別幾個以上國家的國旗？', opts: ['2 個', '5 個以上', '50 個'], ans: 1 },
-      { tag: '豹級：服務', q: '豹級小狼在團集會中要能做到哪一項領導服務？', opts: ['自己躲在旁邊玩', '準備團集會會場並領導小隊遊戲', '只等大人發點心'], ans: 1 },
-      { tag: '服務類技能章', q: '「環保、義工、種植、飼養、嚮導、交通安全、表演、勞作」屬於哪一類？', opts: ['健身類 (9項)', '服務類 (8項)', '技巧類 (9項)'], ans: 1 },
-      { tag: '健身類技能章', q: '「球類運動、游泳、體適能、自行車、旅行、舞蹈、體操」屬於哪一類？', opts: ['技巧類 (9項)', '服務類 (8項)', '健身類 (9項)'], ans: 2 },
-      { tag: '技巧類技能章', q: '「繪畫、音樂、模型、書法、收集、歌詠、語文、資訊」屬於哪一類？', opts: ['技巧類 (9項)', '服務類 (8項)', '健身類 (9項)'], ans: 0 },
-      { tag: '種植技能章', q: '考「種植技能章」時，小狼要自己完成哪一件事？', opts: ['去市場買一盆現成的花', '在花盆播種、除草除蟲並移植', '只看植物圖鑑'], ans: 1 },
-      { tag: '游泳技能章', q: '幼童軍「游泳技能章」要求能說出游泳前後常識，並能潛水幾秒？', opts: ['3 秒', '10 秒', '60 秒'], ans: 1 },
-      { tag: '歌詠技能章', q: '考取「歌詠技能章」時，需要能唱幼童軍歌及一般歌曲各幾首？', opts: ['各 1 首', '各 5 首', '各 20 首'], ans: 1 },
-      { tag: '自然觀察', q: '在「金氏遊戲」觀察測驗中，12 件物品至少要記住幾件？', opts: ['5 件', '9 件', '12 件'], ans: 1 },
-      { tag: '榮譽帶規則', q: '小狼取得第 5 個以上技能章時，徽章應該縫在哪裡？', opts: ['貼在帽子上', '拆下右袖 4 個，依類別縫於榮譽帶上', '收在抽屜裡'], ans: 1 }
+      { icon: '🐺', name: '狼王 阿克拉' }, { icon: '🐻', name: '棕熊 伯魯' }, { icon: '🐍', name: '大蟒蛇 卡阿' },
+      { icon: '🐘', name: '大象 哈帝' }, { icon: '🐆', name: '黑豹 巴希拉' }, { icon: '👩', name: '美修娃' },
+      { icon: '🐃', name: '灰狼與水牛' }, { icon: '⚖️', name: '村莊長老' }, { icon: '💎', name: '古城秘寶室' },
+      { icon: '🐝', name: '黃蜂峽谷' }, { icon: '🌙', name: '狼王 阿克拉' }, { icon: '🌈', name: '伯魯與巴希拉' }
     ];
 
     // =========================================================================
-    // 3. 工具函式
+    // 3. 幼童軍題庫（分類 + 難度 lv1~3；選項顯示時會洗牌）
+    //    寫法：opts 第一個是正確答案（ans 省略 = 0）
+    // =========================================================================
+    const CAT_LABEL = {
+      promise: '諾言・規律・禮節', knot: '結繩', firstaid: '急救', direction: '方位與地圖',
+      camp: '露營與用火', safety: '安全守則', nature: '自然觀察', badge: '進程與技能章'
+    };
+    const Q = (cat, lv, q, opts, ans = 0) => ({ cat, lv, q, opts, ans });
+    const QUESTION_BANK = [
+      // 諾言・規律・禮節
+      Q('promise', 1, '幼童軍的「晉級獸章」由低到高依序是哪四級？', ['羚羊 → 狼 → 鹿 → 豹', '狼 → 鹿 → 豹 → 獅', '兔 → 狐 → 狼 → 熊']),
+      Q('promise', 1, '幼童軍敬禮與握手時，要使用哪一隻手互相握手？', ['左手（代表心連心）', '右手', '雙手合十']),
+      Q('promise', 1, '大吼聲中，小隊長喊「DYB」，全體回應「DOB」是什麼意思？', ['盡我所能 / 盡我們所能', '快點吃飯', '大家一起睡覺']),
+      Q('promise', 1, '幼童軍行禮時伸出兩根手指，是在模仿什麼？', ['狼的兩隻耳朵', '兔子的牙齒', '剪刀']),
+      Q('promise', 1, '童軍「日行一善」是什麼意思？', ['每天至少做一件幫助別人的好事', '每天只要寫一項作業', '每天吃一次點心']),
+      Q('promise', 1, '團長舉起手示意安靜時，小狼應該怎麼做？', ['停止說話，也舉起手安靜看團長', '繼續聊天', '大聲喊叫']),
+      Q('promise', 1, '幼童軍團的團長，在叢林故事中被稱為誰？', ['阿克拉', '邪漢', '班大洛']),
+      Q('promise', 2, '幼童軍的「銘言」是哪一句話？', ['竭盡所能 (Do Your Best)', '一日童軍，一世童軍', '人生以服務為目的']),
+      Q('promise', 2, '童軍運動的創始人是誰？', ['貝登堡', '吉卜林', '愛迪生']),
+      Q('promise', 2, '幼童軍活動的故事背景《叢林奇談》是哪位作家寫的？', ['吉卜林', '貝登堡', '安徒生']),
+      Q('promise', 2, '制服上的領巾，通常用什麼固定在胸前？', ['領巾圈（領巾環）', '迴紋針', '膠帶']),
+      Q('promise', 2, '答應了別人的事卻做不到時，小狼應該？', ['誠實說明並道歉', '假裝沒這回事', '怪別人']),
+      Q('promise', 2, '團集會時看到新夥伴不知所措，小狼應該？', ['主動帶他認識大家', '笑他', '不理他']),
+      Q('promise', 3, '貝登堡第一次童軍實驗營（1907 年）在哪裡舉行？', ['英國白浪島', '美國紐約', '日本富士山']),
+      Q('promise', 3, '中華民國的童軍節是哪一天？', ['3 月 5 日', '10 月 10 日', '12 月 25 日']),
+      Q('promise', 3, '童軍行「三指禮」，幼童軍行「兩指禮」，兩指禮象徵的是？', ['狼的耳朵，代表警覺與服從', '和平的勝利手勢', '數字二']),
+
+      // 結繩
+      Q('knot', 1, '在狼級進程中，哪一種繩結最適合用來「紮小包裹」？', ['平結', '稱人結', '雙套結']),
+      Q('knot', 1, '在鞋子上或日常用品上打結，通常會使用哪一種結？', ['蝴蝶結', '接繩結', '漁人結']),
+      Q('knot', 1, '打平結的口訣是？', ['右壓左、左壓右', '右壓右、左壓左', '隨便繞兩圈']),
+      Q('knot', 1, '繩子用完以後應該怎麼處理？', ['整理捲好收起來', '隨手丟在地上', '剪成一段一段']),
+      Q('knot', 2, '要把兩條「粗細不同」的繩子接在一起，用什麼結最好？', ['接繩結', '平結', '單結']),
+      Q('knot', 2, '要在腰間做一個「不會縮緊」的固定繩圈來救人，用什麼結？', ['稱人結', '活結', '平結']),
+      Q('knot', 2, '把繩子綁在旗桿或樹幹上，又快又方便，常用什麼結？', ['雙套結', '平結', '祖母結']),
+      Q('knot', 2, '平結打錯變成容易滑開的結，這個結叫什麼？', ['祖母結（假平結）', '稱人結', '雙套結']),
+      Q('knot', 2, '豹級進程中，除了平結之外，還要學會哪兩種重要繩結？', ['接繩結與稱人結', '蝴蝶結與鞋帶結', '死結']),
+      Q('knot', 3, '「稱人結」常被稱為什麼？', ['結繩之王', '最弱的結', '裝飾用的結']),
+      Q('knot', 3, '繩頭散開時，可以用什麼方法防止它繼續鬆散？', ['繩頭紮縛（用細線纏緊繩頭）', '用水泡一泡', '用力拉直']),
+      Q('knot', 3, '在繩子末端打結，防止繩子從洞口滑脫，常用什麼結？', ['八字結', '接繩結', '雙套結']),
+      Q('knot', 3, '搭帳篷時，把營繩固定在營釘上又能調整鬆緊的結是？', ['營帳結（自動結）', '平結', '蝴蝶結']),
+
+      // 急救
+      Q('firstaid', 1, '被荊棘刮出小傷口，第一步應該？', ['用乾淨的清水沖洗傷口', '塗口水', '用泥土蓋住']),
+      Q('firstaid', 1, '流鼻血時，正確的姿勢是？', ['頭稍微向前傾，捏住鼻翼', '頭往後仰', '倒立']),
+      Q('firstaid', 1, '活動中受傷時，第一件事要先？', ['告訴團長或大人', '自己躲起來', '繼續玩不理它']),
+      Q('firstaid', 2, '燙傷處理的五字口訣是？', ['沖、脫、泡、蓋、送', '擦、塗、吹、包、睡', '冰、敷、揉、壓、跳']),
+      Q('firstaid', 2, '傷口一直流血，可以怎麼止血？', ['用乾淨紗布直接加壓', '用力搓揉', '用熱水沖']),
+      Q('firstaid', 2, '急救箱裡的「三角巾」可以用來做什麼？', ['包紮傷口或吊起受傷的手臂', '當扇子', '擦桌子']),
+      Q('firstaid', 2, '有人中暑時，應該先怎麼做？', ['移到陰涼處、鬆開衣物、降溫補水', '繼續曬太陽', '叫他跑步流汗']),
+      Q('firstaid', 2, '被蜜蜂叮了以後該怎麼辦？', ['先遠離蜂群，用卡片把螫針刮出', '用手指用力擠', '揮手拍打蜜蜂']),
+      Q('firstaid', 3, '被蛇咬傷時，下列哪個做法正確？', ['保持冷靜少動，記住蛇的特徵並盡快就醫', '用嘴把毒吸出來', '用刀割開傷口']),
+      Q('firstaid', 3, '扭傷處理原則「PRICE」中的 I 是指？', ['冰敷 (Ice)', '打針 (Injection)', '不管它 (Ignore)']),
+      Q('firstaid', 3, '扭傷的腳踝為什麼要「抬高」？', ['減少腫脹', '讓腳變長', '比較好看']),
+
+      // 方位與地圖
+      Q('direction', 1, '太陽每天從哪一個方向升起？', ['東方', '西方', '北方']),
+      Q('direction', 1, '一般地圖的上方代表哪個方向？', ['北方', '南方', '東方']),
+      Q('direction', 1, '指北針的指針（通常是紅色那端）會指向？', ['北方', '南方', '你自己']),
+      Q('direction', 2, '早上面對太陽升起的方向，你的左手邊是？', ['北方', '南方', '西方']),
+      Q('direction', 2, '晚上可以靠哪一顆星星找到北方？', ['北極星', '太陽', '月亮']),
+      Q('direction', 2, '在鹿級進程中，小狼除了遵守交通規則，還要能辨別幾個方位？', ['八方位', '四方位', '十二方位']),
+      Q('direction', 2, '「東北方」是在哪兩個方向的中間？', ['北和東', '南和西', '南和東']),
+      Q('direction', 3, '地圖上的「比例尺」是用來做什麼？', ['換算地圖距離和實際距離', '看天氣', '表示海拔顏色']),
+      Q('direction', 3, '地圖上的「等高線」越密集，代表地形？', ['越陡峭', '越平坦', '是湖泊']),
+      Q('direction', 3, '八方位中，「西南」的正對面是？', ['東北', '西北', '東南']),
+      Q('direction', 3, '面向北方時，向右轉 90 度會面向哪裡？', ['東方', '西方', '南方']),
+
+      // 露營與用火
+      Q('camp', 1, '營火結束後，要怎麼確認火已經熄滅？', ['澆水、攪拌，摸起來不熱為止', '用樹葉蓋起來', '直接走掉']),
+      Q('camp', 1, '小狼生火或靠近營火時，一定要有誰在旁邊？', ['團長或大人陪同', '沒人也沒關係', '一隻小狗']),
+      Q('camp', 1, '露營產生的垃圾應該怎麼處理？', ['全部帶下山', '埋在土裡', '丟進溪裡']),
+      Q('camp', 2, '「無痕山林」的精神是？', ['除了腳印什麼都不留，除了照片什麼都不帶', '把喜歡的花摘回家', '在樹上刻名字']),
+      Q('camp', 2, '生火材料的使用順序，由小到大是？', ['火種 → 引火柴 → 柴薪', '柴薪 → 火種 → 引火柴', '大木頭直接點火']),
+      Q('camp', 2, '生火前應該先準備好什麼以防萬一？', ['一桶水或滅火工具', '一包餅乾', '一把扇子']),
+      Q('camp', 3, '選擇營地時，下列哪個地方最不適合？', ['乾涸的河床或溪邊低窪處', '平坦乾燥的高地', '有遮蔭的平地']),
+      Q('camp', 3, '營火堆成「井字型」或「金字塔型」的主要目的是？', ['讓空氣流通，火燒得穩', '讓火馬上熄滅', '讓煙變多']),
+      Q('camp', 3, '打營釘時，營釘和營繩大約要成幾度才牢固？', ['90 度（直角）', '0 度（平行）', '180 度']),
+
+      // 安全守則
+      Q('safety', 1, '看到有人溺水，小狼應該？', ['大聲呼救，絕不自己下水', '馬上跳下去救', '假裝沒看到']),
+      Q('safety', 1, '發生火災或需要救護車，要撥打幾號？', ['119', '110', '165']),
+      Q('safety', 1, '遇到壞人或需要警察，要撥打幾號？', ['110', '119', '113']),
+      Q('safety', 1, '過馬路要走哪裡？', ['斑馬線，並左右看清楚', '從車子之間鑽過去', '跟著小狗走']),
+      Q('safety', 2, '防溺救援口訣是哪五個字？', ['叫、叫、伸、拋、划', '跳、游、抱、拉、跑', '看、等、玩、笑、走']),
+      Q('safety', 2, '戲水時應該選擇什麼地方？', ['有救生員的合格水域', '沒有人的深潭', '颱風天的海邊']),
+      Q('safety', 2, '騎自行車時一定要戴什麼？', ['安全帽', '耳機', '墨鏡']),
+      Q('safety', 2, '在野外迷路時，最正確的做法是？', ['停下來待在原地，保持冷靜等待救援', '到處亂跑', '一個人往深山走']),
+      Q('safety', 3, '用哨子求救時，通常會吹幾聲短哨並重複？', ['3 聲', '1 聲', '10 聲']),
+      Q('safety', 3, '摩斯密碼的求救信號 SOS 是？', ['三短、三長、三短', '三長、三短、三長', '一短、一長']),
+      Q('safety', 3, '野外活動採用「夥伴制度」是為了什麼？', ['兩兩互相照應，不讓任何人落單', '比賽誰跑最快', '可以少帶裝備']),
+      Q('safety', 3, '雷雨時在野外，應該避免什麼？', ['站在大樹下或空曠高處', '進入堅固的建築物', '遠離金屬物品']),
+
+      // 自然觀察
+      Q('nature', 1, '在山上看到美麗的野花，應該？', ['欣賞拍照，不要摘', '摘回家種', '踩扁它']),
+      Q('nature', 1, '遇到野生動物時應該？', ['保持距離，不餵食', '追著牠跑', '拿食物餵牠']),
+      Q('nature', 1, '「金氏遊戲」主要是訓練什麼能力？', ['觀察與記憶力', '跑步速度', '唱歌']),
+      Q('nature', 2, '蝌蚪長大後會變成？', ['青蛙', '魚', '烏龜']),
+      Q('nature', 2, '毛毛蟲長大後最可能變成？', ['蝴蝶或蛾', '青蛙', '小鳥']),
+      Q('nature', 2, '在「金氏遊戲」觀察測驗中，12 件物品至少要記住幾件？', ['9 件', '5 件', '12 件']),
+      Q('nature', 2, '植物的葉子主要靠什麼製造養分？', ['光合作用', '喝牛奶', '睡覺']),
+      Q('nature', 3, '貓頭鷹主要在什麼時候活動覓食？', ['夜晚', '中午', '只在下雨天']),
+      Q('nature', 3, '「金氏遊戲」的名稱，來自吉卜林哪一本小說的主角？', ['《基姆》(Kim)', '《叢林奇談》', '《金銀島》']),
+      Q('nature', 3, '觀察樹幹的年輪可以知道什麼？', ['樹的年齡', '樹的名字', '明天的天氣']),
+
+      // 進程與技能章
+      Q('badge', 1, '狼級進程除了會摺疊國旗、升降旗外，還要會唱哪兩首歌？', ['國歌與國旗歌', '生日快樂歌', '校歌與軍歌']),
+      Q('badge', 1, '狼級進程的「勞作」項目中，小狼要會用材料製作哪一種玩具？', ['簡易風箏', '遙控飛機', '電動機器人']),
+      Q('badge', 2, '狼級進程的服務項目中，小狼要能正確傳遞幾件事的口訊而沒差錯？', ['兩件事情', '十件事情', '只能傳一句話']),
+      Q('badge', 2, '鹿級進程鼓勵小狼善用什麼資源借書閱讀，並說出 1-2 本書大意？', ['圖書館資源', '漫畫出租店', '只看手機影片']),
+      Q('badge', 2, '鹿級進程要求小狼能說出國旗的含義，還要學會畫什麼？', ['畫出國徽', '畫出世界地圖', '畫出指南針']),
+      Q('badge', 2, '在豹級進程的「閱讀」項目中，小狼要讀完哪本書並簡述三則故事？', ['《叢林奇談》上下冊', '十萬個為什麼', '三國演義']),
+      Q('badge', 2, '豹級進程要求小狼能識別幾個以上國家的國旗？', ['5 個以上', '2 個', '50 個']),
+      Q('badge', 2, '豹級小狼在團集會中要能做到哪一項領導服務？', ['準備團集會會場並領導小隊遊戲', '自己躲在旁邊玩', '只等大人發點心']),
+      Q('badge', 2, '「環保、義工、種植、飼養、嚮導、交通安全、表演、勞作」屬於哪一類技能章？', ['服務類 (8項)', '健身類 (9項)', '技巧類 (9項)']),
+      Q('badge', 2, '「球類運動、游泳、體適能、自行車、旅行、舞蹈、體操」屬於哪一類技能章？', ['健身類 (9項)', '技巧類 (9項)', '服務類 (8項)']),
+      Q('badge', 2, '「繪畫、音樂、模型、書法、收集、歌詠、語文、資訊」屬於哪一類技能章？', ['技巧類 (9項)', '服務類 (8項)', '健身類 (9項)']),
+      Q('badge', 3, '考「種植技能章」時，小狼要自己完成哪一件事？', ['在花盆播種、除草除蟲並移植', '去市場買一盆現成的花', '只看植物圖鑑']),
+      Q('badge', 3, '幼童軍「游泳技能章」要求能說出游泳前後常識，並能潛水幾秒？', ['10 秒', '3 秒', '60 秒']),
+      Q('badge', 3, '考取「歌詠技能章」時，需要能唱幼童軍歌及一般歌曲各幾首？', ['各 5 首', '各 1 首', '各 20 首']),
+      Q('badge', 3, '小狼取得第 5 個以上技能章時，徽章應該縫在哪裡？', ['拆下右袖 4 個，依類別縫於榮譽帶上', '貼在帽子上', '收在抽屜裡'])
+    ];
+
+    // 迷宮中的阻礙：每種阻礙對應一類幼童軍知識
+    const OBSTACLES = [
+      { icon: '🪵', name: '倒木擋路', cat: 'knot', intro: '一棵大樹倒在路中央！用正確的繩結把它拉開吧！', win: '🪢 用繩結拉開倒木，路通了！' },
+      { icon: '🐒', name: '猴群攔路', cat: 'promise', intro: '班大洛猴群不守規律跑來搗亂！用童軍的規律與禮節讓牠們讓路。', win: '🐒 猴群被你的童軍精神感動，讓開了！' },
+      { icon: '🌵', name: '荊棘叢', cat: 'firstaid', intro: '穿過荊棘可能會受傷，先複習急救知識才能安全通過！', win: '🩹 小心穿過荊棘叢！' },
+      { icon: '🧭', name: '迷霧岔路', cat: 'direction', intro: '起霧了，路分成好幾條！用方位知識找出正確方向。', win: '🧭 辨明方向，走出迷霧！' },
+      { icon: '🌊', name: '湍急小溪', cat: 'safety', intro: '溪水好急！先想想安全守則再過去。', win: '🌊 安全通過小溪！' },
+      { icon: '🔥', name: '沒熄滅的營火', cat: 'camp', intro: '有人留下沒熄滅的營火！用正確的方法處理它。', win: '💧 營火安全熄滅了！' },
+      { icon: '🦉', name: '貓頭鷹的考驗', cat: 'nature', intro: '森林裡的老貓頭鷹要考考你的自然觀察力！', win: '🦉 貓頭鷹點點頭，讓你通過！' }
+    ];
+
+    // 連續闖關模式的敵人
+    const ENDLESS_ENEMIES = [
+      { name: '豺狼 塔巴奇', icon: '🦊' }, { name: '班大洛 猴群', icon: '🐒' }, { name: '紅狗先鋒隊', icon: '🐕' },
+      { name: '暴躁野豬', icon: '🐗' }, { name: '河邊鱷魚', icon: '🐊' }, { name: '黃蜂大軍', icon: '🐝' }
+    ];
+    const ENDLESS_LINES = [
+      '「前面的路越來越難走了，記得童軍銘言：盡力而為！」',
+      '「真正的小狼不怕困難！準備好接受下一個挑戰了嗎？」',
+      '「團隊合作、守規律，就沒有過不去的關卡！」',
+      '「叢林的規律像藤蔓一樣，越往深處越複雜喔！」',
+      '「DYB！DOB！帶著勇氣繼續前進吧！」'
+    ];
+
+    // =========================================================================
+    // 4. 工具
     // =========================================================================
     const $ = (id) => document.getElementById(id);
     function shuffle(arr) {
@@ -572,29 +620,32 @@
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
-    function replayAnim(el, cls) {
-      el.classList.remove(cls);
-      void el.offsetWidth;
-      el.classList.add(cls);
-    }
+    function replayAnim(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
     const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function shuffleOpts(q) {
+      const order = shuffle(q.opts.map((_, i) => i));
+      return { ...q, opts: order.map(i => q.opts[i]), ans: order.indexOf(q.ans ?? 0) };
+    }
+
+    // 不重複抽題：優先抽「目前難度」的題目
+    const usedQ = new Set();
+    function pickQuestions(cats, maxLv, n, exclude = []) {
+      const pool = QUESTION_BANK.filter(q => (!cats || cats.includes(q.cat)) && q.lv <= maxLv && !exclude.includes(q.q));
+      let fresh = pool.filter(q => !usedQ.has(q.q));
+      if (fresh.length < n) { pool.forEach(q => usedQ.delete(q.q)); fresh = pool; }
+      const picked = shuffle(fresh).sort((a, b) => (b.lv === maxLv) - (a.lv === maxLv)).slice(0, n);
+      picked.forEach(q => usedQ.add(q.q));
+      return picked.map(q => ({ ...q, tag: CAT_LABEL[q.cat] + '・' + '★'.repeat(q.lv) }));
+    }
 
     // =========================================================================
-    // 4. 遊戲狀態與存檔
+    // 5. 狀態、存檔、難度
     // =========================================================================
     const SAVE_KEY = 'jungle_rpg_save_v2';
-    const MAP_N = 11;
+    const BEST_KEY = 'jungle_rpg_endless_best';
     const VIEW = 7;
 
     const overlay = $('overlay');
-    const ovIcon = $('ov-icon');
-    const ovChapter = $('ov-chapter');
-    const ovTitle = $('ov-title');
-    const ovSub = $('ov-sub');
-    const ovBtn = $('ov-btn');
-    const ovStoryBtn = $('ov-story-btn');
-    const ovNewBtn = $('ov-new-btn');
-
     const mapPanel = $('map-panel');
     const mapGridEl = $('map-grid');
     const sceneCard = $('scene-card');
@@ -605,26 +656,29 @@
     const storyModal = $('story-modal');
 
     function freshState() {
-      return {
-        stageIdx: 0,
-        level: 1,
-        hp: 100,
-        maxHp: 100,
-        atk: 18,
-        def: 10,
-        honey: 3,
-        bag: [],
-        cleared: new Array(STAGES.length).fill(false)
-      };
+      return { stageIdx: 0, level: 1, hp: 100, maxHp: 100, atk: 18, def: 10, honey: 3, bag: [], cleared: new Array(STAGES.length).fill(false) };
+    }
+    function freshRun() {
+      return { round: 1, level: 1, hp: 120, maxHp: 120, atk: 20, def: 12, honey: 3, bag: [], solved: 0 };
     }
 
-    let state = freshState();
+    let state = freshState();   // 故事模式存檔
+    let run = null;             // 連續闖關狀態
+    let game = 'story';         // 'story' | 'endless'
+    let P = state;              // 目前使用中的角色數值
     let mode = 'title';
+    let cur = null;             // 目前這一關的設定
+
+    let bestRound = 0;
+    try { bestRound = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0; } catch (e) {}
 
     function saveProgress() {
+      if (game !== 'story') return;
       try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
     }
-
+    function saveBest() {
+      try { localStorage.setItem(BEST_KEY, String(bestRound)); } catch (e) {}
+    }
     function loadProgress() {
       try {
         const raw = localStorage.getItem(SAVE_KEY);
@@ -632,38 +686,57 @@
         const p = JSON.parse(raw);
         if (!p || typeof p.stageIdx !== 'number' || !Array.isArray(p.cleared)) return null;
         const s = { ...freshState(), ...p };
-        // 舊版存檔：蜂蜜放在榮譽帶裡，移除（改為動態顯示）
         s.bag = (Array.isArray(s.bag) ? s.bag : []).filter(b => b && b.icon !== '🍯');
         s.stageIdx = Math.max(0, Math.min(STAGES.length - 1, Math.floor(s.stageIdx)));
-        // 舊版存檔：過關後 stageIdx 沒前進，會重打同一篇 → 自動推進
         while (s.cleared[s.stageIdx] && s.stageIdx < STAGES.length - 1) s.stageIdx++;
         s.hp = Math.max(1, Math.min(s.maxHp, s.hp));
         return s;
       } catch (e) {}
       return null;
     }
-
     function resetState() {
       state = freshState();
+      if (game === 'story') P = state;
       try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
     }
-
     const allCleared = () => state.cleared.every(Boolean);
 
+    // 難度：故事第 1 篇 = tier 0，第 12 篇 = tier 11；連續闖關第 1 關 = tier 6，之後每關 +1
+    function difficulty() {
+      const tier = game === 'story' ? state.stageIdx : 5 + run.round;
+      return {
+        tier,
+        mapN: tier < 3 ? 11 : tier < 8 ? 13 : 15,
+        obstacles: Math.min(9, 1 + Math.floor(tier / 2)),
+        obstacleKinds: Math.min(OBSTACLES.length, 2 + tier),
+        qLevel: tier < 3 ? 1 : tier < 7 ? 2 : 3,
+        penalty: Math.round(8 + tier * 1.5),
+        timeLimit: game === 'endless' ? Math.max(8, 22 - run.round) : 0,
+        loops: tier < 6 ? 2 : 1,
+        lootCount: game === 'endless' ? 2 : 3,
+        chargeChance: Math.min(0.5, 0.22 + tier * 0.02)
+      };
+    }
+
     function updateHud() {
-      $('hud-lv').textContent = `Lv.${state.level}`;
-      $('hud-ch-num').textContent = `(${state.stageIdx + 1}/${STAGES.length})`;
-      const clearedCount = state.cleared.filter(Boolean).length;
-      $('hud-rank').textContent = CUB_RANKS[Math.min(clearedCount, CUB_RANKS.length - 1)];
-      $('hud-hp-txt').textContent = `HP ${state.hp}/${state.maxHp}`;
-      const pct = Math.max(0, Math.round((state.hp / state.maxHp) * 100));
+      if (game === 'endless' && run) {
+        $('hud-lv').textContent = `🔥第${run.round}關`;
+        $('hud-rank').textContent = '連續闖關';
+        $('hud-ch-num').textContent = `(最佳 ${bestRound})`;
+      } else {
+        $('hud-lv').textContent = `Lv.${state.level}`;
+        $('hud-ch-num').textContent = `(${state.stageIdx + 1}/${STAGES.length})`;
+        $('hud-rank').textContent = CUB_RANKS[Math.min(state.cleared.filter(Boolean).length, CUB_RANKS.length - 1)];
+      }
+      $('hud-hp-txt').textContent = `HP ${P.hp}/${P.maxHp}`;
+      const pct = Math.max(0, Math.round((P.hp / P.maxHp) * 100));
       const bar = $('hud-hp-bar');
       bar.style.width = `${pct}%`;
       bar.className = `h-full transition-all duration-300 ${pct <= 30 ? 'bg-red-600 animate-pulse' : 'bg-rose-500'}`;
-      $('bag-count').textContent = state.bag.length;
-      $('stat-atk').textContent = state.atk;
-      $('stat-def').textContent = state.def;
-      $('act-heal').textContent = `🍯 蜂蜜補血 (${state.honey})`;
+      $('bag-count').textContent = game === 'endless' ? `${run ? run.solved : 0}` : state.bag.length;
+      $('stat-atk').textContent = P.atk;
+      $('stat-def').textContent = P.def;
+      $('act-heal').textContent = `🍯 蜂蜜補血 (${P.honey})`;
     }
 
     function hideAllPanels() {
@@ -671,50 +744,68 @@
       sceneCard.classList.add('hidden');
       rpgDialogue.classList.add('hidden');
     }
-
     function showPanel(p) {
       p.classList.remove('hidden');
       p.classList.add('flex');
       if (!reducedMotion) replayAnim(p, 'pop-in');
     }
 
-    function showOverlay({ icon, chapter, title, sub, btnText, onStart, showStory = false, showNew = false, onNew = null }) {
+    // 標題 / 結算畫面：按鈕動態產生；confirm:true 的按鈕要連按兩次
+    const BTN_STYLE = {
+      primary: 'w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-emerald-950 font-black text-lg shadow-xl transition',
+      fire: 'w-full py-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black text-base shadow-lg',
+      secondary: 'w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-base shadow-lg',
+      ghost: 'w-full py-3 rounded-xl bg-white/15 hover:bg-white/25 text-emerald-100 font-bold text-sm border border-white/25'
+    };
+    function showOverlay({ icon, chapter, title, sub, buttons }) {
       hideAllPanels();
       stopAutoWalk();
-      ovIcon.textContent = icon;
-      ovChapter.textContent = chapter || '';
-      ovChapter.classList.toggle('hidden', !chapter);
-      ovTitle.textContent = title;
-      ovSub.textContent = sub;
-      ovBtn.textContent = btnText;
-      ovBtn.onclick = () => { Sfx.startBgm(); onStart(); };
-      ovStoryBtn.classList.toggle('hidden', !showStory);
-      ovNewBtn.classList.toggle('hidden', !showNew);
-      ovNewBtn.onclick = onNew ? () => { Sfx.startBgm(); onNew(); } : null;
+      stopQuizTimer();
+      $('ov-icon').textContent = icon;
+      const ch = $('ov-chapter');
+      ch.textContent = chapter || '';
+      ch.classList.toggle('hidden', !chapter);
+      $('ov-title').textContent = title;
+      $('ov-sub').textContent = sub;
+      const box = $('ov-buttons');
+      box.innerHTML = '';
+      buttons.forEach((b, i) => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = BTN_STYLE[b.style || (i === 0 ? 'primary' : 'ghost')];
+        el.textContent = b.text;
+        let armed = false;
+        el.addEventListener('click', () => {
+          if (b.confirm && !armed) {
+            armed = true;
+            el.textContent = '⚠️ 再按一次確認';
+            setTimeout(() => { armed = false; el.textContent = b.text; }, 3000);
+            return;
+          }
+          if (!b.noMusic) Sfx.startBgm();
+          b.onClick();
+        });
+        box.appendChild(el);
+      });
       overlay.classList.remove('hidden');
-      setTimeout(() => ovBtn.focus({ preventScroll: true }), 0);
+      const first = box.querySelector('button');
+      if (first) setTimeout(() => first.focus({ preventScroll: true }), 0);
     }
 
     // =========================================================================
-    // 5. 劇情對話（打字機效果，點一下顯示全文、再點下一句）
+    // 6. 劇情對話（打字機效果）
     // =========================================================================
-    let dlgQueue = [];
-    let dlgIdx = 0;
-    let dlgCallback = null;
-    let dlgFinalLabel = '繼續 ▶';
-    let typeTimer = null;
-    let typing = false;
+    let dlgQueue = [], dlgIdx = 0, dlgCallback = null, dlgFinalLabel = '繼續 ▶';
+    let typeTimer = null, typing = false;
 
-    function startDialogue(lines, onFinish, finalLabel = '繼續 ▶', sceneIdx = state.stageIdx) {
+    function startDialogue(lines, onFinish, finalLabel = '繼續 ▶') {
       mode = 'dialogue';
       stopAutoWalk();
       overlay.classList.add('hidden');
       hideAllPanels();
-      const st = STAGES[sceneIdx];
-      $('sc-chapter').textContent = st.chapter;
-      $('sc-emoji').textContent = st.emoji;
+      $('sc-chapter').textContent = cur.chapter;
+      $('sc-emoji').textContent = cur.emoji;
       sceneCard.classList.remove('hidden');
-
       dlgQueue = lines;
       dlgIdx = 0;
       dlgCallback = onFinish;
@@ -723,7 +814,6 @@
       if (!reducedMotion) replayAnim(rpgDialogue, 'pop-in');
       renderDialogueLine();
     }
-
     function finishTyping() {
       if (typeTimer) clearInterval(typeTimer);
       typeTimer = null;
@@ -732,7 +822,6 @@
       textEl.textContent = dlgQueue[dlgIdx].txt;
       textEl.classList.remove('caret');
     }
-
     function renderDialogueLine() {
       const line = dlgQueue[dlgIdx];
       $('dlg-avatar').textContent = line.av;
@@ -740,7 +829,6 @@
       $('dlg-page').textContent = `${dlgIdx + 1} / ${dlgQueue.length}`;
       $('dlg-next').textContent = dlgIdx < dlgQueue.length - 1 ? '下一句 ▶' : dlgFinalLabel;
       Sfx.blip();
-
       const textEl = $('dlg-text');
       if (typeTimer) clearInterval(typeTimer);
       if (reducedMotion) { typing = true; finishTyping(); return; }
@@ -755,35 +843,30 @@
         if (i >= chars.length) finishTyping();
       }, 28);
     }
-
     function advanceDialogue() {
       if (mode !== 'dialogue') return;
       if (typing) { finishTyping(); return; }
-      if (dlgIdx < dlgQueue.length - 1) {
-        dlgIdx++;
-        renderDialogueLine();
-      } else {
-        rpgDialogue.classList.add('hidden');
-        const cb = dlgCallback;
-        dlgCallback = null;
-        if (cb) cb();
-      }
+      if (dlgIdx < dlgQueue.length - 1) { dlgIdx++; renderDialogueLine(); return; }
+      rpgDialogue.classList.add('hidden');
+      const cb = dlgCallback;
+      dlgCallback = null;
+      if (cb) cb();
     }
-
     rpgDialogue.addEventListener('click', advanceDialogue);
 
     // =========================================================================
-    // 6. 隨機迷宮地圖
+    // 7. 隨機迷宮 + 阻礙
     // =========================================================================
     const CUTE_WOLF_TILE = `<svg viewBox="0 0 40 40" class="w-9 h-9 cute-hop" aria-hidden="true"><polygon points="7,15 11,4 18,13" fill="#6b7280"/><polygon points="33,15 29,4 22,13" fill="#6b7280"/><circle cx="20" cy="22" r="12" fill="#9ca3af"/><ellipse cx="20" cy="26" rx="8" ry="6" fill="#f9fafb"/><circle cx="15" cy="20" r="2" fill="#111827"/><circle cx="25" cy="20" r="2" fill="#111827"/><polygon points="18,24 22,24 20,27" fill="#111827"/><polygon points="12,32 28,32 20,38" fill="#f59e0b"/></svg>`;
     const LOOT_ICON = { honey: '🍯', chest: '🎁', clover: '🍀' };
+    const DIRS4 = [[0, -1], [0, 1], [-1, 0], [1, 0]];
 
-    function generateRandomMaze(idx) {
-      const N = MAP_N;
+    function generateMaze(d, accent, npcInfo) {
+      const N = d.mapN;
       const grid = Array.from({ length: N }, () => Array(N).fill(1));
-      const start = { x: 1, y: 9 };
+      const start = { x: 1, y: N - 2 };
 
-      // 迭代式 DFS（不會遞迴過深）
+      // 迭代式 DFS 挖迷宮
       const stack = [[start.x, start.y]];
       grid[start.y][start.x] = 0;
       while (stack.length) {
@@ -799,98 +882,108 @@
         stack.push([cx + dx, cy + dy]);
       }
 
-      // 打通 1～2 道牆形成小迴圈（保證打的是真正的牆，不是柱子）
+      // 打通少量牆形成迴圈
       const breakable = [];
-      for (let y = 1; y < N - 1; y++) {
-        for (let x = 1; x < N - 1; x++) {
-          if (grid[y][x] !== 1) continue;
-          const horiz = x % 2 === 0 && y % 2 === 1;
-          const vert = x % 2 === 1 && y % 2 === 0;
-          if (horiz || vert) breakable.push([x, y]);
-        }
+      for (let y = 1; y < N - 1; y++) for (let x = 1; x < N - 1; x++) {
+        if (grid[y][x] === 1 && ((x % 2 === 0 && y % 2 === 1) || (x % 2 === 1 && y % 2 === 0))) breakable.push([x, y]);
       }
-      shuffle(breakable).slice(0, 1 + (idx >= 6 ? 0 : 1)).forEach(([x, y]) => { grid[y][x] = 0; });
+      shuffle(breakable).slice(0, d.loops).forEach(([x, y]) => { grid[y][x] = 0; });
 
-      // 裝飾地形: 2=小溪水邊, 3=議會石, 4=小花草叢
-      const accent = (idx === 3 || idx === 9) ? 2 : (idx === 0 || idx === 8 || idx === 10) ? 3 : 4;
-      for (let y = 1; y < N - 1; y++) {
-        for (let x = 1; x < N - 1; x++) {
-          if (grid[y][x] === 0 && !(x === start.x && y === start.y) && Math.random() < 0.16) grid[y][x] = accent;
-        }
+      // 裝飾地形
+      for (let y = 1; y < N - 1; y++) for (let x = 1; x < N - 1; x++) {
+        if (grid[y][x] === 0 && !(x === start.x && y === start.y) && Math.random() < 0.14) grid[y][x] = accent;
       }
 
-      // BFS 找離起點最遠的可走格放 NPC
+      // BFS：距離與父節點
       const dist = Array.from({ length: N }, () => Array(N).fill(-1));
+      const parent = new Map();
       const q = [[start.x, start.y]];
       dist[start.y][start.x] = 0;
       const walkable = [];
-      let farthest = { x: start.x, y: start.y, d: 0 };
-      for (let head = 0; head < q.length; head++) {
-        const [cx, cy] = q[head];
-        const d = dist[cy][cx];
-        if (d > 0) walkable.push({ x: cx, y: cy, d });
-        if (d > farthest.d) farthest = { x: cx, y: cy, d };
-        for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+      let far = { x: start.x, y: start.y, d: 0 };
+      for (let h = 0; h < q.length; h++) {
+        const [cx, cy] = q[h];
+        const dd = dist[cy][cx];
+        if (dd > 0) walkable.push({ x: cx, y: cy, d: dd });
+        if (dd > far.d) far = { x: cx, y: cy, d: dd };
+        for (const [dx, dy] of DIRS4) {
           const nx = cx + dx, ny = cy + dy;
           if (nx >= 0 && nx < N && ny >= 0 && ny < N && grid[ny][nx] !== 1 && dist[ny][nx] === -1) {
-            dist[ny][nx] = d + 1;
+            dist[ny][nx] = dd + 1;
+            parent.set(`${nx},${ny}`, [cx, cy]);
             q.push([nx, ny]);
           }
         }
       }
 
-      const npcPos = { x: farthest.x, y: farthest.y };
-      const lootCandidates = shuffle(walkable.filter(p => !(p.x === npcPos.x && p.y === npcPos.y) && p.d >= 4));
-      const loot = ['honey', 'chest', 'clover']
-        .map((kind, i) => lootCandidates[i] && { x: lootCandidates[i].x, y: lootCandidates[i].y, kind, taken: false })
-        .filter(Boolean);
+      // 起點 → NPC 的主路線，阻礙平均放在主路線上（一定會遇到）
+      const path = [];
+      let k = `${far.x},${far.y}`;
+      let node = [far.x, far.y];
+      while (node && !(node[0] === start.x && node[1] === start.y)) {
+        path.unshift(node);
+        node = parent.get(k);
+        if (node) k = `${node[0]},${node[1]}`;
+      }
+      const kinds = OBSTACLES.slice(0, d.obstacleKinds);
+      const obstacles = [];
+      const usable = path.slice(1, -1); // 不放在起點旁和 NPC 身上
+      const count = Math.min(d.obstacles, usable.length);
+      const taken = new Set();
+      for (let i = 0; i < count; i++) {
+        const idx = Math.floor(((i + 1) * usable.length) / (count + 1));
+        const [x, y] = usable[Math.min(usable.length - 1, idx)];
+        if (taken.has(`${x},${y}`)) continue;
+        taken.add(`${x},${y}`);
+        grid[y][x] = 0;
+        obstacles.push({ x, y, ...kinds[Math.floor(Math.random() * kinds.length)], cleared: false });
+      }
 
-      return { grid, start, npc: { ...CHAPTER_NPCS[idx], x: npcPos.x, y: npcPos.y }, loot };
+      const lootCands = shuffle(walkable.filter(p => !(p.x === far.x && p.y === far.y) && p.d >= 3 && !taken.has(`${p.x},${p.y}`)));
+      const kindsLoot = shuffle(['honey', 'chest', 'clover']).slice(0, d.lootCount);
+      const loot = kindsLoot.map((kind, i) => lootCands[i] && { x: lootCands[i].x, y: lootCands[i].y, kind, taken: false }).filter(Boolean);
+
+      return { N, grid, start, npc: { ...npcInfo, x: far.x, y: far.y }, loot, obstacles };
     }
 
-    let activeMaze = [];
-    let activeNpc = null;
+    let M = null; // 目前地圖
     let mapPlayer = { x: 1, y: 9 };
     let visitedGrid = [];
-    let mapLoot = [];
-    let walkTimer = null;
-    let hintTimer = null;
-    let swipeStart = null;
-    let swipeMoved = false;
+    let walkTimer = null, hintTimer = null;
+    let swipeStart = null, swipeMoved = false;
 
-    function stopAutoWalk() {
-      if (walkTimer) { clearInterval(walkTimer); walkTimer = null; }
-    }
-
-    const inBounds = (x, y) => x >= 0 && x < MAP_N && y >= 0 && y < MAP_N;
+    function stopAutoWalk() { if (walkTimer) { clearInterval(walkTimer); walkTimer = null; } }
+    const inBounds = (x, y) => M && x >= 0 && x < M.N && y >= 0 && y < M.N;
+    const obstacleAt = (x, y) => M.obstacles.find(o => !o.cleared && o.x === x && o.y === y);
 
     function revealAround(px, py) {
-      for (let dy = -2; dy <= 2; dy++) {
-        for (let dx = -2; dx <= 2; dx++) {
-          const nx = px + dx, ny = py + dy;
-          if (inBounds(nx, ny) && Math.abs(dx) + Math.abs(dy) <= 2) visitedGrid[ny][nx] = true;
-        }
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+        const nx = px + dx, ny = py + dy;
+        if (inBounds(nx, ny) && Math.abs(dx) + Math.abs(dy) <= 2) visitedGrid[ny][nx] = true;
       }
     }
 
-    function enterForestMap(idx) {
-      state.stageIdx = idx;
-      saveProgress();
-      updateHud();
+    function enterMap() {
+      const d = difficulty();
+      cur.diff = d;
+      M = generateMaze(d, cur.accent, cur.npc);
+      mapPlayer = { ...M.start };
+      visitedGrid = Array.from({ length: M.N }, () => Array(M.N).fill(false));
+      revealAround(mapPlayer.x, mapPlayer.y);
       mode = 'map';
       overlay.classList.add('hidden');
       hideAllPanels();
-
-      const gen = generateRandomMaze(idx);
-      activeMaze = gen.grid;
-      activeNpc = gen.npc;
-      mapPlayer = { x: gen.start.x, y: gen.start.y };
-      visitedGrid = Array.from({ length: MAP_N }, () => Array(MAP_N).fill(false));
-      revealAround(mapPlayer.x, mapPlayer.y);
-      mapLoot = gen.loot;
-
       showPanel(mapPanel);
-      flashHint(`🌲 第 ${idx + 1} 篇：在迷宮中找到 ❗ ${activeNpc.name}`, 1800);
+      updateHud();
+      flashHint(`${cur.mapTitle}：沿路有 ${M.obstacles.length} 個阻礙，找到 ❗ ${M.npc.name}`, 2200);
+      renderForestMap();
+    }
+    function backToMap(msg) {
+      mode = 'map';
+      hideAllPanels();
+      showPanel(mapPanel);
+      updateHud();
+      if (msg) flashHint(msg, 1800);
       renderForestMap();
     }
 
@@ -902,96 +995,75 @@
       const dir = v + h;
       return dir ? `在${dir}方 ${arrows[dir]}` : '就在眼前';
     }
-
-    function compassHint() {
-      return `❗ ${activeNpc.name} ${getCompassDir(mapPlayer.x, mapPlayer.y, activeNpc.x, activeNpc.y)}`;
-    }
-
-    // 暫時顯示訊息，時間到自動恢復成指南針提示（修正原版撿寶後提示永遠卡住的問題）
+    const compassHint = () => `❗ ${M.npc.name} ${getCompassDir(mapPlayer.x, mapPlayer.y, M.npc.x, M.npc.y)}`;
     function flashHint(msg, ms = 1600) {
       const el = $('map-quest-hint');
       el.textContent = msg;
       if (hintTimer) clearTimeout(hintTimer);
-      hintTimer = setTimeout(() => {
-        hintTimer = null;
-        if (mode === 'map') el.textContent = compassHint();
-      }, ms);
+      hintTimer = setTimeout(() => { hintTimer = null; if (mode === 'map') el.textContent = compassHint(); }, ms);
     }
 
     function renderForestMap() {
-      const npc = activeNpc;
-      const camX = Math.max(0, Math.min(MAP_N - VIEW, mapPlayer.x - 3));
-      const camY = Math.max(0, Math.min(MAP_N - VIEW, mapPlayer.y - 3));
-
+      const N = M.N;
+      const camX = Math.max(0, Math.min(N - VIEW, mapPlayer.x - 3));
+      const camY = Math.max(0, Math.min(N - VIEW, mapPlayer.y - 3));
       if (!hintTimer) $('map-quest-hint').textContent = compassHint();
-      const taken = mapLoot.filter(l => l.taken).length;
-      $('map-loot-left').textContent = `寶物 ${taken}/${mapLoot.length}`;
+      const lootTaken = M.loot.filter(l => l.taken).length;
+      const obLeft = M.obstacles.filter(o => !o.cleared).length;
+      $('map-loot-left').textContent = `寶物 ${lootTaken}/${M.loot.length}・阻礙剩 ${obLeft}`;
 
       let html = '';
-      for (let vy = 0; vy < VIEW; vy++) {
-        for (let vx = 0; vx < VIEW; vx++) {
-          const x = camX + vx;
-          const y = camY + vy;
-          const seen = visitedGrid[y][x];
-          const tile = activeMaze[y][x];
-          const isPlayer = mapPlayer.x === x && mapPlayer.y === y;
-          const isNpc = npc.x === x && npc.y === y;
-          const loot = mapLoot.find(l => !l.taken && l.x === x && l.y === y);
-
-          let bg = 'bg-[#d8f3dc]';
-          let content = '';
-
-          if (!seen && !isNpc) {
-            bg = 'bg-[#132a1e]';
-            content = '<span class="opacity-40 text-base">☁️</span>';
-          } else {
-            if (tile === 1) { bg = 'bg-[#2d6a4f]'; content = '<span class="text-2xl">🌳</span>'; }
-            else if (tile === 2) { bg = 'bg-sky-200'; content = '<span class="text-xl">💧</span>'; }
-            else if (tile === 3) { bg = 'bg-stone-200'; content = '<span class="text-xl">🪨</span>'; }
-            else if (tile === 4) { content = '<span class="text-lg">🌼</span>'; }
-
-            if (loot) content = `<span class="text-2xl">${LOOT_ICON[loot.kind]}</span>`;
-            if (isNpc) {
-              bg = 'bg-amber-300 ring-2 ring-white animate-pulse';
-              content = `<span class="relative text-2xl">${npc.icon}<span class="absolute -top-2 -right-2 text-xs">❗</span></span>`;
-            }
-            if (isPlayer) {
-              bg = 'bg-amber-100 ring-2 ring-amber-500 shadow-inner';
-              content = CUTE_WOLF_TILE;
-            }
+      for (let vy = 0; vy < VIEW; vy++) for (let vx = 0; vx < VIEW; vx++) {
+        const x = camX + vx, y = camY + vy;
+        const seen = visitedGrid[y][x];
+        const tile = M.grid[y][x];
+        const isPlayer = mapPlayer.x === x && mapPlayer.y === y;
+        const isNpc = M.npc.x === x && M.npc.y === y;
+        const loot = M.loot.find(l => !l.taken && l.x === x && l.y === y);
+        const ob = obstacleAt(x, y);
+        let bg = 'bg-[#d8f3dc]';
+        let content = '';
+        if (!seen && !isNpc) {
+          bg = 'bg-[#132a1e]';
+          content = '<span class="opacity-40 text-base">☁️</span>';
+        } else {
+          if (tile === 1) { bg = 'bg-[#2d6a4f]'; content = '<span class="text-2xl">🌳</span>'; }
+          else if (tile === 2) { bg = 'bg-sky-200'; content = '<span class="text-xl">💧</span>'; }
+          else if (tile === 3) { bg = 'bg-stone-200'; content = '<span class="text-xl">🪨</span>'; }
+          else if (tile === 4) { content = '<span class="text-lg">🌼</span>'; }
+          if (loot) content = `<span class="text-2xl">${LOOT_ICON[loot.kind]}</span>`;
+          if (ob) { bg = 'bg-orange-200 ring-2 ring-orange-500'; content = `<span class="text-2xl">${ob.icon}</span>`; }
+          if (isNpc) {
+            bg = 'bg-amber-300 ring-2 ring-white animate-pulse';
+            content = `<span class="relative text-2xl">${M.npc.icon}<span class="absolute -top-2 -right-2 text-xs">❗</span></span>`;
           }
-          html += `<button data-mx="${x}" data-my="${y}" type="button" tabindex="-1" class="${bg} rounded-xl flex items-center justify-center aspect-square leading-none">${content}</button>`;
+          if (isPlayer) { bg = 'bg-amber-100 ring-2 ring-amber-500 shadow-inner'; content = CUTE_WOLF_TILE; }
         }
+        html += `<button data-mx="${x}" data-my="${y}" type="button" tabindex="-1" class="${bg} rounded-xl flex items-center justify-center aspect-square leading-none">${content}</button>`;
       }
       mapGridEl.innerHTML = html;
     }
 
-    // 只會沿著「已探索」的格子自動尋路，避免點迷霧直接透露正解路線
     function walkToTile(tx, ty) {
       stopAutoWalk();
-      if (mode !== 'map' || !inBounds(tx, ty) || activeMaze[ty][tx] === 1) return;
+      if (mode !== 'map' || !inBounds(tx, ty) || M.grid[ty][tx] === 1) return;
       if (tx === mapPlayer.x && ty === mapPlayer.y) return;
       if (!visitedGrid[ty][tx]) { flashHint('☁️ 那裡還在迷霧中，先往附近探索吧！', 1200); Sfx.bump(); return; }
-
-      const prev = new Map();
-      const startKey = `${mapPlayer.x},${mapPlayer.y}`;
+      const prev = new Map([[`${mapPlayer.x},${mapPlayer.y}`, null]]);
       const q = [[mapPlayer.x, mapPlayer.y]];
-      prev.set(startKey, null);
       let found = false;
-      for (let head = 0; head < q.length; head++) {
-        const [cx, cy] = q[head];
+      for (let h = 0; h < q.length; h++) {
+        const [cx, cy] = q[h];
         if (cx === tx && cy === ty) { found = true; break; }
-        for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
-          const nx = cx + dx, ny = cy + dy;
-          const key = `${nx},${ny}`;
-          if (inBounds(nx, ny) && activeMaze[ny][nx] !== 1 && visitedGrid[ny][nx] && !prev.has(key)) {
+        for (const [dx, dy] of DIRS4) {
+          const nx = cx + dx, ny = cy + dy, key = `${nx},${ny}`;
+          if (inBounds(nx, ny) && M.grid[ny][nx] !== 1 && visitedGrid[ny][nx] && !prev.has(key)) {
             prev.set(key, [cx, cy, dx, dy]);
             q.push([nx, ny]);
           }
         }
       }
       if (!found) { flashHint('🤔 目前已知的路走不到那裡', 1200); Sfx.bump(); return; }
-
       const path = [];
       let key = `${tx},${ty}`;
       while (prev.get(key)) {
@@ -999,83 +1071,76 @@
         path.unshift([dx, dy]);
         key = `${px},${py}`;
       }
-
       let step = 0;
       walkTimer = setInterval(() => {
         if (mode !== 'map' || step >= path.length) { stopAutoWalk(); return; }
         const [dx, dy] = path[step++];
-        moveMapPlayer(dx, dy);
+        if (!moveMapPlayer(dx, dy)) stopAutoWalk();
       }, 115);
     }
 
     function moveMapPlayer(dx, dy) {
       if (mode !== 'map') return false;
-      const nx = mapPlayer.x + dx;
-      const ny = mapPlayer.y + dy;
-      if (!inBounds(nx, ny) || activeMaze[ny][nx] === 1) {
+      const nx = mapPlayer.x + dx, ny = mapPlayer.y + dy;
+      if (!inBounds(nx, ny) || M.grid[ny][nx] === 1) {
         Sfx.bump();
         if (!reducedMotion) replayAnim(mapGridEl, 'shake');
         return false;
       }
+      const ob = obstacleAt(nx, ny);
+      if (ob) { stopAutoWalk(); startObstacle(ob); return false; }
+
       mapPlayer.x = nx;
       mapPlayer.y = ny;
       revealAround(nx, ny);
       Sfx.blip();
 
-      const loot = mapLoot.find(l => !l.taken && l.x === nx && l.y === ny);
+      const loot = M.loot.find(l => !l.taken && l.x === nx && l.y === ny);
       if (loot) {
         loot.taken = true;
         Sfx.coin();
         if (loot.kind === 'honey') {
-          const full = state.honey >= 5;
-          state.honey = Math.min(5, state.honey + 1);
-          state.hp = Math.min(state.maxHp, state.hp + 20);
+          const full = P.honey >= 5;
+          P.honey = Math.min(5, P.honey + 1);
+          P.hp = Math.min(P.maxHp, P.hp + 20);
           flashHint(full ? '🍯 蜂蜜罐已滿（上限 5）！HP +20' : '🍯 撿到森林蜂蜜！HP +20、蜂蜜 +1');
         } else if (loot.kind === 'clover') {
-          state.hp = Math.min(state.maxHp, state.hp + 15);
-          flashHint('🍀 發現幸運草！體力恢復 15 HP');
+          P.hp = Math.min(P.maxHp, P.hp + 25);
+          flashHint('🍀 發現幸運草！體力恢復 25 HP');
         } else {
-          state.atk += 2;
-          state.def += 2;
+          P.atk += 2; P.def += 2;
           flashHint('🎁 打開童軍禮物盒！勇氣 +2、智慧 +2');
         }
         updateHud();
         saveProgress();
       }
 
-      if (activeNpc.x === nx && activeNpc.y === ny) {
+      if (M.npc.x === nx && M.npc.y === ny) {
         stopAutoWalk();
         if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
         Sfx.coin();
-        const st = STAGES[state.stageIdx];
-        startDialogue(st.intro, () => startEncounter(), st.type === 'battle' ? '進入戰鬥 ⚔️' : '開始考驗 📝');
-        return true;
+        startDialogue(cur.intro, () => startEncounter(), cur.type === 'battle' ? '進入戰鬥 ⚔️' : '開始考驗 📝');
+        return false;
       }
       renderForestMap();
       return true;
     }
 
-    // 地圖輸入：點擊（事件委派）、連續滑動、方向鍵、D-pad
+    // 地圖輸入
     mapGridEl.addEventListener('click', (e) => {
       if (swipeMoved) return;
       const btn = e.target.closest('[data-mx]');
-      if (!btn) return;
-      walkToTile(parseInt(btn.dataset.mx, 10), parseInt(btn.dataset.my, 10));
+      if (btn) walkToTile(parseInt(btn.dataset.mx, 10), parseInt(btn.dataset.my, 10));
     });
-    mapGridEl.addEventListener('pointerdown', (e) => {
-      swipeStart = { x: e.clientX, y: e.clientY };
-      swipeMoved = false;
-    });
+    mapGridEl.addEventListener('pointerdown', (e) => { swipeStart = { x: e.clientX, y: e.clientY }; swipeMoved = false; });
     mapGridEl.addEventListener('pointermove', (e) => {
       if (!swipeStart || mode !== 'map') return;
-      const dx = e.clientX - swipeStart.x;
-      const dy = e.clientY - swipeStart.y;
+      const dx = e.clientX - swipeStart.x, dy = e.clientY - swipeStart.y;
       if (Math.hypot(dx, dy) >= 28) {
         swipeMoved = true;
         stopAutoWalk();
         if (Math.abs(dx) > Math.abs(dy)) moveMapPlayer(dx > 0 ? 1 : -1, 0);
         else moveMapPlayer(0, dy > 0 ? 1 : -1);
-        // 重設起點：手指不放開可以連續走好幾格
         swipeStart = { x: e.clientX, y: e.clientY };
       }
     });
@@ -1083,7 +1148,6 @@
     mapGridEl.addEventListener('pointerup', endSwipe);
     mapGridEl.addEventListener('pointercancel', endSwipe);
     mapGridEl.addEventListener('pointerleave', endSwipe);
-
     $('dpad').addEventListener('click', (e) => {
       const btn = e.target.closest('[data-dir]');
       if (!btn) return;
@@ -1093,35 +1157,205 @@
     });
 
     // =========================================================================
-    // 7. 回合制戰鬥（暴擊、集氣技能、敵人蓄力重擊）
+    // 8. 共用問答介面（阻礙、問答關都用它）
+    // =========================================================================
+    let currentQ = null, quizLock = false, quizHandler = null;
+    let quizTimer = null, quizDeadline = 0;
+
+    function stopQuizTimer() { if (quizTimer) { clearInterval(quizTimer); quizTimer = null; } }
+
+    function askQuestion(q, { progress, barPct, intro, timeLimit, retreat, onAnswer }) {
+      currentQ = shuffleOpts(q);
+      quizLock = false;
+      quizHandler = onAnswer;
+      $('quiz-tag').textContent = currentQ.tag + (q.retry ? '・再挑戰' : '');
+      $('quiz-progress').textContent = progress;
+      $('quiz-bar').style.width = `${barPct}%`;
+      $('quiz-q').textContent = currentQ.q;
+      $('quiz-feedback').textContent = '';
+      const introBox = $('quiz-intro');
+      introBox.classList.toggle('hidden', !intro);
+      introBox.classList.toggle('flex', !!intro);
+      if (intro) { $('quiz-intro-icon').textContent = intro.icon; $('quiz-intro-text').textContent = intro.text; }
+      $('quiz-retreat').classList.toggle('hidden', !retreat);
+
+      const optsBox = $('quiz-opts');
+      optsBox.innerHTML = currentQ.opts.map((opt, i) => `
+        <button data-qopt="${i}" type="button" class="w-full text-left p-3.5 rounded-xl border-2 border-emerald-800/20 bg-emerald-50/70 hover:bg-amber-100 active:scale-[0.99] text-base font-bold text-gray-900 transition">
+          ${'ABC'[i]}. ${escapeHtml(opt)}
+        </button>`).join('');
+      if (!reducedMotion) replayAnim(optsBox, 'pop-in');
+
+      stopQuizTimer();
+      const tw = $('quiz-timer-wrap');
+      tw.classList.toggle('hidden', !timeLimit);
+      tw.classList.toggle('flex', !!timeLimit);
+      if (timeLimit) {
+        quizDeadline = Date.now() + timeLimit * 1000;
+        let lastSec = timeLimit;
+        const tick = () => {
+          const left = Math.max(0, quizDeadline - Date.now());
+          const sec = Math.ceil(left / 1000);
+          $('quiz-timer-txt').textContent = sec;
+          $('quiz-timer-bar').style.width = `${(left / (timeLimit * 1000)) * 100}%`;
+          if (sec !== lastSec && sec <= 3 && sec > 0) Sfx.tick();
+          lastSec = sec;
+          if (left <= 0) { stopQuizTimer(); answerQuiz(-1); }
+        };
+        tick();
+        quizTimer = setInterval(tick, 100);
+      }
+    }
+
+    function answerQuiz(pick) {
+      if (quizLock || (mode !== 'quiz' && mode !== 'obstacle') || !currentQ) return;
+      if (pick >= currentQ.opts.length) return;
+      quizLock = true;
+      stopQuizTimer();
+      const q = currentQ;
+      const correct = pick === q.ans;
+      const buttons = $('quiz-opts').querySelectorAll('[data-qopt]');
+      buttons.forEach(b => { b.disabled = true; });
+      buttons[q.ans].classList.add('bg-emerald-200', 'border-emerald-600');
+      const fb = $('quiz-feedback');
+      if (correct) {
+        Sfx.coin();
+        fb.className = 'text-sm font-bold text-emerald-700 min-h-[22px]';
+        fb.textContent = '✅ 答對了！真厲害！';
+      } else {
+        Sfx.hit();
+        if (pick >= 0) buttons[pick].classList.add('bg-rose-200', 'border-rose-500');
+        fb.className = 'text-sm font-bold text-rose-700 min-h-[22px]';
+        fb.textContent = `${pick < 0 ? '⏰ 時間到！' : '❌'} 正確答案是：${q.opts[q.ans]}`;
+        if (!reducedMotion) replayAnim($('stage-area'), 'flash-red');
+      }
+      quizHandler(correct, q);
+    }
+
+    // 答錯扣血：故事模式最低留 10 HP；連續闖關可能倒下
+    function quizPenalty(extraMsg) {
+      const pen = cur.diff.penalty;
+      P.hp = game === 'story' ? Math.max(10, P.hp - pen) : Math.max(0, P.hp - pen);
+      updateHud();
+      const fb = $('quiz-feedback');
+      fb.textContent += `（HP -${pen}${extraMsg || ''}）`;
+      return P.hp <= 0;
+    }
+
+    $('quiz-opts').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-qopt]');
+      if (btn) answerQuiz(parseInt(btn.dataset.qopt, 10));
+    });
+    $('quiz-retreat').addEventListener('click', () => {
+      if (mode !== 'obstacle' || quizLock) return;
+      stopQuizTimer();
+      backToMap('↩️ 先退回去，想好再來挑戰！');
+    });
+
+    // ---- 阻礙 ----
+    let activeObstacle = null;
+    function startObstacle(ob) {
+      mode = 'obstacle';
+      activeObstacle = ob;
+      hideAllPanels();
+      showPanel(quizPanel);
+      askObstacleQuestion();
+    }
+    function askObstacleQuestion(retry) {
+      const ob = activeObstacle;
+      const q = pickQuestions([ob.cat], cur.diff.qLevel, 1)[0];
+      const left = M.obstacles.filter(o => !o.cleared).length;
+      askQuestion({ ...q, retry }, {
+        progress: `${ob.icon} 阻礙 ${M.obstacles.length - left + 1}/${M.obstacles.length}`,
+        barPct: ((M.obstacles.length - left) / M.obstacles.length) * 100,
+        intro: { icon: ob.icon, text: `【${ob.name}】${ob.intro}` },
+        timeLimit: cur.diff.timeLimit,
+        retreat: true,
+        onAnswer: (correct) => {
+          if (correct) {
+            ob.cleared = true;
+            if (run) run.solved++;
+            setTimeout(() => {
+              if (mode !== 'obstacle') return;
+              mapPlayer = { x: ob.x, y: ob.y };
+              revealAround(ob.x, ob.y);
+              backToMap(ob.win);
+            }, 850);
+          } else {
+            const dead = quizPenalty('，換一題再試');
+            setTimeout(() => {
+              if (mode !== 'obstacle') return;
+              if (dead) runOver('在阻礙前體力耗盡');
+              else askObstacleQuestion(true);
+            }, 1900);
+          }
+        }
+      });
+    }
+
+    // ---- 問答關（答錯的題目排到最後重考）----
+    let quizQueue = [], quizTotal = 0, quizScore = 0, quizMistakes = 0;
+    function startQuiz() {
+      mode = 'quiz';
+      quizScore = 0;
+      quizMistakes = 0;
+      quizQueue = shuffle(cur.questions);
+      quizTotal = quizQueue.length;
+      showPanel(quizPanel);
+      askNextQuiz();
+    }
+    function askNextQuiz() {
+      askQuestion(quizQueue[0], {
+        progress: `答對 ${quizScore} / ${quizTotal}`,
+        barPct: (quizScore / quizTotal) * 100,
+        intro: null,
+        timeLimit: cur.diff.timeLimit,
+        retreat: false,
+        onAnswer: (correct) => {
+          const q = quizQueue.shift();
+          let dead = false;
+          if (correct) quizScore++;
+          else {
+            quizMistakes++;
+            quizQueue.push({ ...q, retry: true });
+            dead = quizPenalty('，這題稍後再考');
+          }
+          $('quiz-progress').textContent = `答對 ${quizScore} / ${quizTotal}`;
+          $('quiz-bar').style.width = `${(quizScore / quizTotal) * 100}%`;
+          setTimeout(() => {
+            if (mode !== 'quiz') return;
+            if (dead) runOver('在長老的考驗中體力耗盡');
+            else if (quizScore >= quizTotal) completeStage();
+            else askNextQuiz();
+          }, correct ? 900 : 1900);
+        }
+      });
+    }
+
+    // =========================================================================
+    // 9. 回合制戰鬥
     // =========================================================================
     const SKILL_CHARGE = 3;
-    let enemyHp = 50;
-    let enemyMaxHp = 50;
-    let defending = false;
-    let battleLock = false;
-    let skillCharge = 0;
-    let enemyCharged = false;
-    let battleTurns = 0;
+    let enemyHp = 50, enemyMaxHp = 50, defending = false, battleLock = false;
+    let skillCharge = 0, enemyCharged = false, battleTurns = 0;
 
     function startEncounter() {
-      const st = STAGES[state.stageIdx];
       hideAllPanels();
-      if (st.type === 'battle') {
+      if (cur.type === 'battle') {
         mode = 'battle';
-        enemyHp = enemyMaxHp = st.enemy.hp;
+        enemyHp = enemyMaxHp = cur.enemy.hp;
         defending = false;
         battleLock = false;
         skillCharge = 1;
         enemyCharged = false;
         battleTurns = 0;
-        $('enemy-icon').textContent = st.enemy.icon;
-        $('enemy-name').textContent = st.enemy.name;
-        $('battle-log').textContent = `遭遇「${st.enemy.name}」！請選擇你的行動！`;
+        $('enemy-icon').textContent = cur.enemy.icon;
+        $('enemy-name').textContent = cur.enemy.name;
+        $('battle-log').textContent = `遭遇「${cur.enemy.name}」！請選擇你的行動！`;
         updateBattleUI();
         showPanel(battlePanel);
       } else {
-        startQuiz(st);
+        startQuiz();
       }
     }
 
@@ -1129,40 +1363,33 @@
       $('enemy-hp-txt').textContent = `敵方體力 ${Math.max(0, enemyHp)} / ${enemyMaxHp}`;
       $('enemy-hp-bar').style.width = `${Math.max(0, Math.round((enemyHp / enemyMaxHp) * 100))}%`;
       const intent = $('enemy-intent');
-      intent.textContent = enemyCharged ? '⚡ 蓄力中！下回合重擊' : '🙂 普通狀態';
+      intent.textContent = enemyCharged ? '⚡ 蓄力中！下回合重擊' : `⚔️ 攻擊力 ${cur.enemy.atk}`;
       intent.className = enemyCharged ? 'text-amber-600 animate-pulse' : 'text-gray-500';
       const ready = skillCharge >= SKILL_CHARGE;
       const skillBtn = $('act-skill');
       skillBtn.textContent = ready ? '🐾 小隊支援 ✨' : `🐾 小隊支援 (${skillCharge}/${SKILL_CHARGE})`;
-      ['act-atk', 'act-def', 'act-heal'].forEach(id => { $(id).disabled = battleLock; });
+      ['act-atk', 'act-def'].forEach(id => { $(id).disabled = battleLock; });
       skillBtn.disabled = battleLock || !ready;
-      $('act-heal').disabled = battleLock || state.honey <= 0 || state.hp >= state.maxHp;
       updateHud();
+      $('act-heal').disabled = battleLock || P.honey <= 0 || P.hp >= P.maxHp;
     }
 
     function floatText(text, color) {
       if (reducedMotion) return;
-      const layer = $('enemy-float-layer');
       const el = document.createElement('div');
       el.className = 'dmg-float';
       el.style.color = color;
       el.style.left = `${40 + Math.random() * 20}%`;
       el.textContent = text;
-      layer.appendChild(el);
+      $('enemy-float-layer').appendChild(el);
       setTimeout(() => el.remove(), 950);
     }
 
     function playerBattleTurn(action) {
       if (mode !== 'battle' || battleLock) return;
-      const st = STAGES[state.stageIdx];
       const logEl = $('battle-log');
-
       if (action === 'skill' && skillCharge < SKILL_CHARGE) return;
-      if (action === 'heal' && state.honey <= 0) {
-        Sfx.bump();
-        logEl.textContent = '🍯 森林蜂蜜已經用完了！請選其他行動！';
-        return;
-      }
+      if (action === 'heal' && P.honey <= 0) { Sfx.bump(); logEl.textContent = '🍯 森林蜂蜜已經用完了！請選其他行動！'; return; }
 
       battleLock = true;
       defending = false;
@@ -1171,7 +1398,7 @@
 
       if (action === 'atk') {
         const crit = Math.random() < 0.15;
-        let dmg = state.atk + Math.floor(Math.random() * 8);
+        let dmg = P.atk + Math.floor(Math.random() * 8);
         if (crit) dmg = Math.round(dmg * 1.6);
         enemyHp = Math.max(0, enemyHp - dmg);
         skillCharge = Math.min(SKILL_CHARGE, skillCharge + 1);
@@ -1180,80 +1407,74 @@
         floatText(crit ? `-${dmg}!!` : `-${dmg}`, crit ? '#d97706' : '#e11d48');
         if (!reducedMotion) replayAnim(enemyCard, 'shake');
       } else if (action === 'skill') {
-        const dmg = Math.round(state.atk * 1.8) + state.level * 2 + Math.floor(Math.random() * 6);
+        const dmg = Math.round(P.atk * 1.8) + P.level * 2 + Math.floor(Math.random() * 6);
         enemyHp = Math.max(0, enemyHp - dmg);
         skillCharge = 0;
-        if (enemyCharged) { enemyCharged = false; }
+        const interrupted = enemyCharged;
+        enemyCharged = false;
         Sfx.win();
-        logEl.textContent = `🐾 狼群與夥伴聯手支援，造成 ${dmg} 點強力傷害，打斷了敵人的蓄力！`;
+        logEl.textContent = `🐾 狼群與夥伴聯手支援，造成 ${dmg} 點強力傷害！${interrupted ? '成功打斷蓄力！' : ''}`;
         floatText(`-${dmg}`, '#d97706');
         if (!reducedMotion) replayAnim(enemyCard, 'shake');
       } else if (action === 'def') {
         defending = true;
-        state.hp = Math.min(state.maxHp, state.hp + 10);
+        P.hp = Math.min(P.maxHp, P.hp + 10);
         skillCharge = Math.min(SKILL_CHARGE, skillCharge + 1);
         Sfx.blip();
         logEl.textContent = '🛡️ 遵守叢林規律穩住陣腳，減傷並恢復 10 HP！';
       } else if (action === 'heal') {
-        state.honey--;
-        const before = state.hp;
-        state.hp = Math.min(state.maxHp, state.hp + 40);
+        P.honey--;
+        const before = P.hp;
+        P.hp = Math.min(P.maxHp, P.hp + 40);
         Sfx.coin();
-        logEl.textContent = `🍯 喝下森林蜂蜜，體力恢復 ${state.hp - before} HP！`;
+        logEl.textContent = `🍯 喝下森林蜂蜜，體力恢復 ${P.hp - before} HP！`;
       }
-
       updateBattleUI();
 
       if (enemyHp <= 0) {
         $('enemy-icon').textContent = '💫';
-        setTimeout(() => completeChapter(), 800);
+        setTimeout(() => { if (mode === 'battle') completeStage(); }, 800);
         return;
       }
-
-      setTimeout(() => enemyTurn(st), 700);
+      setTimeout(enemyTurn, 700);
     }
 
-    function enemyTurn(st) {
+    function enemyTurn() {
       if (mode !== 'battle') return;
       const logEl = $('battle-log');
-
-      // 尚未蓄力時，有機率改為蓄力（下回合重擊）
-      if (!enemyCharged && battleTurns >= 2 && Math.random() < 0.28) {
+      const en = cur.enemy;
+      if (!enemyCharged && battleTurns >= 2 && Math.random() < cur.diff.chargeChance) {
         enemyCharged = true;
         Sfx.bump();
-        logEl.textContent = `⚡ ${st.enemy.name} 正在蓄力！下回合會重擊，快防禦或用小隊支援打斷！`;
+        logEl.textContent = `⚡ ${en.name} 正在蓄力！下回合會重擊，快防禦或用小隊支援打斷！`;
         battleLock = false;
         updateBattleUI();
         return;
       }
-
       const heavy = enemyCharged;
       enemyCharged = false;
-      const rawDmg = st.enemy.atk + Math.floor(Math.random() * 5);
-      let dmg = Math.max(4, rawDmg - Math.floor(state.def / 3));
+      let dmg = Math.max(4, en.atk + Math.floor(Math.random() * 5) - Math.floor(P.def / 3));
       if (heavy) dmg = Math.round(dmg * 1.8);
       if (defending) dmg = Math.max(2, Math.floor(dmg * (heavy ? 0.25 : 0.4)));
-      state.hp = Math.max(0, state.hp - dmg);
+      P.hp = Math.max(0, P.hp - dmg);
       Sfx.hit();
       logEl.textContent = heavy
-        ? `💢 ${st.enemy.name} 重擊！${defending ? '幸好有防禦，' : ''}毛克利受到 ${dmg} 點傷害！`
-        : `💥 ${st.enemy.name} 反擊！毛克利受到 ${dmg} 點傷害！`;
+        ? `💢 ${en.name} 重擊！${defending ? '幸好有防禦，' : ''}毛克利受到 ${dmg} 點傷害！`
+        : `💥 ${en.name} 反擊！毛克利受到 ${dmg} 點傷害！`;
       if (!reducedMotion) replayAnim($('stage-area'), 'flash-red');
 
-      if (state.hp <= 0) {
+      if (P.hp <= 0) {
         updateBattleUI();
         setTimeout(() => {
+          if (game === 'endless') { runOver(`被 ${en.name} 打倒了`); return; }
           mode = 'gameover';
           showOverlay({
-            icon: '😵', chapter: st.chapter, title: '體力耗盡了！',
+            icon: '😵', chapter: cur.chapter, title: '體力耗盡了！',
             sub: '阿克拉扶起你：小狼不怕困難，補滿體力再挑戰一次！',
-            btnText: '補滿體力接關 🔄',
-            onStart: () => {
-              state.hp = state.maxHp;
-              state.honey = Math.max(2, state.honey);
-              updateHud();
-              startEncounter();
-            }
+            buttons: [
+              { text: '補滿體力接關 🔄', onClick: () => { P.hp = P.maxHp; P.honey = Math.max(2, P.honey); updateHud(); startEncounter(); } },
+              { text: '回到標題', onClick: goTitle }
+            ]
           });
         }, 700);
         return;
@@ -1263,101 +1484,92 @@
     }
 
     // =========================================================================
-    // 8. 進程問答（選項洗牌；答錯的題目移到最後重考）
+    // 10. 關卡設定：故事模式 / 連續闖關
     // =========================================================================
-    let quizQueue = [];
-    let quizTotal = 4;
-    let quizScore = 0;
-    let quizMistakes = 0;
-    let quizLock = false;
-    let currentQ = null;
-
-    function startQuiz(st) {
-      mode = 'quiz';
-      quizScore = 0;
-      quizMistakes = 0;
-      const extras = shuffle(CUB_QUESTION_POOL.filter(q => !st.questions.some(sq => sq.q === q.q)));
-      quizQueue = shuffle([...st.questions, extras[0]]).map(q => {
-        // 洗牌選項並重新對應正解
-        const order = shuffle(q.opts.map((_, i) => i));
-        return { ...q, opts: order.map(i => q.opts[i]), ans: order.indexOf(q.ans) };
-      });
-      quizTotal = quizQueue.length;
-      showPanel(quizPanel);
-      renderQuizQuestion();
-    }
-
-    function renderQuizQuestion() {
-      currentQ = quizQueue[0];
-      quizLock = false;
-      $('quiz-progress').textContent = `答對 ${quizScore} / ${quizTotal}`;
-      $('quiz-bar').style.width = `${Math.round((quizScore / quizTotal) * 100)}%`;
-      $('quiz-tag').textContent = currentQ.tag + (currentQ.retry ? '・再挑戰' : '');
-      $('quiz-q').textContent = currentQ.q;
-      $('quiz-feedback').textContent = '';
-
-      const optsBox = $('quiz-opts');
-      optsBox.innerHTML = currentQ.opts.map((opt, i) => `
-        <button data-qopt="${i}" type="button" class="w-full text-left p-3.5 rounded-xl border-2 border-emerald-800/20 bg-emerald-50/70 hover:bg-amber-100 active:scale-[0.99] text-base font-bold text-gray-900 transition">
-          ${'ABC'[i]}. ${escapeHtml(opt)}
-        </button>
-      `).join('');
-      if (!reducedMotion) replayAnim(optsBox, 'pop-in');
-    }
-
-    function answerQuiz(pick) {
-      if (quizLock || mode !== 'quiz' || !currentQ || pick >= currentQ.opts.length) return;
-      quizLock = true;
-      const q = currentQ;
-      const buttons = $('quiz-opts').querySelectorAll('[data-qopt]');
-      const fb = $('quiz-feedback');
-      buttons.forEach(b => { b.disabled = true; });
-      buttons[q.ans].classList.add('bg-emerald-200', 'border-emerald-600');
-
-      quizQueue.shift();
-      if (pick === q.ans) {
-        quizScore++;
-        Sfx.coin();
-        fb.className = 'text-sm font-bold text-emerald-700 min-h-[22px]';
-        fb.textContent = '✅ 答對了！真厲害！';
-      } else {
-        quizMistakes++;
-        state.hp = Math.max(10, state.hp - 15);
-        Sfx.hit();
-        buttons[pick].classList.add('bg-rose-200', 'border-rose-500');
-        fb.className = 'text-sm font-bold text-rose-700 min-h-[22px]';
-        fb.textContent = `❌ 正確答案是：${q.opts[q.ans]}（這題稍後會再考一次）`;
-        // 答錯：選項重新洗牌後排到最後
-        const order = shuffle(q.opts.map((_, i) => i));
-        quizQueue.push({ ...q, opts: order.map(i => q.opts[i]), ans: order.indexOf(q.ans), retry: true });
-        updateHud();
+    function buildStoryStage(idx) {
+      const st = STAGES[idx];
+      const d = { ...difficulty() };
+      const c = {
+        chapter: st.chapter, emoji: st.emoji, type: st.type, intro: st.intro,
+        npc: CHAPTER_NPCS[idx],
+        mapTitle: `🌲 第 ${idx + 1} 篇`,
+        accent: (idx === 3 || idx === 9) ? 2 : (idx === 0 || idx === 8 || idx === 10) ? 3 : 4,
+        diff: d
+      };
+      if (st.type === 'battle') c.enemy = { ...st.enemy };
+      else {
+        const need = 3 + Math.floor(idx / 4);
+        const base = st.questions.map(q => ({ ...q }));
+        const extras = pickQuestions(['badge', 'promise'], d.qLevel, need - base.length, base.map(q => q.q));
+        c.questions = [...base, ...extras];
       }
-      $('quiz-progress').textContent = `答對 ${quizScore} / ${quizTotal}`;
-      $('quiz-bar').style.width = `${Math.round((quizScore / quizTotal) * 100)}%`;
-
-      setTimeout(() => {
-        if (mode !== 'quiz') return;
-        if (quizScore >= quizTotal) completeChapter();
-        else renderQuizQuestion();
-      }, pick === q.ans ? 900 : 1800);
+      return c;
     }
 
-    $('quiz-opts').addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-qopt]');
-      if (btn) answerQuiz(parseInt(btn.dataset.qopt, 10));
-    });
+    function buildEndlessStage(r) {
+      const d = difficulty();
+      const boss = r % 5 === 0;
+      const isBattle = boss || r % 2 === 1;
+      const npc = CHAPTER_NPCS[(r - 1) % CHAPTER_NPCS.length];
+      const c = {
+        chapter: `🔥 連續闖關・第 ${r} 關${boss ? '（頭目關）' : ''}`,
+        emoji: boss ? '🐯' : isBattle ? '⚔️' : '📜',
+        type: isBattle ? 'battle' : 'quiz',
+        npc,
+        mapTitle: `🔥 第 ${r} 關`,
+        accent: [2, 3, 4][r % 3],
+        diff: d,
+        intro: [{ av: npc.icon, sp: npc.name, txt: ENDLESS_LINES[(r - 1) % ENDLESS_LINES.length] }]
+      };
+      if (isBattle) {
+        const base = boss ? { name: `頭目・瘸老虎 邪漢（第 ${r / 5} 次復仇）`, icon: '🐯' } : ENDLESS_ENEMIES[Math.floor(Math.random() * ENDLESS_ENEMIES.length)];
+        c.enemy = {
+          ...base,
+          hp: Math.round((70 + r * 15) * (boss ? 1.5 : 1)),
+          atk: Math.round(13 + r * 2.2 + (boss ? 3 : 0))
+        };
+        c.intro.push({ av: base.icon, sp: base.name, txt: boss ? '「吼！這次我不會再輸給你了！」' : '「站住！想通過這裡，先打贏我！」' });
+      } else {
+        const need = Math.min(8, 3 + Math.floor(r / 2));
+        c.questions = pickQuestions(null, d.qLevel, need);
+        c.intro.push({ av: '📜', sp: '長老的考驗', txt: `「答對 ${need} 題幼童軍知識才能過關，每題限時 ${d.timeLimit} 秒！」` });
+      }
+      return c;
+    }
+
+    function startChapter(idx) {
+      game = 'story';
+      P = state;
+      state.stageIdx = idx;
+      saveProgress();
+      cur = buildStoryStage(idx);
+      enterMap();
+    }
+
+    function startEndless() {
+      game = 'endless';
+      run = freshRun();
+      P = run;
+      usedQ.clear();
+      startEndlessRound();
+    }
+    function startEndlessRound() {
+      cur = buildEndlessStage(run.round);
+      enterMap();
+    }
 
     // =========================================================================
-    // 9. 過關與結算
+    // 11. 過關、結算
     // =========================================================================
-    function completeChapter() {
-      if (mode === 'chapter-clear') return;
-      mode = 'chapter-clear';
+    function completeStage() {
+      if (mode === 'stage-clear') return;
+      mode = 'stage-clear';
+      stopQuizTimer();
       Sfx.win();
-      const st = STAGES[state.stageIdx];
-      const wasQuiz = st.type === 'quiz';
-      const perfect = wasQuiz && quizMistakes === 0;
+      if (game === 'endless') return completeEndlessRound();
 
+      const st = STAGES[state.stageIdx];
+      const perfect = st.type === 'quiz' && quizMistakes === 0;
       state.cleared[state.stageIdx] = true;
       state.level = Math.min(STAGES.length + 1, state.level + 1);
       state.maxHp += 10;
@@ -1366,23 +1578,52 @@
       state.def += 2;
       state.honey = Math.min(5, state.honey + (perfect ? 2 : 1));
       if (!state.bag.some(b => b.name === st.reward.name)) state.bag.push(st.reward);
-
       const isLast = state.stageIdx >= STAGES.length - 1;
-      // 修正：存檔時直接指向下一篇，重新整理後不會重打已過關的篇章
       if (!isLast) state.stageIdx++;
       saveProgress();
       updateHud();
 
-      const outroLines = [
+      startDialogue([
         ...st.outro,
         { av: st.reward.icon, sp: '升級獎勵', txt: `升到 Lv.${state.level}！HP 上限 +10、勇氣 +3、智慧 +2，獲得【${st.reward.name}】！${perfect ? '全對獎勵：蜂蜜 +2！' : ''}` }
-      ];
-
-      // 對話時場景卡仍顯示剛打完的篇章
-      startDialogue(outroLines, () => {
+      ], () => {
         if (isLast) showVictory();
         else startChapter(state.stageIdx);
-      }, isLast ? '完成冒險 👑' : '前往下一篇 ▶', st.id);
+      }, isLast ? '完成冒險 👑' : '前往下一篇 ▶');
+    }
+
+    function completeEndlessRound() {
+      const r = run.round;
+      if (r > bestRound) { bestRound = r; saveBest(); }
+      run.level++;
+      run.maxHp += 6;
+      run.atk += 2;
+      run.def += 1;
+      const heal = Math.round(run.maxHp * 0.35);
+      run.hp = Math.min(run.maxHp, run.hp + heal);
+      run.honey = Math.min(5, run.honey + 1);
+      run.round++;
+      updateHud();
+      const next = difficulty();
+      startDialogue([
+        { av: '🏆', sp: `第 ${r} 關完成！`, txt: `勇氣 +2、智慧 +1、HP 上限 +6，恢復 ${heal} HP，蜂蜜 +1。${r === bestRound ? '🎉 刷新最佳紀錄！' : ''}` },
+        { av: '⚠️', sp: '下一關預告', txt: `第 ${run.round} 關：迷宮 ${next.mapN}×${next.mapN}、${next.obstacles} 個阻礙、題目難度 ${'★'.repeat(next.qLevel)}、限時 ${next.timeLimit} 秒。體力不會全部恢復，小心前進！` }
+      ], startEndlessRound, '挑戰下一關 🔥');
+    }
+
+    function runOver(reason) {
+      mode = 'gameover';
+      const reached = run.round;
+      const cleared = reached - 1;
+      showOverlay({
+        icon: '🏕️', chapter: `連續闖關・${reason}`,
+        title: `闖過 ${cleared} 關！`,
+        sub: `這次挑戰到第 ${reached} 關，通過 ${run.solved} 個阻礙。最佳紀錄：第 ${bestRound} 關。小狼不怕困難，再試一次吧！`,
+        buttons: [
+          { text: '🔥 再挑戰一次', style: 'fire', onClick: startEndless },
+          { text: '回到標題', onClick: goTitle }
+        ]
+      });
     }
 
     function showVictory() {
@@ -1390,58 +1631,98 @@
       showOverlay({
         icon: '👑', chapter: `《叢林奇談》${STAGES.length} 篇全破`,
         title: `Lv.${state.level} 傳奇小狼・毛克利`,
-        sub: `你收集了 ${state.bag.length} 枚徽章，完成全部冒險！可以打開故事書回味喔！`,
-        btnText: '從頭重溫冒險 🔄',
-        showStory: true,
-        onStart: () => { resetState(); updateHud(); startChapter(0); }
+        sub: `你收集了 ${state.bag.length} 枚徽章！接下來挑戰「連續闖關」，看看你能撐到第幾關！`,
+        buttons: [
+          { text: `🔥 挑戰連續闖關${bestRound ? `（最佳 ${bestRound}）` : ''}`, style: 'fire', onClick: startEndless },
+          { text: '📖 閱讀故事書', style: 'secondary', noMusic: true, onClick: openFullStory },
+          { text: '從頭重溫故事 🔄', confirm: true, onClick: () => { resetState(); updateHud(); startChapter(0); } }
+        ]
       });
     }
 
-    function startChapter(idx) { enterForestMap(idx); }
+    function goTitle() {
+      stopAutoWalk();
+      stopQuizTimer();
+      closeModals();
+      game = 'story';
+      P = state;
+      run = null;
+      mode = 'title';
+      updateHud();
+      if (allCleared()) { showVictory(); return; }
+      const hasSave = state.stageIdx > 0 || state.cleared.some(Boolean);
+      const endlessBtn = { text: `🔥 連續闖關模式${bestRound ? `（最佳 ${bestRound}）` : ''}`, style: 'fire', onClick: startEndless };
+      if (hasSave) {
+        showOverlay({
+          icon: '🐺', chapter: `已記錄進度：第 ${state.stageIdx + 1} 篇`,
+          title: '叢林奇談 RPG',
+          sub: `上次冒險到「${STAGES[state.stageIdx].chapter}」。也可以挑戰越來越難的連續闖關！`,
+          buttons: [
+            { text: `繼續故事 (第 ${state.stageIdx + 1} 篇) ▶️`, onClick: () => startChapter(state.stageIdx) },
+            endlessBtn,
+            { text: '📖 閱讀故事書', style: 'secondary', noMusic: true, onClick: openFullStory },
+            { text: '從第 1 篇重新開始 🔄', confirm: true, onClick: () => { resetState(); updateHud(); startChapter(0); } }
+          ]
+        });
+      } else {
+        showOverlay({
+          icon: '🐺', chapter: '幼童軍 × 叢林奇談',
+          title: '叢林奇談：毛克利的冒險',
+          sub: '探索迷宮、用幼童軍知識突破阻礙、回合制戰鬥，收集 12 枚徽章！',
+          buttons: [
+            { text: '開始故事冒險 🚀', onClick: () => startChapter(0) },
+            endlessBtn
+          ]
+        });
+      }
+    }
 
     // =========================================================================
-    // 10. 榮譽帶與故事書
+    // 12. 榮譽帶與故事書
     // =========================================================================
     function openBagModal() {
       Sfx.blip();
       stopAutoWalk();
       const list = $('bag-list');
-      const badges = state.bag.length
-        ? state.bag.map(item => `
-          <div class="p-3.5 rounded-xl bg-white/10 border border-white/15 flex items-center gap-3">
-            <span class="text-3xl shrink-0">${escapeHtml(item.icon)}</span>
-            <div>
-              <div class="font-black text-sm text-amber-300">${escapeHtml(item.name)}</div>
-              <div class="text-xs text-emerald-100/90 mt-0.5">${escapeHtml(item.desc)}</div>
-            </div>
-          </div>`).join('')
-        : '<div class="p-4 text-center text-sm text-emerald-100/80">還沒有徽章，完成第一篇就能拿到第一枚！</div>';
-      const locked = STAGES.length - state.bag.length;
-      list.innerHTML = `
-        <div class="p-3.5 rounded-xl bg-amber-500/15 border border-amber-400/30 text-xs text-amber-200 flex justify-between">
-          <span>🍯 森林蜂蜜：<strong>${state.honey} / 5 罐</strong>（戰鬥中補 40 HP）</span>
-          <span>⚔️ ${state.atk}　🛡️ ${state.def}</span>
-        </div>
-        ${badges}
-        ${locked > 0 ? `<div class="text-center text-xs text-emerald-100/60 pt-1">還有 ${locked} 枚徽章等你解鎖 🔒</div>` : ''}
-      `;
+      const statLine = `
+        <div class="p-3.5 rounded-xl bg-amber-500/15 border border-amber-400/30 text-xs text-amber-200 flex justify-between gap-2">
+          <span>🍯 森林蜂蜜：<strong>${P.honey} / 5 罐</strong>（戰鬥中補 40 HP）</span>
+          <span class="shrink-0">⚔️ ${P.atk}　🛡️ ${P.def}</span>
+        </div>`;
+      if (game === 'endless') {
+        list.innerHTML = statLine + `
+          <div class="p-4 rounded-xl bg-white/10 border border-white/15 text-sm space-y-1.5">
+            <div class="font-black text-amber-300">🔥 連續闖關紀錄</div>
+            <div>目前：第 ${run.round} 關</div>
+            <div>已通過阻礙：${run.solved} 個</div>
+            <div>最佳紀錄：第 ${bestRound} 關</div>
+          </div>`;
+      } else {
+        const badges = state.bag.length
+          ? state.bag.map(item => `
+            <div class="p-3.5 rounded-xl bg-white/10 border border-white/15 flex items-center gap-3">
+              <span class="text-3xl shrink-0">${escapeHtml(item.icon)}</span>
+              <div>
+                <div class="font-black text-sm text-amber-300">${escapeHtml(item.name)}</div>
+                <div class="text-xs text-emerald-100/90 mt-0.5">${escapeHtml(item.desc)}</div>
+              </div>
+            </div>`).join('')
+          : '<div class="p-4 text-center text-sm text-emerald-100/80">還沒有徽章，完成第一篇就能拿到第一枚！</div>';
+        const locked = STAGES.length - state.bag.length;
+        list.innerHTML = statLine + badges + (locked > 0 ? `<div class="text-center text-xs text-emerald-100/60 pt-1">還有 ${locked} 枚徽章等你解鎖 🔒</div>` : '');
+      }
       bagModal.classList.remove('hidden');
       bagModal.classList.add('flex');
     }
-
     function closeModals() {
       [bagModal, storyModal].forEach(m => { m.classList.add('hidden'); m.classList.remove('flex'); });
     }
-
     function openFullStory() {
       Sfx.blip();
-      const box = $('story-content');
-      box.innerHTML = STAGES.map((st, i) => {
+      $('story-content').innerHTML = STAGES.map((st, i) => {
         const unlocked = state.cleared[i];
         const lines = unlocked
-          ? [...st.intro, ...st.outro]
-              .map(l => `<p class="text-base text-gray-800 leading-relaxed"><span class="font-bold text-emerald-900">${l.av} ${escapeHtml(l.sp)}：</span>${escapeHtml(l.txt)}</p>`)
-              .join('')
+          ? [...st.intro, ...st.outro].map(l => `<p class="text-base text-gray-800 leading-relaxed"><span class="font-bold text-emerald-900">${l.av} ${escapeHtml(l.sp)}：</span>${escapeHtml(l.txt)}</p>`).join('')
           : '<p class="text-sm text-gray-500">🔒 完成這一篇冒險後解鎖</p>';
         return `
           <article class="p-4 rounded-2xl bg-white border-2 border-emerald-900/15 shadow-sm space-y-2 ${unlocked ? '' : 'opacity-60'}">
@@ -1457,33 +1738,45 @@
     }
 
     // =========================================================================
-    // 11. 事件綁定與初始化
+    // 13. 事件綁定與初始化
     // =========================================================================
     $('act-atk').addEventListener('click', () => playerBattleTurn('atk'));
     $('act-skill').addEventListener('click', () => playerBattleTurn('skill'));
     $('act-def').addEventListener('click', () => playerBattleTurn('def'));
     $('act-heal').addEventListener('click', () => playerBattleTurn('heal'));
-
     $('btn-bag').addEventListener('click', openBagModal);
     $('btn-close-bag').addEventListener('click', closeModals);
-    ovStoryBtn.addEventListener('click', openFullStory);
     $('btn-close-story').addEventListener('click', closeModals);
+
+    const homeBtn = $('btn-home');
+    let homeArmed = false;
+    homeBtn.addEventListener('click', () => {
+      if (mode === 'title' || mode === 'victory') return;
+      if (!homeArmed) {
+        homeArmed = true;
+        homeBtn.textContent = game === 'endless' ? '放棄？' : '回標題？';
+        setTimeout(() => { homeArmed = false; homeBtn.textContent = '🏠'; }, 2500);
+        return;
+      }
+      homeArmed = false;
+      homeBtn.textContent = '🏠';
+      goTitle();
+    });
 
     window.addEventListener('keydown', (e) => {
       const modalOpen = !bagModal.classList.contains('hidden') || !storyModal.classList.contains('hidden');
       if (e.key === 'Escape' && modalOpen) { closeModals(); return; }
-      if (modalOpen || e.repeat && mode !== 'map') return;
-
+      if (modalOpen || (e.repeat && mode !== 'map')) return;
       if (mode === 'map') {
-        const k = e.key.toLowerCase();
         const dirs = { arrowup: [0, -1], w: [0, -1], arrowdown: [0, 1], s: [0, 1], arrowleft: [-1, 0], a: [-1, 0], arrowright: [1, 0], d: [1, 0] };
-        if (dirs[k]) { e.preventDefault(); stopAutoWalk(); moveMapPlayer(...dirs[k]); }
+        const dir = dirs[e.key.toLowerCase()];
+        if (dir) { e.preventDefault(); stopAutoWalk(); moveMapPlayer(...dir); }
       } else if (mode === 'dialogue') {
         if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); advanceDialogue(); }
       } else if (mode === 'battle') {
         const acts = { '1': 'atk', '2': 'skill', '3': 'def', '4': 'heal' };
         if (acts[e.key]) playerBattleTurn(acts[e.key]);
-      } else if (mode === 'quiz') {
+      } else if (mode === 'quiz' || mode === 'obstacle') {
         const idx = { '1': 0, '2': 1, '3': 2, a: 0, b: 1, c: 2 }[e.key.toLowerCase()];
         if (idx !== undefined) answerQuiz(idx);
       }
@@ -1491,51 +1784,13 @@
 
     const soundBtn = $('btn-sound');
     soundBtn.textContent = Sfx.enabled ? '🔊' : '🔇';
-    soundBtn.addEventListener('click', () => {
-      soundBtn.textContent = Sfx.toggle() ? '🔊' : '🔇';
-    });
+    soundBtn.addEventListener('click', () => { soundBtn.textContent = Sfx.toggle() ? '🔊' : '🔇'; });
 
-    window.addEventListener('load', () => {
+    (function boot() {
       const saved = loadProgress();
-      if (saved && (saved.stageIdx > 0 || saved.cleared.some(Boolean))) {
-        state = saved;
-        updateHud();
-        if (allCleared()) {
-          showVictory();
-          ovNewBtn.classList.add('hidden');
-          return;
-        }
-        showOverlay({
-          icon: '🐺', chapter: `已記錄進度：第 ${state.stageIdx + 1} 篇`,
-          title: '叢林奇談 RPG',
-          sub: `上次冒險到「${STAGES[state.stageIdx].chapter}」，要直接接關嗎？`,
-          btnText: `繼續接關 (第 ${state.stageIdx + 1} 篇) ▶️`,
-          onStart: () => startChapter(state.stageIdx),
-          showStory: true,
-          showNew: true,
-          onNew: () => {
-            // 頁內二次確認（部分內嵌環境不支援 confirm 對話框）
-            if (!ovNewBtn.dataset.armed) {
-              ovNewBtn.dataset.armed = '1';
-              ovNewBtn.textContent = '⚠️ 再按一次確認清除進度';
-              setTimeout(() => { delete ovNewBtn.dataset.armed; ovNewBtn.textContent = '從第 1 篇重新開始 🔄'; }, 3000);
-              return;
-            }
-            delete ovNewBtn.dataset.armed;
-            resetState(); updateHud(); startChapter(0);
-          }
-        });
-      } else {
-        updateHud();
-        showOverlay({
-          icon: '🐺', chapter: '文字冒險 RPG',
-          title: '叢林奇談：毛克利的冒險',
-          sub: '探索迷宮、聽故事、回合制戰鬥、幼童軍進程問答，收集 12 枚徽章！',
-          btnText: '開始冒險 🚀',
-          onStart: () => startChapter(0)
-        });
-      }
-    });
+      if (saved) { state = saved; P = state; }
+      goTitle();
+    })();
   </script>
 </body>
 </html>
